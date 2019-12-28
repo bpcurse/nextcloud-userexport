@@ -7,11 +7,12 @@ Simple php script to export user lists using the Nextcloud user metadata OCS API
 
 ## General usage
 - Enter the URL of the Nextcloud target instance incl. https://
-Do not use http:// unless you have a very good reason to do so.
-The script will block plain http connections and warn you unless you override this security measure with !http://...
 - Enter a username that has admin rights
 - Enter the corresponding password
 - Click on "submit" and wait
+
+Do not use http:// unless you have a very good reason to do so.
+The script will block plain http connections and warn you unless you override this security measure with !http://...
 
 API calls via curl are slow. **Querying hundreds of user accounts can take several minutes**. Be patient :)
 
