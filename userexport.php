@@ -17,8 +17,8 @@
 <form action="#" method="post"><font face="Helvetica">
   <input type="text" name="url" size="25"
     placeholder="https://cloud.example.com">
-	<input type="text" name="user" placeholder="Admin user name">
-	<input type="password" name="password" placeholder="Admin user password">
+  <input type="text" name="user" placeholder="Admin user name">
+  <input type="password" name="password" placeholder="Admin user password">
   <br><br>
   Display results as:
   <input type="radio" name="export_type" value="table" checked> Table
@@ -42,7 +42,7 @@ if(isset($_POST['submit'])) {
   $export_type = $_POST['export_type'];
 
   // Check if the form has been filled in completely
- 	if (isset($nextcloud_url) && isset($admin_username) && isset($admin_password))
+    if (isset($nextcloud_url) && isset($admin_username) && isset($admin_password))
   {
     // Save the first five chars of the url to a new variable '$trim_url'
     $trim_url = substr($nextcloud_url,0,5);
@@ -67,19 +67,19 @@ if(isset($_POST['submit'])) {
       */
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $nextcloud_url . '/ocs/v1.php/cloud/users');
-		curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-		curl_setopt($ch, CURLOPT_USERPWD, $admin_username . ':' . $admin_password);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_USERPWD, $admin_username . ':' . $admin_password);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'OCS-APIRequest: true',
-    	'Accept: application/json'
-		]);
+      'OCS-APIRequest: true',
+      'Accept: application/json'
+    ]);
 
-		$data = json_decode(curl_exec($ch), true);
+    $data = json_decode(curl_exec($ch), true);
 
-		if (isset($data['ocs']['data']['users'])) {
-			$users = $data['ocs']['data']['users'];
+    if (isset($data['ocs']['data']['users'])) {
+      $users = $data['ocs']['data']['users'];
 
       // Iterate through users and save the supplied data to $single_user_data
       foreach ($users as $user_id) {
@@ -108,9 +108,9 @@ if(isset($_POST['submit'])) {
       * Print status message containing user count, target instance and export timestamp
       * (change the standard used to display the timestamp to your needs)
       */
-		echo "<br><hr><font face=\"Helvetica\">Exported "
-      . count($collected_user_data) . " records from ".$nextcloud_url." on "
-      . date(DATE_RFC1123)."<hr><br>";
+      echo "<br><hr><font face=\"Helvetica\">Exported "
+        . count($collected_user_data) . " records from ".$nextcloud_url." on "
+        . date(DATE_RFC1123)."<hr><br>";
 
     // Sort the array containing the collected user data
     sort($collected_user_data);
