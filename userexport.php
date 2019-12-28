@@ -14,17 +14,41 @@
   tr:nth-child(even) {background-color: #f2f2f2;}
 </style>
 
-<form action="#" method="post"><font face="Helvetica">
-  <input type="text" name="url" size="25"
-    placeholder="https://cloud.example.com">
-  <input type="text" name="user" placeholder="Admin user name">
-  <input type="password" name="password" placeholder="Admin user password">
+<?php
+
+// Get parameters if any
+if (isset($_GET['url'])) {
+  $nextcloud_url = $_GET['url'];
+}
+if (isset($_GET['user'])) {
+  $admin_username = $_GET['user'];
+}
+if (isset($_GET['pass'])) {
+  $admin_password = $_GET['pass'];
+}
+if (isset($_GET['type']) &&
+  ($_GET['type'] == 'table' || $_GET['type'] == 'csv')) {
+    $export_type = $_GET['type'];
+}
+
+?>
+
+<form action='#' method='post'><font face='Helvetica'>
+  <input type='text' name='url' size='30'
+    placeholder='https://cloud.example.com'
+    value='<?php echo $nextcloud_url; ?>'>
+  <input type='text' name='user' size='15' placeholder='username'
+    value='<?php echo $admin_username; ?>'>
+  <input type='password' name='pass' size='15' placeholder='password'
+    value='<?php echo $admin_password; ?>'>
   <br><br>
   Display results as:
-  <input type="radio" name="export_type" value="table" checked> Table
-  <input type="radio" name="export_type" value="csv"> CSV
+  <input type='radio' name='export_type' value='table'
+    <?php if ($export_type == 'table') {echo 'checked=\"checked\"';} ?>> Table
+  <input type='radio' name='export_type' value='csv'
+    <?php if ($export_type == 'csv') {echo 'checked=\"checked\"';} ?>> CSV
   <br><br>
-  <input type="submit" name="submit" value="submit"></font>
+  <input type='submit' name='submit' value='submit'></font>
 </form>
 
 <?php
@@ -38,90 +62,86 @@ if(isset($_POST['submit'])) {
   // Set variables to POST values
   $nextcloud_url = $_POST['url'];
   $admin_username = $_POST['user'];
-  $admin_password = $_POST['password'];
+  $admin_password = $_POST['pass'];
   $export_type = $_POST['export_type'];
 
-  // Check if the form has been filled in completely
-    if (isset($nextcloud_url) && isset($admin_username) && isset($admin_password))
-  {
-    // Save the first five chars of the url to a new variable '$trim_url'
-    $trim_url = substr($nextcloud_url,0,5);
+  // Save the first five chars of the url to a new variable '$trim_url'
+  $trim_url = substr($nextcloud_url,0,5);
 
-    // Check if plain http is used without override command and exit if not
-    if ($trim_url != 'https' && $trim_url != '!http') {
-      exit('<font color="red" face="Helvetica"><hr>
-      <b>The use of plain http is blocked for security reasons.</b>
-      <br>Please use https instead.
-      <font color="black"><br><hr>
-      You can override this safety precaution and send your admin credentials unencrypted by using \'!\' before \'http\'
-      <br>e.g.: !http://cloud.example.com</font>');
-    }
+  // Check if plain http is used without override command and exit if not
+  if ($trim_url != 'https' && $trim_url != '!http') {
+    exit('<font color="red" face="Helvetica"><hr>
+    <b>The use of plain http is blocked for security reasons.</b>
+    <br>Please use https instead.
+    <font color="black"><br><hr>
+    You can override this safety precaution and send your admin credentials unencrypted by using \'!\' before \'http\'
+    <br>e.g.: !http://cloud.example.com</font>');
+  }
 
-    // Remove '!'' if https check override is selected by use of '!http'
-    if ($trim_url == '!http') {
-      $nextcloud_url = ltrim($nextcloud_url,'!');
-    }
+  // Remove '!'' if https check override is selected by use of '!http'
+  if ($trim_url == '!http') {
+    $nextcloud_url = ltrim($nextcloud_url,'!');
+  }
 
-    /**
-      * Initialize and set some curl options
-      */
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $nextcloud_url . '/ocs/v1.php/cloud/users');
-    curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-    curl_setopt($ch, CURLOPT_USERPWD, $admin_username . ':' . $admin_password);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-      'OCS-APIRequest: true',
-      'Accept: application/json'
-    ]);
+  /**
+    * Initialize and set some curl options
+    */
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $nextcloud_url . '/ocs/v1.php/cloud/users');
+  curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+  curl_setopt($ch, CURLOPT_USERPWD, $admin_username . ':' . $admin_password);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'OCS-APIRequest: true',
+    'Accept: application/json'
+  ]);
 
-    $data = json_decode(curl_exec($ch), true);
+  $data = json_decode(curl_exec($ch), true);
 
-    if (isset($data['ocs']['data']['users'])) {
-      $users = $data['ocs']['data']['users'];
+  if (isset($data['ocs']['data']['users'])) {
+    $users = $data['ocs']['data']['users'];
 
-      // Iterate through users and save the supplied data to $single_user_data
-      foreach ($users as $user_id) {
-				curl_setopt($ch, CURLOPT_URL, $nextcloud_url .
-          '/ocs/v1.php/cloud/users/' . $user_id);
+    // Iterate through users and save the supplied data to $single_user_data
+    foreach ($users as $user_id) {
+			curl_setopt($ch, CURLOPT_URL, $nextcloud_url .
+        '/ocs/v1.php/cloud/users/' . $user_id);
 
-        // Fetch data for specific user via curl
-        $single_user_data = json_decode(curl_exec($ch), true);
+      // Fetch data for specific user via curl
+      $single_user_data = json_decode(curl_exec($ch), true);
 
-        /**
-          * Push elements "user_id", "displayname", "email" and "lastLogin"
-          * to array "$collected_user_data"
-          */
-        $collected_user_data[] = array(
-          utf8_decode($user_id),
-          utf8_decode($single_user_data['ocs']['data']['displayname']),
-          strtolower($single_user_data['ocs']['data']['email']),
-          date("Y-m-d",
-            substr($single_user_data['ocs']['data']['lastLogin'],0,10)
-          )
-        );
-      }
-		}
-
-    /**
-      * Print status message containing user count, target instance and export timestamp
-      * (change the standard used to display the timestamp to your needs)
-      */
-      echo "<br><hr><font face=\"Helvetica\">Exported "
-        . count($collected_user_data) . " records from ".$nextcloud_url." on "
-        . date(DATE_RFC1123)."<hr><br>";
-
-    // Sort the array containing the collected user data
-    sort($collected_user_data);
-
-    // Display a table or comma separated values depending on radio button selection in the form
-    if ($export_type == 'table') {
-      echo build_table_user_data($collected_user_data);
-    } elseif ($export_type == 'csv') {
-      echo build_csv_user_data($collected_user_data);
+      /**
+        * Push elements "user_id", "displayname", "email" and "lastLogin"
+        * to array "$collected_user_data"
+        */
+      $collected_user_data[] = array(
+        utf8_decode($user_id),
+        utf8_decode($single_user_data['ocs']['data']['displayname']),
+        strtolower($single_user_data['ocs']['data']['email']),
+        date("Y-m-d",
+          substr($single_user_data['ocs']['data']['lastLogin'],0,10)
+        )
+      );
     }
 	}
+
+  /**
+    * Print status message containing user count, target instance and export timestamp
+    * (change the standard used to display the timestamp to your needs)
+    */
+  echo "<br><hr><font face=\"Helvetica\">Exported "
+    . count($collected_user_data) . " records from ".$nextcloud_url." on "
+    . date(DATE_RFC1123)."<hr><br>";
+
+  // Sort the array containing the collected user data
+  sort($collected_user_data);
+
+  // Display a table or comma separated values depending on radio button selection in the form
+  if ($export_type == 'table') {
+    echo build_table_user_data($collected_user_data);
+  } elseif ($export_type == 'csv') {
+    echo build_csv_user_data($collected_user_data);
+  }
 }
 
 /**
