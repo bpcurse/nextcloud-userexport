@@ -19,6 +19,11 @@
     placeholder="https://cloud.example.com">
 	<input type="text" name="user" placeholder="Admin user name">
 	<input type="password" name="password" placeholder="Admin user password">
+  <br><br>
+  Display results as:
+  <input type="radio" name="export_type" value="table" checked> Table
+  <input type="radio" name="export_type" value="csv"> CSV
+  <br><br>
   <input type="submit" name="submit" value="submit">
 </form>
 
@@ -34,6 +39,7 @@ if(isset($_POST['submit'])) {
   $nextcloud_url = $_POST['url'];
  	$admin_username = $_POST['user'];
  	$admin_password = $_POST['password'];
+  $export_type = $_POST['export_type'];
 
   // Check if the form has been filled in completely
  	if(isset($nextcloud_url) && isset($admin_username) && isset($admin_password))
@@ -67,45 +73,93 @@ if(isset($_POST['submit'])) {
         $single_user_data = json_decode(curl_exec($ch), true);
 
         /**
-          * Push elements "userId", "displayname", "email" and "lastLogin"
+          * Push elements "user_id", "displayname", "email" and "lastLogin"
           * to array "$collected_user_data"
           */
-        $collected_user_data[] = array(utf8_decode($user_id),
+        $collected_user_data[] = array(
+          utf8_decode($user_id),
           utf8_decode($single_user_data['ocs']['data']['displayname']),
           strtolower($single_user_data['ocs']['data']['email']),
           date("Y-m-d",
-            substr($single_user_data['ocs']['data']['lastLogin'],0,10)));
-			}
+            substr($single_user_data['ocs']['data']['lastLogin'],0,10)
+          )
+        );
+      }
 		}
 
     /**
-      * Print status message containing
-      * which nextcloud instance has been queried and when it was completed
+      * Print status message containing user count, target instance and export timestamp
       * (change the standard used to display the timestamp to your needs)
       */
-		echo "<font face=\"Helvetica\">Exported from ".$nextcloud_url." on "
-      .date(DATE_RFC1123)."<br><br>";
+		echo "<br><hr><font face=\"Helvetica\">Exported "
+      . count($collected_user_data) . " records from ".$nextcloud_url." on "
+      . date(DATE_RFC1123)."<hr><br>";
 
     // Sort the array containing the collected user data
     sort($collected_user_data);
 
-    // Define an html table and set header cell content
-    echo "<font face=\"Helvetica\"><table id=\"userexport\";><tr>
-      <th>Username</th>
-      <th>Displayname</th>
-      <th>Email</th>
-      <th>Last login</th><tr>";
-
-    // iterate through collected user data by row and column, build html table
-    for ($row = 0; $row < sizeof($collected_user_data); $row++) {
-			echo "<tr>";
-	  	for ($col = 0; $col < 4; $col++) {
-	    	echo "<td>".$collected_user_data[$row][$col]."</td>";
-	  	}
-	  	echo "</tr>";
-		}
-		echo "</table>";
+    // Display a table or comma separated values depending on radio button selection in the form
+    if ($export_type == 'table') {
+      echo build_table_user_data($collected_user_data);
+    }
+    elseif ($export_type == 'csv') {
+      echo build_csv_user_data($collected_user_data);
+    }
 	}
+}
+
+/**
+  * Build and display an html table containing the selected user data
+  */
+function build_table_user_data($collected_user_data) {
+
+  // Define an html table with id userexport and set header cell content
+  $table_user_data = "<font face=\"Helvetica\"><table id=\"userexport\";><tr>
+    <th>Username</th>
+    <th>Displayname</th>
+    <th>Email</th>
+    <th>Last login</th><tr>";
+
+  // Iterate through collected user data by row and column, build html table
+  for ($row = 0; $row < sizeof($collected_user_data); $row++) {
+    $table_user_data .= "<tr>";
+    for ($col = 0; $col < 4; $col++) {
+      $table_user_data .= "<td>".$collected_user_data[$row][$col]."</td>";
+    }
+    $table_user_data .= "</tr>";
+  }
+  $table_user_data .= "</table>";
+  return $table_user_data;
+}
+
+/**
+  * Build the variable $csv_user_data with the selected user data in csv format
+  */
+function build_csv_user_data($collected_user_data) {
+
+  // Add headers to $csv_user_data variable
+  $csv_user_data = 'User ID,Displayname,Email,Last login<br>';
+
+  // Iterate through collected user data by row and column, build csv output
+  for ($row = 0; $row < sizeof($collected_user_data); $row++) {
+    for ($col = 0; $col < 4; $col++) {
+
+      // To prevent possible import issues, quote displayname data cells
+      if ($col == 1) {
+        $csv_user_data .= '"' . $collected_user_data[$row][$col] . '"';
+      }
+      else {
+        $csv_user_data .= $collected_user_data[$row][$col];
+      }
+      // Put column separators between cells but not at the end of a record
+      if ($col != 3) {
+        $csv_user_data .= ',';
+      }
+    }
+    // Indicate the start of a new record
+    $csv_user_data .= '<br>';
+  }
+  return $csv_user_data;
 }
 
 // EOF
