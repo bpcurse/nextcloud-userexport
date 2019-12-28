@@ -5,11 +5,11 @@
 <style>
   table {border-collapse: collapse;}
   table,td,th {border: 1px solid #ddd;}
-	th {text-align: left;
-      background-color: #4C6489;
-      color:white;
-      padding: 8px;
-      padding-left: 5px;}
+  th {text-align: left;
+    background-color: #4C6489;
+    color:white;
+    padding: 8px;
+    padding-left: 5px;}
   td {padding: 5px;}
   tr:nth-child(even) {background-color: #f2f2f2;}
 </style>
@@ -37,8 +37,8 @@ if(isset($_POST['submit'])) {
 
   // Set variables to POST values
   $nextcloud_url = $_POST['url'];
- 	$admin_username = $_POST['user'];
- 	$admin_password = $_POST['password'];
+  $admin_username = $_POST['user'];
+  $admin_password = $_POST['password'];
   $export_type = $_POST['export_type'];
 
   // Check if the form has been filled in completely
