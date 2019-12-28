@@ -14,7 +14,7 @@
   tr:nth-child(even) {background-color: #f2f2f2;}
 </style>
 
-<form action="#" method="post">
+<form action="#" method="post"><font face="Helvetica">
   <input type="text" name="url" size="25"
     placeholder="https://cloud.example.com">
 	<input type="text" name="user" placeholder="Admin user name">
@@ -24,7 +24,7 @@
   <input type="radio" name="export_type" value="table" checked> Table
   <input type="radio" name="export_type" value="csv"> CSV
   <br><br>
-  <input type="submit" name="submit" value="submit">
+  <input type="submit" name="submit" value="submit"></font>
 </form>
 
 <?php
@@ -42,8 +42,25 @@ if(isset($_POST['submit'])) {
   $export_type = $_POST['export_type'];
 
   // Check if the form has been filled in completely
- 	if(isset($nextcloud_url) && isset($admin_username) && isset($admin_password))
-    {
+ 	if (isset($nextcloud_url) && isset($admin_username) && isset($admin_password))
+  {
+    // Save the first five chars of the url to a new variable '$trim_url'
+    $trim_url = substr($nextcloud_url,0,5);
+
+    // Check if plain http is used without override command and exit if not
+    if ($trim_url != 'https' && $trim_url != '!http') {
+      exit('<font color="red" face="Helvetica"><hr>
+      <b>The use of plain http is blocked for security reasons.</b>
+      <br>Please use https instead.
+      <font color="black"><br><hr>
+      You can override this safety precaution and send your admin credentials unencrypted by using \'!\' before \'http\'
+      <br>e.g.: !http://cloud.example.com</font>');
+    }
+
+    // Remove '!'' if https check override is selected by use of '!http'
+    if ($trim_url == '!http') {
+      $nextcloud_url = ltrim($nextcloud_url,'!');
+    }
 
     /**
       * Initialize and set some curl options
@@ -64,8 +81,8 @@ if(isset($_POST['submit'])) {
 		if (isset($data['ocs']['data']['users'])) {
 			$users = $data['ocs']['data']['users'];
 
-      // iterate through users and save the supplied data to $single_user_data
-      foreach($users as $user_id) {
+      // Iterate through users and save the supplied data to $single_user_data
+      foreach ($users as $user_id) {
 				curl_setopt($ch, CURLOPT_URL, $nextcloud_url .
           '/ocs/v1.php/cloud/users/' . $user_id);
 
@@ -101,8 +118,7 @@ if(isset($_POST['submit'])) {
     // Display a table or comma separated values depending on radio button selection in the form
     if ($export_type == 'table') {
       echo build_table_user_data($collected_user_data);
-    }
-    elseif ($export_type == 'csv') {
+    } elseif ($export_type == 'csv') {
       echo build_csv_user_data($collected_user_data);
     }
 	}
