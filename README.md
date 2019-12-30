@@ -34,11 +34,13 @@ The prefilled form fields can also be edited by user input.
 
 ## How it works
 The script uses curl to make calls to nextcloud user metadata OCS API and displays them in an html table that can be easily copied to calc/excel.
+
 https://docs.nextcloud.com/server/17/developer_manual/client_apis/OCS/ocs-api-overview.html#user-metadata
 
 ## Nextcloud integration
 You can integrate it by using the external sites app and show it only to your admin group.
 Prefill url and user names by using GET parameters and nextcloud placeholders:
+
 https://mydomain.com/userexport.php/?url=https://cloud.example.com&user={uid}&type=csv
 
 ## Known Issues
