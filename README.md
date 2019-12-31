@@ -2,7 +2,7 @@
 Simple php script to export user lists using the Nextcloud user metadata OCS API
 
 ## Installation
-- Upload userexport.php to a directory on your webserver and open it in a browser. You can rename it to index.php if you point a subdomain at it, or the like.
+- Upload index.php and userexport.php to a directory on your webserver and open index.php in a browser. You can point a subdomain like https:///export.cloud.example.com at it.
 - **Make sure it is only accessible via https://** as you will be providing nextcloud admin credentials to it.
 
 ## General usage
@@ -15,17 +15,19 @@ Do not use http:// unless you have a very good reason to do so.
 The script will block plain http connections and warn you unless you override this security measure with !http://...
 
 API calls via curl are slow. **Querying hundreds of user accounts can take several minutes**. Be patient :)
+A progress indicator isn't implemented yet, but on the list.
 
 ## Parameters
 You can use the following GET parameters with this script:
 
 - url (url incl. protocol of the target instance)
 - user (admin username to query the records)
-- pass (user password) | NOT RECOMMENDED via GET!
-- type (export type: 'table' for an html table or 'csv' for comma separated values)
+- pass (user password) - NOT RECOMMENDED
+- type (export type: 'table' for an html table, 'csv' for comma separated values or 'csv_dl' if you want to download a csv file)
 
 If you do not supply one of the parameters you can fill in the responding fields in the form (e.g. password).
-The prefilled form fields can also be edited by user input.
+Export default is csv file download.
+Prefilled form fields can also be edited by user input.
 
 **Examples:**
 
@@ -33,7 +35,7 @@ The prefilled form fields can also be edited by user input.
 - https://userexport.mydomain.org/?url=https://cloud.example.com&user=myusername&type=table
 
 ## How it works
-The script uses curl to make calls to nextcloud user metadata OCS API and displays them in an html table that can be easily copied to calc/excel.
+The script uses curl to make calls to Nextcloud's user metadata OCS API and displays them either in an html table or a csv list that can be easily copied to calc/excel. A csv formatted file for direct import can be downloaded, too.
 
 https://docs.nextcloud.com/server/17/developer_manual/client_apis/OCS/ocs-api-overview.html#user-metadata
 
@@ -41,10 +43,10 @@ https://docs.nextcloud.com/server/17/developer_manual/client_apis/OCS/ocs-api-ov
 You can integrate it by using the external sites app and show it only to your admin group.
 Prefill url and user names by using GET parameters and nextcloud placeholders:
 
-https://mydomain.com/userexport.php/?url=https://cloud.example.com&user={uid}&type=csv
+https://export.cloud.mydomain.com/?url=https://cloud.example.com&user={uid}&type=csv_dl
 
 ## Known Issues
-Error handling is not yet implemented.
+Error handling isn't yet implemented.
 If you end up with some obscure php error messages, the most probable reason is a typo in url, username or password.
 
 ## Development
