@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
   <head>
     <title>Nextcloud user export</title>
     <?php
@@ -13,33 +13,36 @@
       if (isset($_GET['pass'])) {
         $admin_password = $_GET['pass'];
       }
-      if (isset($_GET['type']) && ($_GET['type'] == 'table' || $_GET['type'] == 'csv'
-        || $_GET['type'] == 'csv_dl')) {
-          $export_type = $_GET['type'];
+      if (isset($_GET['type'])) {
+        $export_type = $_GET['type'];
+      }
+      if (isset($_GET['msg_mode'])) {
+        $message_mode = $_GET['msg_mode'];
       }
 
     ?>
   </head>
 
   <body>
-    <form method='post' action='userexport.php'><font face='Helvetica'>
-      <input type='text' name='url' size='30'
+    <form method='post' action='userexport.php' id='auth_form'><font face='Helvetica'>
+      <label for='url'>Target URL</label>
+      <input id='url' type='text' name='url' size='30'
         placeholder='https://cloud.example.com'
         value='<?php echo $nextcloud_url; ?>'>
-      <input type='text' name='user' size='15' placeholder='username'
+      <label for='user'>Username</label>
+      <input id='user' type='text' name='user' size='10' placeholder='username'
         value='<?php echo $admin_username; ?>'>
-      <input type='password' name='pass' size='15' placeholder='password'
+      <label for='pass'>Password</label>
+      <input id='pass' type='password' name='pass' size='10' placeholder='password'
         value='<?php echo $admin_password; ?>'>
       <br><br>
-      Display results:
+      Display results as:
       <input type='radio' name='export_type' value='table'
         <?php if ($export_type == 'table' || $export_type == null)
         {echo 'checked=\"checked\"';} ?>> Table
       <input type='radio' name='export_type' value='csv'
         <?php if ($export_type == 'csv') {echo 'checked=\"checked\"';} ?>> CSV
-      <br><br>or download:
-      <input type='radio' name='export_type' value='csv_dl'
-        <?php if ($export_type == 'csv_dl') {echo 'checked=\"checked\"';} ?>> CSV
+      <input type="hidden" name="msg_mode" value="<?php echo $message_mode ?>">
       <br><br>
       <input type='submit' name='submit' value='submit'></font>
     </form>
