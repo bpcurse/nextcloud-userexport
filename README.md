@@ -1,4 +1,4 @@
-# Nextcloud userexport v0.2.0
+# Nextcloud userexport
 PHP script to export user lists using Nextcloud's user metadata OCS API and curl.
 
 ## Installation
@@ -16,6 +16,7 @@ Do not use http:// unless you have a very good reason to do so.
 The script will block outgoing plain HTTP connections and warn you unless you override this security measure with !http://...
 
 API calls via cURL are slow. **Querying several hundred user accounts can take some minutes**. Be patient :)
+
 CURL parallel requests have been implemented in v0.2.0 and provided a relevant speed boost, but that's about as fast as it gets.
 Approximately 10-15s/100users.
 
@@ -28,7 +29,7 @@ You can use the following GET parameters with this script:
 - user (admin username to query the records)
 - pass (user password) - NOT RECOMMENDED
 - type (display type)
-  - 'table' (display html formatted table) [default]
+  - 'table' [default] (display html formatted table)
   - 'csv' (display comma separated values)
 - msg_mode (how to configure the mass email mailto: list)
   - 'to'  
