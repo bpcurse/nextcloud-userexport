@@ -17,7 +17,7 @@ The script will block outgoing plain HTTP connections and warn you unless you ov
 
 API calls via cURL are slow. **Querying several hundred user accounts can take some minutes**. Be patient :)
 
-CURL parallel requests have been implemented in v0.2.0 and provided a relevant speed boost, but that's about as fast as it gets.
+CURL parallel requests have been implemented in v0.2.0 and provide a relevant speed boost, but that's about as fast as it gets.
 Approximately 10-15s/100users.
 
 A progress indicator isn't implemented yet, but it's on the list.
