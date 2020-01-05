@@ -13,6 +13,11 @@ PHP script to export user lists using Nextcloud's user metadata OCS API and curl
 - Choose which user metadata to export by selecting checkboxes
 - Click on "submit" and wait
 
+You can download a CSV formatted file for direct import by clicking a button on the results page.
+
+Simple mass mailing to all users on the list is also provided by a button on the results page.
+This will open your email application with a mailto: string containing all email addresses as bcc. You can change to 'cc' or 'to' by using a GET parameter.
+
 Do not use `http://` unless you have a very good reason to do so.
 The script will block outgoing plain HTTP connections and warn you unless you override this security measure with `!http://...`
 
@@ -26,19 +31,21 @@ A progress indicator isn't implemented yet, but it's on the list.
 ## Parameters
 You can use the following GET parameters with this script:
 
-- `url` (URL incl. protocol of the target instance)
-- `user` (admin username to query the records)
-- `pass` (user password) - NOT RECOMMENDED
-- `type` (display type)
-  - `table` [default] (display html formatted table)
-  - `csv` (display comma separated values)
-- `msg_mode` (how to configure the mass email mailto: list)
+**Nextcloud target instance and user credentials**
+- `url`     URL incl. protocol
+- `user`    admin username to query the records
+- `pass`    user password - not recommended
+
+**Display type** (display of the results page)
+- `type`
+  - `table` display html formatted table [default]
+  - `csv`   display comma separated values
+
+**Message Mode** (how to send mass email)
+- `msg_mode`
+  - `bcc`   recommended for privacy and legal reasons [default]
   - `to`  
   - `cc`
-  - `bcc` [default] recommended for privacy and legal reasons
-
-If you do not supply one of the parameters you can fill in the corresponding fields afterwards in the form (e.g. password).
-Prefilled form fields can also be edited by user input.
 
 **Examples:**
 ```
@@ -46,10 +53,8 @@ https://mydomain.org/userexport.php/?url=https://cloud.example.com&user=myuserna
 https://userexport.mydomain.org/?url=https://cloud.example.com&user=myusername&msg_mode=to
 ```
 
-You can download a CSV formatted file for direct import by clicking a button on the results page.
-
-Simple mass mailing to all users on the list is also provided by a button on the results page.
-This will open your email application with a mailto: string containing all email addresses as bcc. You can change to 'cc' or 'to' by using a GET parameter.
+If you do not supply one of the parameters you can fill in the corresponding fields afterwards in the form (e.g. password).
+Prefilled form fields can also be edited by user input.
 
 ## How it works
 The script uses cURL to make calls to Nextcloud's user metadata OCS API and displays them either through an HTML table or a CSV list that can be easily copied to calc/excel.
