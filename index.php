@@ -36,6 +36,21 @@
       <input id='pass' type='password' name='pass' size='10' placeholder='password'
         value='<?php echo $admin_password; ?>'>
       <br><br>
+      Include data:
+      <input type='checkbox' name='id' value='true' checked='checked'>User ID
+      <input type='checkbox' name='displayname' value='true' checked='checked'>Displayname
+      <input type='checkbox' name='email' value='true' checked='checked'>Email
+      <input type='checkbox' name='lastLogin' value='true' checked='checked'>Last login
+      <input type='checkbox' name='total' value='true'>Quota total
+      <input type='checkbox' name='used' value='true'>Quota used
+      <input type='checkbox' name='free' value='true'>Quota remaining
+      <input type='checkbox' name='groups' value='true'>Groups
+      <input type='checkbox' name='subadmin' value='true'>Subadmin
+      <input type='checkbox' name='backend' value='true'>User backend
+      <input type='checkbox' name='enabled' value='true'>Enabled
+      <input type='checkbox' name='language' value='true'>Language
+      <input type='checkbox' name='locale' value='true'>Locale
+      <br><br>
       Display results as:
       <input type='radio' name='export_type' value='table'
         <?php if ($export_type == 'table' || $export_type == null)
