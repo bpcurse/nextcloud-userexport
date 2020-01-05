@@ -2,7 +2,7 @@
 PHP script to export user lists using Nextcloud's user metadata OCS API and curl.
 
 ## Installation
-- Upload 'index.php', 'userexport.php' and 'download.php' to a directory on your webserver and open 'index.php' in a browser. You can point a subdomain like https://export.cloud.example.com at it.
+- Upload `index.php`, `userexport.php` and `download.php` to a directory on your webserver and open `index.php` in a browser. You can point a subdomain like `https://export.cloud.example.com` at it.
 - **Make sure it is only accessible via https://** as you will be providing nextcloud admin credentials to it.
 
 ## General usage
@@ -13,8 +13,8 @@ PHP script to export user lists using Nextcloud's user metadata OCS API and curl
 - Choose which user metadata to export by selecting checkboxes
 - Click on "submit" and wait
 
-Do not use http:// unless you have a very good reason to do so.
-The script will block outgoing plain HTTP connections and warn you unless you override this security measure with !http://...
+Do not use `http://` unless you have a very good reason to do so.
+The script will block outgoing plain HTTP connections and warn you unless you override this security measure with `!http://...`
 
 API calls via cURL are slow. **Querying several hundred user accounts can take some minutes**. Be patient :)
 
@@ -26,24 +26,25 @@ A progress indicator isn't implemented yet, but it's on the list.
 ## Parameters
 You can use the following GET parameters with this script:
 
-- url (URL incl. protocol of the target instance)
-- user (admin username to query the records)
-- pass (user password) - NOT RECOMMENDED
-- type (display type)
-  - 'table' [default] (display html formatted table)
-  - 'csv' (display comma separated values)
-- msg_mode (how to configure the mass email mailto: list)
-  - 'to'  
-  - 'cc'
-  - 'bcc' [default] recommended for privacy and legal reasons
+- `url` (URL incl. protocol of the target instance)
+- `user` (admin username to query the records)
+- `pass` (user password) - NOT RECOMMENDED
+- `type` (display type)
+  - `table` [default] (display html formatted table)
+  - `csv` (display comma separated values)
+- `msg_mode` (how to configure the mass email mailto: list)
+  - `to`  
+  - `cc`
+  - `bcc` [default] recommended for privacy and legal reasons
 
 If you do not supply one of the parameters you can fill in the corresponding fields afterwards in the form (e.g. password).
 Prefilled form fields can also be edited by user input.
 
 **Examples:**
-
-- https://mydomain.org/userexport.php/?url=https://cloud.example.com&user=myusername&pass=goodpassword&type=csv
-- https://userexport.mydomain.org/?url=https://cloud.example.com&user=myusername&msg_mode=to
+```
+https://mydomain.org/userexport.php/?url=https://cloud.example.com&user=myusername&pass=goodpassword&type=csv
+https://userexport.mydomain.org/?url=https://cloud.example.com&user=myusername&msg_mode=to
+```
 
 You can download a CSV formatted file for direct import by clicking a button on the results page.
 
@@ -59,7 +60,7 @@ https://docs.nextcloud.com/server/17/developer_manual/client_apis/OCS/ocs-api-ov
 You can integrate it by using the external sites app and show it only to your admin group.
 Prefill URL and user name by using GET parameters and a nextcloud placeholder like this:
 
-https://export.cloud.mydomain.com/?url=https://cloud.example.com&user={uid}
+`https://export.cloud.mydomain.com/?url=https://cloud.example.com&user={uid}`
 
 ## Known Issues
 Error handling isn't yet implemented.
