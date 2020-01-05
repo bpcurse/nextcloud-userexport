@@ -10,6 +10,7 @@ PHP script to export user lists using Nextcloud's user metadata OCS API and curl
 - Enter a username that has admin rights
 - Enter the corresponding password
 - Change the display type (if necessary)
+- Choose which user metadata to export by selecting checkboxes
 - Click on "submit" and wait
 
 Do not use http:// unless you have a very good reason to do so.
@@ -63,7 +64,7 @@ https://export.cloud.mydomain.com/?url=https://cloud.example.com&user={uid}
 ## Known Issues
 Error handling isn't yet implemented.
 
-If you end up with some obscure php error messages, the most probable reason is a typo in url, username or password.
+If you end up with some obscure PHP error messages or a blank page, the most probable reason is a typo in URL, username or password.
 
 ## Development
 I will try to maintain and enhance this script as long as Nextcloud does not provide (better) GUI based user and group export functions.
