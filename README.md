@@ -7,7 +7,7 @@ PHP script to export user lists using Nextcloud's user metadata OCS API and curl
 
 ## General usage
 - Enter the URL of the Nextcloud target instance incl. https://
-- Enter a username that has admin rights
+- Enter a username that has admin (or group admin) rights
 - Enter the corresponding password
 - Change the display type (if necessary)
 - Choose which user metadata to export by selecting checkboxes
@@ -27,6 +27,8 @@ CURL parallel requests have been implemented in v0.2.0 and provide a relevant sp
 Approximately 10-15s/100users.
 
 A progress indicator isn't implemented yet, but it's on the list.
+
+Group admins (as long as they do not belong themselves to the `admin` group) will not receive information on users that are members of `admin` group, even if they are members of the group the group admin manages.
 
 ## Parameters
 You can use the following GET parameters with this script:
