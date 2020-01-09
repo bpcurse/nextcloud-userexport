@@ -5,8 +5,7 @@ define('TIMESTAMP_SCRIPT_START', microtime(true));
 // Set temporary folder to store csv files in
 define('TEMP_FOLDER', 'export_temp');
 
-// Set variables/constants to POST values
-$target_url = $_POST['url'];
+// Set constants to POST values
 define('USER_NAME', $_POST['user']);
 define('USER_PASS', $_POST['pass']);
 define('EXPORT_TYPE', $_POST['export_type']);
@@ -16,7 +15,7 @@ define('MESSAGE_MODE', $_POST['msg_mode']);
 define('EXPORT_CHOICES', array_keys($_POST,'true'));
 
 // Check if plain HTTP is used without override command and exit if not
-define('TARGET_URL', check_https($target_url));
+define('TARGET_URL', check_https($_POST['url']));
 
 // Initialize cURL handle to fetch user id list and set options
 $ch = curl_init();
@@ -68,10 +67,13 @@ if (isset($users_raw['ocs']['data']['users'])) {
     $single_user_data = json_decode(
       curl_multi_getcontent($curl_requests[$key]),
       true);
+
     // Call select_data function to filter/format request data
-    $collected_user_data[] = select_data($single_user_data);
+    $collected_user_data[] = select_data($single_user_data, $key);
+
     // Call select_data function again to filter/format request data as utf8 for csv file creation
-    $collected_user_data_utf8[] = select_data($single_user_data, 'utf8');
+    $collected_user_data_utf8[] = select_data($single_user_data, $key, 'utf8');
+
     // Remove processed cURL handle
     curl_multi_remove_handle($mh, $curl_requests[$key]);
   }
@@ -168,9 +170,16 @@ function check_https($url) {
   *
   * @return $selected_data  Result of $data filtering
   */
-function select_data($data, $type = null) {
+function select_data($data, $key, $type = null) {
+  global $users;
+  if ($data['ocs']['meta']['statuscode'] == 997) {
+    $selected_data[] = $users[$key];
+    for ($i = 1; $i < count(EXPORT_CHOICES); $i++) {
+      $selected_data[] = 'N/A';
+    }
+  }
   // Prepare data for csv file export if $type = 'utf8'
-  if ($type == 'utf8') {
+  elseif ($type == 'utf8') {
     // Iterate through chosen data sets
     foreach(EXPORT_CHOICES as $key => $item) {
       // Filter/format different data sets
@@ -233,9 +242,9 @@ function select_data($data, $type = null) {
           // Make the display of 'enabled' bool pretty in the browser
           case 'enabled':
             if ($data['ocs']['data'][$item] == true) {
-              $selected_data[] = '<span style="color: green">&#10004;</span>';
+              $selected_data[] = '<span style="color: green;">&#10004;</span>';
             } else {
-              $selected_data[] = '<span style="color: red">&#10008;</span>';
+              $selected_data[] = '<span style="color: red;">&#10008;</span>';
             }
             break;
           case 'total':
@@ -293,7 +302,7 @@ function print_status_message() {
 function show_control_buttons() {
   // Build and store email list formatted as 'mailto:'
   $mailto_list = build_mailto_list();
-  // Show download CSV file button
+  // Show download CSV file button, POST hidden form items to download.php on click
   echo
   '<form method="post" action="download.php"><font face="Helvetica">
     <input type="hidden" name="file" value="' . CSV_FILENAME . '">
@@ -427,7 +436,7 @@ function build_table_user_data() {
   // Define table CSS style
   $table_user_data_style =
   '<style>
-    table {border-collapse: collapse;}
+    table {border-collapse: collapse;font-family: "Helvetica";}
     table,td,th {border: 1px solid #ddd;}
     th {text-align: left;
       background-color: #4C6489;
@@ -438,7 +447,7 @@ function build_table_user_data() {
   </style>';
 
   // Define HTML table and set header cell content
-  $table_user_data_headers = '<table><font face="Helvetica"><tr>';
+  $table_user_data_headers = '<table><tr>';
   foreach(EXPORT_CHOICES as $item) {
     $table_user_data_headers .= '<th>' . $item . '</th>';
   }
@@ -456,14 +465,18 @@ function build_table_user_data() {
   for ($row = 0; $row < sizeof($collected_user_data); $row++) {
     $table_user_data .= '<tr>';
     for ($col = 0; $col < sizeof($collected_user_data[$row]); $col++) {
+      $color_text = 'color: unset';
+      if ($collected_user_data[$row][$col] == 'N/A') {
+        $color_text = 'color: grey;';
+      }
       if (in_array($col, array_filter($keypos_right_align))) {
-        $table_user_data .= '<td style="text-align:right;white-space:nowrap;">'
+        $table_user_data .= '<td style="text-align:right;white-space:nowrap;' . $color_text . '">'
           . $collected_user_data[$row][$col] . '</td>';
       } elseif ($col === $keypos_center_align) {
-        $table_user_data .= '<td align="center">'
+        $table_user_data .= '<td style="text-align:center;' . $color_text . '">'
           . $collected_user_data[$row][$col] . '</td>';
       } else {
-        $table_user_data .= '<td>'.$collected_user_data[$row][$col].'</td>';
+        $table_user_data .= '<td style="' . $color_text . '">'.$collected_user_data[$row][$col].'</td>';
       }
     }
     $table_user_data .= '</tr>';
@@ -500,6 +513,9 @@ function build_mailto_list($type = 'bcc') {
     $mailto_list = 'mailto:?' . $type . '=';
     // Iterate through collected user data and add email addresses
     for ($row = 0; $row < sizeof($collected_user_data); $row++) {
+      if ($collected_user_data[$row][$keypos] == 'N/A') {
+        continue;
+      }
       if ($row == 0) {
         $mailto_list .= $collected_user_data[$row][$keypos];
       } else {
