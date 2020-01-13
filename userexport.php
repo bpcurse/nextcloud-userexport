@@ -112,7 +112,7 @@ if (isset($users_raw['ocs']['data']['users'])) {
   */
 function curl_set_options($ch, $user_id = null) {
   if($user_id !== null) {
-    $user_id = '/' . $user_id;
+    $user_id = '/' . rawurlencode($user_id);
   }
   curl_setopt($ch, CURLOPT_URL, TARGET_URL . '/ocs/v1.php/cloud/users' . $user_id);
   curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
