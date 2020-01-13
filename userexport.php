@@ -27,7 +27,7 @@ $users_raw = json_decode(curl_exec($ch), true);
 // Drop cURL handle
 curl_close($ch);
 
-// Check if the userlist has been received and save user ids to $users
+// Check if the userlist has been received and save user IDs to $users
 if (isset($users_raw['ocs']['data']['users'])) {
   $users = $users_raw['ocs']['data']['users'];
 
@@ -179,11 +179,20 @@ function select_data($data, $key, $type = null) {
     }
   }
   // Prepare data for csv file export if $type = 'utf8'
-  elseif ($type == 'utf8') {
+  else {
     // Iterate through chosen data sets
     foreach(EXPORT_CHOICES as $key => $item) {
       // Filter/format different data sets
       switch ($item) {
+        case 'id':
+        case 'displayname':
+          if ($type != 'utf8') {
+            // Apply utf8_decode on ID and displayname
+            $selected_data[] = utf8_decode($data['ocs']['data'][$item]);
+          } else {
+            $selected_data[] = $data['ocs']['data'][$item];
+          }
+          break;
         // Convert email data set to lowercase
         case 'email':
           $selected_data[] = strtolower($data['ocs']['data'][$item]);
@@ -198,77 +207,44 @@ function select_data($data, $key, $type = null) {
             $selected_data[] = date("Y-m-d",substr($last_login,0,10));
           }
           break;
+        // Make the display of 'enabled' bool pretty in the browser
+        case 'enabled':
+          if ($type != 'utf8') {
+            if ($data['ocs']['data'][$item] == true) {
+              $selected_data[] = '<span style="color: green">&#10004;</span>';
+            } else {
+              $selected_data[] = '<span style="color: red">&#10008;</span>';
+            }
+          } else {
+            $selected_data[] = $data['ocs']['data'][$item];
+          }
+          break;
         case 'total':
         case 'used':
         case 'free':
-          $selected_data[] = $data['ocs']['data']['quota'][$item];
+          if ($type != 'utf8') {
+            $selected_data[] = format_size(
+                                $data['ocs']['data']['quota'][$item]);
+          } else {
+            $selected_data[] = $data['ocs']['data']['quota'][$item];
+          }
           break;
         // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
         case 'subadmin':
         case 'groups':
-          $selected_data[] = build_csv_line($data['ocs']['data'][$item]);
+          if ($type != 'utf8') {
+            $selected_data[] = utf8_decode(build_csv_line(
+                                $data['ocs']['data'][$item], true));
+          } else {
+            $selected_data[] = build_csv_line($data['ocs']['data'][$item]);
+          }
           break;
         // If none of the above apply
         default:
           $selected_data[] = $data['ocs']['data'][$item];
       }
     }
-
-// In case of HTML table or CSV list to be displayed in the browser decode UTF8
-  } else {
-    // Iterate through chosen data sets
-    foreach(EXPORT_CHOICES as $key => $item) {
-      // Filter/format different data sets
-      switch ($item) {
-          // Apply ut8_decode on id and displayname
-          case 'id':
-          case 'displayname':
-            $selected_data[] = utf8_decode($data['ocs']['data'][$item]);
-            break;
-          // Convert email data set to lowercase
-          case 'email':
-            $selected_data[] = strtolower($data['ocs']['data'][$item]);
-            break;
-          case 'lastLogin':
-            $last_login = $data['ocs']['data'][$item];
-            // If user has never logged in set $last_login to '-'
-            if ($last_login == 0) {
-              $selected_data[] = '-';
-            // Format unix timestamp to YYYY-MM-DD after trimming last 3 chars
-            } else {
-              $selected_data[] = date("Y-m-d",substr($last_login,0,10));
-            }
-            break;
-          // Make the display of 'enabled' bool pretty in the browser
-          case 'enabled':
-            if ($data['ocs']['data'][$item] == true) {
-              $selected_data[] = '<span style="color: green;">&#10004;</span>';
-            } else {
-              $selected_data[] = '<span style="color: red;">&#10008;</span>';
-            }
-            break;
-          case 'total':
-          case 'used':
-          case 'free':
-            $selected_data[] = format_size($data['ocs']['data']['quota'][$item]);
-            break;
-          // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
-          case 'subadmin':
-          case 'groups':
-            if ($data['ocs']['data'][$item] == null) {
-              $wrapper = '';
-            } else {
-              $wrapper = '"';
-            }
-            $selected_data[] = $wrapper
-              . utf8_decode(build_csv_line($data['ocs']['data'][$item])) . $wrapper;
-            break;
-          // If none of the above apply
-          default:
-            $selected_data[] = $data['ocs']['data'][$item];
-          }
-        }
-      }
+  }
   return $selected_data;
 }
 
@@ -285,7 +261,8 @@ function print_status_message() {
 
   // Calculate total script runtime
   $timestamp_script_end = microtime(true);
-  $time_total = number_format(round($timestamp_script_end - TIMESTAMP_SCRIPT_START, 1),1);
+  $time_total = number_format(round(
+                $timestamp_script_end - TIMESTAMP_SCRIPT_START, 1),1);
 
   // Output status message
   echo '<font face="Helvetica">
@@ -615,7 +592,7 @@ function build_csv_line($array, $space = false, $delimiter = ',') {
     elseif ($space == false) {
       $csv_line .= $delimiter . $item;
     } else {
-      $csv_line .= $delimiter .' ' . $item;
+      $csv_line .= $delimiter . ' ' . $item;
     }
     $i++;
   }
