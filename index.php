@@ -97,7 +97,7 @@
         <?php if ($export_type == 'csv') {echo 'checked=\"checked\"';} ?>> CSV
       <input type="hidden" name="msg_mode" value="<?php echo $message_mode ?>">
       <br><br><span style="font-size: small">
-        A CSV formatted file can be downloaded on the next page</span>
+        A CSV formatted file can be downloaded on the next page regardless of the above selection</span>
       <br><br>
       <input type='submit' name='submit' value='submit'></font>
     </form>
