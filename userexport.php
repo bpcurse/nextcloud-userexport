@@ -184,12 +184,10 @@ function select_data($data, $key, $type = null) {
       switch ($item) {
         case 'id':
         case 'displayname':
-          if ($type != 'utf8') {
+          $selected_data[] = $type != 'utf8'
             // Apply utf8_decode on ID and displayname
-            $selected_data[] = utf8_decode($data['ocs']['data'][$item]);
-          } else {
-            $selected_data[] = $data['ocs']['data'][$item];
-          }
+            ? utf8_decode($data['ocs']['data'][$item])
+            : $data['ocs']['data'][$item];
           break;
         // Convert email data set to lowercase
         case 'email':
@@ -198,44 +196,31 @@ function select_data($data, $key, $type = null) {
         case 'lastLogin':
           $last_login = $data['ocs']['data'][$item];
           // If user has never logged in set $last_login to '-'
-          if ($last_login == 0) {
-            $selected_data[] = '-';
-          // Format unix timestamp to YYYY-MM-DD after trimming last 3 chars
-          } else {
-            $selected_data[] = date("Y-m-d",substr($last_login,0,10));
-          }
+          $selected_data[] = $last_login == 0 ? '-' :
+            // Format unix timestamp to YYYY-MM-DD after trimming last 3 chars
+            date("Y-m-d",substr($last_login,0,10));
           break;
         // Make the display of 'enabled' bool pretty in the browser
         case 'enabled':
-          if ($type != 'utf8') {
-            if ($data['ocs']['data'][$item] == true) {
-              $selected_data[] = '<span style="color: green">&#10004;</span>';
-            } else {
-              $selected_data[] = '<span style="color: red">&#10008;</span>';
-            }
-          } else {
-            $selected_data[] = $data['ocs']['data'][$item];
-          }
+        $selected_data[] = $type == 'utf8'
+          ? $data['ocs']['data'][$item]
+          : ($data['ocs']['data'][$item] == true
+            ? '<span style="color: green">&#10004;</span>'
+            : '<span style="color: red">&#10008;</span>');
           break;
         case 'total':
         case 'used':
         case 'free':
-          if ($type != 'utf8') {
-            $selected_data[] = format_size(
-                                $data['ocs']['data']['quota'][$item]);
-          } else {
-            $selected_data[] = $data['ocs']['data']['quota'][$item];
-          }
+          $selected_data[] = $type != 'utf8'
+            ? format_size($data['ocs']['data']['quota'][$item])
+            : $data['ocs']['data']['quota'][$item];
           break;
         // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
         case 'subadmin':
         case 'groups':
-          if ($type != 'utf8') {
-            $selected_data[] = utf8_decode(build_csv_line(
-                                $data['ocs']['data'][$item], true));
-          } else {
-            $selected_data[] = build_csv_line($data['ocs']['data'][$item]);
-          }
+          $selected_data[] = $type != 'utf8'
+            ? utf8_decode(build_csv_line($data['ocs']['data'][$item], true))
+            : build_csv_line($data['ocs']['data'][$item]);
           break;
         // If none of the above apply
         default:
