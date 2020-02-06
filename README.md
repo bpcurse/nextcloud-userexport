@@ -74,14 +74,16 @@ Prefill URL and user name by using GET parameters and a nextcloud placeholder li
 `https://export.cloud.mydomain.com/?url=https://cloud.example.com&user={uid}`
 
 ## Known Issues
-Error handling isn't yet implemented.
+Error handling will be released in v0.4.0 and is already functional in master.
 
-If you end up with some obscure PHP error messages or a blank page, the most probable reason is a typo in URL, username or password.
+Until then: If you end up with some obscure PHP error messages or a blank page, the most probable reason is a typo in URL, username or password.
 
 ## Development
 I will try to maintain and enhance this script as long as Nextcloud does not provide (better) GUI based user and group export functions.
 Any hints to enhancements or security issues are highly welcome.
 If you would like to contribute, please open an issue or a pull request.
+
+I am thinking of another script to cover the use case of **importing** users from csv files.
 
 ## Additional Info
 Inspired by comments to this github issue:
