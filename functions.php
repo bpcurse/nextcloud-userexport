@@ -1,104 +1,57 @@
 <?php
 
-// Save the script's start timestamp to measure execution time
-define('TIMESTAMP_SCRIPT_START', microtime(true));
-// Set temporary folder to store csv files in
-define('TEMP_FOLDER', 'export_temp');
+/**
+  * Fetch the list containing all user IDs from the server
+  *
+  */
+function fetch_userlist() {
+  // Initialize cURL handle to fetch user id list and set options
+  $ch = curl_init();
+  set_curl_options($ch, 'users');
 
-// Set constants to POST values
-define('USER_NAME', $_POST['user']);
-define('USER_PASS', $_POST['pass']);
-define('EXPORT_TYPE', $_POST['export_type']);
-define('MESSAGE_MODE', $_POST['msg_mode']);
+  // Fetch raw userlist and store user_ids in $users
+  $users_raw = json_decode(curl_exec($ch), true);
 
-// Filter POST array and save keys with value 'true' as constant
-define('EXPORT_CHOICES', array_keys($_POST,'true'));
+  // Check for errors in cURL request
+  check_curl_response($ch, $users_raw);
 
-// Check if plain HTTP is used without override command and exit if not
-define('TARGET_URL', check_https($_POST['url']));
+  // Drop cURL handle
+  curl_close($ch);
 
-// Initialize cURL handle to fetch user id list and set options
-$ch = curl_init();
-curl_set_options($ch);
-
-// Fetch raw userlist and store user_ids in $users
-$users_raw = json_decode(curl_exec($ch), true);
-
-// Check for errors in cURL request
-check_curl_response($ch, $users_raw);
-
-// Drop cURL handle
-curl_close($ch);
-
-// Check if the userlist has been received and save user IDs to $users
-if (isset($users_raw['ocs']['data']['users'])) {
-  $users = $users_raw['ocs']['data']['users'];
-
-  // Initialize cURL multi handle for parallel requests
-  $mh = curl_multi_init();
-
-  /**
-    * Initialize individual cURL handles, set options and append them to
-    * multi handle list
-    */
-  // Iterate through userlist
-  foreach ($users as $key => $user_id) {
-    // Initialize cURL handle
-    $curl_requests[$key] = curl_init();
-    // Set cURL options for this handle
-    curl_set_options($curl_requests[$key], $user_id);
-    // Add created handle to multi handle list
-    curl_multi_add_handle($mh, $curl_requests[$key]);
+  // Check if the userlist has been received and save user IDs to $users
+  if (isset($users_raw['ocs']['data']['users'])) {
+    $users = $users_raw['ocs']['data']['users'];
   }
-
-  /**
-    * Fetch user data via cURL using parallel connections (curl_multi_*)
-    */
-  do {
-    $status = curl_multi_exec($mh, $active);
-    if ($active) {
-      curl_multi_select($mh);
-    }
-  } while ($active && $status == CURLM_OK);
-
-  /**
-    * Save content to $selected_user_data
-    */
-  //Iterate through $curl_requests (the cURL handle list)
-  foreach ($curl_requests as $key => $request) {
-    // Get content of one user data request, store in $single_user_data
-    $single_user_data = json_decode(
-      curl_multi_getcontent($curl_requests[$key]),
-      true);
-
-    // Call select_data function to filter/format request data
-    $selected_user_data[] = select_data($single_user_data, $key);
-
-    // Call select_data function again to filter/format request data as utf8 for csv file creation
-    $selected_user_data_utf8[] = select_data($single_user_data, $key, 'utf8');
-
-    // Remove processed cURL handle
-    curl_multi_remove_handle($mh, $curl_requests[$key]);
-  }
-  // Drop cURL multi handle
-  curl_multi_close($mh);
-
-  // Create and populate CSV file with selected user data and set filename constant
-  define('CSV_FILENAME', build_csv_file());
-
-  // Show some status information (processing time, number of exported accounts, ...)
-  print_status_message();
-  // Show buttons for downloading csv file and mass email function
-  show_control_buttons();
-
-  /**
-    * Display results page either as HTML table or comma separated values (CSV)
-    */
-  if (EXPORT_TYPE == 'table') { echo build_table_user_data(); }
-  elseif (EXPORT_TYPE == 'csv') { echo build_csv_user_data(); }
+  return $users;
 }
 
-/***************************************************************************/
+/**
+  * Fetch the list containing all group IDs from the server
+  *
+  */
+function fetch_grouplist() {
+  // Initialize cURL handle to fetch user id list and set options
+  $ch = curl_init();
+  set_curl_options($ch, 'groups');
+
+  // Fetch raw userlist and store user_ids in $users
+  $groups_raw = json_decode(curl_exec($ch), true);
+
+  // Check for errors in cURL request
+  check_curl_response($ch, $groups_raw);
+
+  // Drop cURL handle
+  curl_close($ch);
+
+  // Check if the userlist has been received and save user IDs to $users
+  if (isset($groups_raw['ocs']['data']['groups'])) {
+    $groups = $groups_raw['ocs']['data']['groups'];
+
+    // Initialize cURL multi handle for parallel requests
+    $mh = curl_multi_init();
+  }
+  return $groups;
+}
 
 /**
   * Set cURL options
@@ -108,12 +61,12 @@ if (isset($users_raw['ocs']['data']['users'])) {
   * OPTIONAL            DEFAULT: null
   *
   */
-function curl_set_options($ch, $user_id = null) {
-  $user_id = $user_id === null ? null : '/' . rawurlencode($user_id);
-  curl_setopt($ch, CURLOPT_URL, TARGET_URL . '/ocs/v1.php/cloud/users' . $user_id);
+function set_curl_options($ch, $type, $id = null) {
+  $id = $id === null ? null : '/' . rawurlencode($id);
+  curl_setopt($ch, CURLOPT_URL, $_SESSION['target_url'] . '/ocs/v1.php/cloud/' . $type . $id);
   curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-  curl_setopt($ch, CURLOPT_USERPWD, USER_NAME . ':' . USER_PASS);
+  curl_setopt($ch, CURLOPT_USERPWD, $_SESSION['user_name'] . ':' . $_SESSION['user_pass']);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'OCS-APIRequest: true',
@@ -220,6 +173,61 @@ function check_curl_response($ch, $data) {
 }
 
 /**
+  * Initialize individual cURL handles, set options and append them to
+  * multi handle list
+  */
+function fetch_and_select_user_detail() {
+  // Save the script's start timestamp to measure execution time
+  define('TIMESTAMP_SCRIPT_START', microtime(true));
+
+  // Initialize cURL multi handle for parallel requests
+  $mh = curl_multi_init();
+
+  // Iterate through userlist
+  foreach ($_SESSION['userlist'] as $key => $user_id) {
+    // Initialize cURL handle
+    $curl_requests[$key] = curl_init();
+    // Set cURL options for this handle
+    set_curl_options($curl_requests[$key], 'users', $user_id);
+    // Add created handle to multi handle list
+    curl_multi_add_handle($mh, $curl_requests[$key]);
+  }
+
+  /**
+    * Fetch user data via cURL using parallel connections (curl_multi_*)
+    */
+  do {
+    $status = curl_multi_exec($mh, $active);
+    if ($active) {
+      curl_multi_select($mh);
+    }
+  } while ($active && $status == CURLM_OK);
+
+  /**
+    * Save content to $selected_user_data
+    */
+  //Iterate through $curl_requests (the cURL handle list)
+  foreach ($curl_requests as $key => $request) {
+    // Get content of one user data request, store in $single_user_data
+    $single_user_data =
+      json_decode(
+        curl_multi_getcontent($curl_requests[$key])
+      ,true);
+    // Call select_data function to filter/format request data
+    $selected_user_data[] = select_data($single_user_data, $key);
+    // Call select_data function again to filter/format request data as utf8 for csv file creation
+    $selected_user_data_utf8[] = select_data($single_user_data, $key, 'utf8');
+
+    // Remove processed cURL handle
+    curl_multi_remove_handle($mh, $curl_requests[$key]);
+  }
+  // Drop cURL multi handle
+  curl_multi_close($mh);
+
+  return $selected_user_data;
+}
+
+/**
   * Select elements from array "$data" and decode UTF8 or not
   * depending on parameters
   *
@@ -233,7 +241,7 @@ function select_data($data, $key, $type = null) {
   global $users;
   if ($data['ocs']['meta']['statuscode'] == 997) {
     $selected_data[] = $users[$key];
-    for ($i = 1; $i < count(EXPORT_CHOICES); $i++) {
+    for ($i = 1; $i < count($export_choices); $i++) {
       $selected_data[] = 'N/A';
     }
   }
@@ -384,7 +392,7 @@ function random_str(
   * @param $list            Data array containing e.g. collected user data
   * OPTIONAL                DEFAULT: global $selected_user_data_utf8
   * @param $headers         CSV line containing the column headers
-  * OPTIONAL                DEFAULT: List from EXPORT_CHOICES constant
+  * OPTIONAL                DEFAULT: List from $export_choices variable
   *
   * @return $csv_filename   Filename of the newly created file
   *
@@ -396,7 +404,7 @@ function build_csv_file($list = 'default', $headers = 'default') {
   // Delete contents of temporary folder, if file was not deleted after last run
   delete_folder_content(TEMP_FOLDER);
 
-  // Create headers from EXPORT_CHOICES key list if not supplied
+  // Create headers from $export_choices key list if not supplied
   if ($headers == 'default') {
     $headers = build_csv_export_key_list();
   }
@@ -455,9 +463,7 @@ function delete_folder_content($folder) {
   * @return $table_user_data_style concatenated with $table_user_data_headers and $table_user_data
   *
   */
-function build_table_user_data() {
-  // Invoke global variables
-  global $selected_user_data;
+function build_table_user_data($selected_user_data) {
   // Define table CSS style
   $table_user_data_style =
   '<style>
@@ -478,12 +484,12 @@ function build_table_user_data() {
   }
   '</tr>';
 
-  // Search for and return position of quota keys in EXPORT_CHOICES constant
+  // Search for and return position of quota keys in EXPORT_CHOICES
   $keypos_right_align[] = array_search('total',EXPORT_CHOICES);
   $keypos_right_align[] = array_search('used',EXPORT_CHOICES);
   $keypos_right_align[] = array_search('free',EXPORT_CHOICES);
 
-  // Search for and return position of 'enabled' in EXPORT_CHOICES constant
+  // Search for and return position of 'enabled' in EXPORT_CHOICES
   $keypos_center_align = array_search('enabled',EXPORT_CHOICES);
 
   // Iterate through collected user data by row and column, build HTML table
@@ -495,19 +501,49 @@ function build_table_user_data() {
         $color_text = 'color: grey;';
       }
       if (in_array($col, array_filter($keypos_right_align))) {
-        $table_user_data .= '<td style="text-align:right;white-space:nowrap;' . $color_text . '">'
-          . $selected_user_data[$row][$col] . '</td>';
+        $table_user_data .= '<td style="text-align:right;white-space:nowrap;'
+        . $color_text . '">' . $selected_user_data[$row][$col] . '</td>';
       } elseif ($col === $keypos_center_align) {
         $table_user_data .= '<td style="text-align:center;' . $color_text . '">'
           . $selected_user_data[$row][$col] . '</td>';
       } else {
-        $table_user_data .= '<td style="' . $color_text . '">'.$selected_user_data[$row][$col].'</td>';
+        $table_user_data .= '<td style="' . $color_text . '">'
+        . $selected_user_data[$row][$col] . '</td>';
       }
     }
     $table_user_data .= '</tr>';
   }
   $table_user_data .= '</table>';
   return $table_user_data_style . $table_user_data_headers . $table_user_data;
+}
+
+function build_table_group_data() {
+  $grouplist = $_SESSION['grouplist'];
+  // Define table CSS style
+  $table_group_data_style =
+  '<style>
+    table {border-collapse: collapse;font-family: "Helvetica";}
+    table,td,th {border: 1px solid #ddd;}
+    th {text-align: left;
+      background-color: #4C6489;
+      color:white;
+      padding: 8px 4px 4px;}
+    td {padding: 4px 4px 0px;}
+    tr:nth-child(even) {background-color: #f2f2f2;}
+  </style>';
+
+  // Define HTML table and set header cell content
+  $table_group_data_headers = '<table><tr>';
+  $table_group_data_headers .= '<th>Group</th>';
+  '</tr>';
+
+  // Iterate through collected user data by row and column, build HTML table
+  for ($row = 0; $row < sizeof($grouplist); $row++) {
+    $table_group_data .= '<tr><td>' . utf8_decode($grouplist[$row])
+      . '</td></tr>';
+  }
+  $table_group_data .= '</table>';
+  return $table_group_data_style . $table_group_data_headers . $table_group_data;
 }
 
 /**
@@ -529,8 +565,8 @@ function build_mailto_list($type = 'bcc') {
     $type = MESSAGE_MODE;
   }
 
-  // Search for and return position of key 'email' in EXPORT_CHOICES constant
-  $keypos = array_search('email',EXPORT_CHOICES);
+  // Search for and return position of key 'email' in $export_choices variable
+  $keypos = array_search('email',$export_choices);
 
   // Begin if 'email' key is present
   if ($keypos != null) {
@@ -564,30 +600,21 @@ function build_mailto_list($type = 'bcc') {
   * @return $csv_user_data csv  Formatted string containing the user data
   *
   */
-function build_csv_user_data($delimiter = ',') {
-  // Invoke global variables
-  global $selected_user_data;
+function build_csv_user_data($data, $delimiter = ',') {
   // Add headers to $csv_user_data variable
   $csv_user_data .= build_csv_export_key_list($delimiter) . '<br>';
 
   // Iterate through collected user data by row and column, build CSV output
-  for ($row = 0; $row < sizeof($selected_user_data); $row++) {
-    for ($col = 0; $col < sizeof($selected_user_data[$row]); $col++) {
+  for ($row = 0; $row < sizeof($data); $row++) {
+    for ($col = 0; $col < sizeof($data[$row]); $col++) {
       // To prevent possible import issues, quote data cells of type string containing spaces
-      if (is_string($selected_user_data[$row][$col])) {
-        if ($selected_user_data[$row][$col] !=
-          trim($selected_user_data[$row][$col])) {
-            $csv_user_data .= '"' . $selected_user_data[$row][$col] . '"';
-        }
-        else {
-          $csv_user_data .= $selected_user_data[$row][$col];
-        }
-      }
-      else {
-        $csv_user_data .= $selected_user_data[$row][$col];
-      }
+      if (is_string($data[$row][$col])) {
+        if ($data[$row][$col] != trim($data[$row][$col])) {
+            $csv_user_data .= '"' . $data[$row][$col] . '"';
+        } else { $csv_user_data .= $data[$row][$col]; }
+      } else { $csv_user_data .= $data[$row][$col]; }
       // Put column separators between cells but not at the end of a record
-      if ($col != sizeof($selected_user_data[$row])) {
+      if ($col != sizeof($data[$row])) {
         $csv_user_data .= $delimiter;
       }
     }
@@ -648,7 +675,7 @@ function build_csv_line($array, $space = false, $delimiter = ',') {
 }
 
 /**
-  * Build a comma separated line from EXPORT_CHOICES constant
+  * Build a comma separated line from $export_choices variable
   *
   * @param  $delimiter  Which char to put between cells
   *
