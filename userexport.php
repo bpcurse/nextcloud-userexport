@@ -24,6 +24,9 @@ curl_set_options($ch);
 // Fetch raw userlist and store user_ids in $users
 $users_raw = json_decode(curl_exec($ch), true);
 
+// Check for errors in cURL request
+check_curl_response($ch, $users_raw);
+
 // Drop cURL handle
 curl_close($ch);
 
@@ -91,11 +94,8 @@ if (isset($users_raw['ocs']['data']['users'])) {
   /**
     * Display results page either as HTML table or comma separated values (CSV)
     */
-  if (EXPORT_TYPE == 'table') {
-    echo build_table_user_data();
-  } elseif (EXPORT_TYPE == 'csv') {
-      echo build_csv_user_data();
-  }
+  if (EXPORT_TYPE == 'table') { echo build_table_user_data(); }
+  elseif (EXPORT_TYPE == 'csv') { echo build_csv_user_data(); }
 }
 
 /***************************************************************************/
@@ -109,9 +109,7 @@ if (isset($users_raw['ocs']['data']['users'])) {
   *
   */
 function curl_set_options($ch, $user_id = null) {
-  if($user_id !== null) {
-    $user_id = '/' . rawurlencode($user_id);
-  }
+  $user_id = $user_id === null ? null : '/' . rawurlencode($user_id);
   curl_setopt($ch, CURLOPT_URL, TARGET_URL . '/ocs/v1.php/cloud/users' . $user_id);
   curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
@@ -145,8 +143,8 @@ function check_https($url) {
     exit('<font color="red" face="Helvetica"><hr>
     <b>The use of plain HTTP and other protocols is blocked for security reasons.</b>
     <br>Please use HTTPS instead.
-    <font color="black"><hr><br>
-    You can override this safety precaution and send your admin credentials
+    <font color="black"><hr>
+    <br>You can override this safety precaution and send your admin credentials
     <u><b>unencrypted</b></u> if you really need to by inserting \'!\' before \'http\'
     <br>e.g.: !http://cloud.example.com</font>');
   }
@@ -156,6 +154,69 @@ function check_https($url) {
     $url = ltrim($trim_url,'!');
   }
   return $url;
+}
+
+/**
+  * Error handling for cURL requests
+  *
+  * Checks cURL error codes and statuscodes in the API response
+  *
+  * @param  $ch     cURL handle to be checked
+  * @param  $data   variable containing the API data fetched by cURL exec
+  *
+  */
+function check_curl_response($ch, $data) {
+
+  // check if cURL returns an error != 0
+  if (curl_errno($ch)) {
+    // Iterate through common cURL error codes, exit and return custom error messages or default message
+    switch (curl_errno($ch)) {
+      case 6:
+        exit('<font color="red" face="Helvetica"><hr>
+          <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
+          <br>' . curl_error($ch) . '<font color="black"><hr>
+          Please check provided URL and network connection</font>');
+      case 51:
+        exit('<font color="red" face="Helvetica"><hr>
+          <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
+          <br>' . curl_error($ch) . '<font color="black"><hr>
+          Please check provided URL</font>');
+      default:
+        exit('<font color="red" face="Helvetica"><hr>
+          <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
+          <br>' . curl_error($ch) . '<font color="black"><hr></font>');
+    }
+  }
+
+  if ($data === null) {
+    exit('<font color="red" face="Helvetica"><hr>
+    <b>Error: The API response was empty</b>
+    <font color="black"><hr></font>');
+  }
+  // Read statuscode from API response
+  $status = $data['ocs']['meta']['statuscode'];
+
+  // Iterate through possible statuscode responses
+  switch ($status) {
+    case 100:
+    case 200:
+      // 100 or 200 mean OK -> break switch case and continue normal script execution
+      break;
+    case 404:
+      exit('<font color="red" face="Helvetica"><hr>
+      <b>Error: User does not exist (Statuscode ' . $status . ')</b>
+      <font color="black"><hr></font>');
+      break;
+    case 997:
+      exit('<font color="red" face="Helvetica"><hr>
+      <b>Error: Authentication (Statuscode ' . $status . ')</b><br>Please check username/password
+      <font color="black"><hr>
+      Hint: The provided user needs to be admin or group admin</font>');
+    default:
+      exit('<font color="red" face="Helvetica"><hr>
+      <b>Error: Unknown (Statuscode ' . $status . ')</b>
+      <font color="black"><hr></font>');
+  }
 }
 
 /**
