@@ -57,8 +57,8 @@
       <td><input id='pass' type='password' name='user_pass' size='10' placeholder='password'
         value='<?php echo $user_pass; ?>'></td></tr>
       </table>
-      <br><br>
-      <input type='submit' name='submit' value='submit'></font>
+      <br>
+      <input type='submit' name='submit' value='Connect'></font>
     </form>
   </body>
 </html>

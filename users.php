@@ -30,6 +30,9 @@
     <?php
 
       include ("navigation.php");
+      if (!$_SESSION['authenticated']) {
+        exit('<br>Please first connect to a server on the authentication page!');
+      }
       echo '<hr>' . $_SESSION['target_url']
         . '<br>Number of user accounts: ' . count($_SESSION['userlist'])
         . '<hr><br><u>Include the following user data:</u><br><br>

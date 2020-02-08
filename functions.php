@@ -21,6 +21,8 @@ function fetch_userlist() {
   // Check if the userlist has been received and save user IDs to $users
   if (isset($users_raw['ocs']['data']['users'])) {
     $users = $users_raw['ocs']['data']['users'];
+    // Set the session variable 'authenticated' to true to access other pages
+    $_SESSION['authenticated'] = true;
   }
   return $users;
 }
