@@ -26,10 +26,8 @@
     /**
       * Display results page either as HTML table or comma separated values (CSV)
       */
-    $user_data = fetch_and_select_user_detail();
-    
-    if (EXPORT_TYPE == 'table') { echo build_table_user_data($user_data); }
-    elseif (EXPORT_TYPE == 'csv') { echo build_csv_user_data($user_data); }
+    if (EXPORT_TYPE == 'table') { echo build_table_user_data(select_user_data()); }
+    elseif (EXPORT_TYPE == 'csv') { echo build_csv_user_data(select_user_data()); }
 
     ?>
   </body>

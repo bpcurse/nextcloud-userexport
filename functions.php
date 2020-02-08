@@ -178,7 +178,7 @@ function check_curl_response($ch, $data) {
   * Initialize individual cURL handles, set options and append them to
   * multi handle list
   */
-function fetch_and_select_user_detail() {
+function fetch_raw_user_data() {
   // Save the script's start timestamp to measure execution time
   define('TIMESTAMP_SCRIPT_START', microtime(true));
 
@@ -211,14 +211,10 @@ function fetch_and_select_user_detail() {
   //Iterate through $curl_requests (the cURL handle list)
   foreach ($curl_requests as $key => $request) {
     // Get content of one user data request, store in $single_user_data
-    $single_user_data =
+    $raw_user_data[] =
       json_decode(
         curl_multi_getcontent($curl_requests[$key])
       ,true);
-    // Call select_data function to filter/format request data
-    $selected_user_data[] = select_data($single_user_data, $key);
-    // Call select_data function again to filter/format request data as utf8 for csv file creation
-    $selected_user_data_utf8[] = select_data($single_user_data, $key, 'utf8');
 
     // Remove processed cURL handle
     curl_multi_remove_handle($mh, $curl_requests[$key]);
@@ -226,6 +222,18 @@ function fetch_and_select_user_detail() {
   // Drop cURL multi handle
   curl_multi_close($mh);
 
+  // Calculate total script runtime
+  $timestamp_script_end = microtime(true);
+  $_SESSION['time_total'] = number_format(round(
+                $timestamp_script_end - TIMESTAMP_SCRIPT_START, 1),1);
+  return $raw_user_data;
+}
+
+function select_user_data($format = null) {
+  foreach ($_SESSION['userlist'] as $key => $user_id) {
+    // Call select_data function to filter/format request data
+    $selected_user_data[] = select_data($_SESSION['raw_user_data'][$key], $user_id, $format);
+  }
   return $selected_user_data;
 }
 
@@ -234,20 +242,19 @@ function fetch_and_select_user_detail() {
   * depending on parameters
   *
   * @param $data    Single user record data array
-  * @param $type    If not 'utf8', UTF8 will be decoded for browser display
+  * @param $fromat  If not 'utf8', UTF8 will be decoded for browser display
   * OPTIONAL        DEFAULT: null
   *
   * @return $selected_data  Result of $data filtering
   */
-function select_data($data, $key, $type = null) {
-  global $users;
+function select_data($data, $user_id, $format = null) {
   if ($data['ocs']['meta']['statuscode'] == 997) {
-    $selected_data[] = $users[$key];
-    for ($i = 1; $i < count($export_choices); $i++) {
+    $selected_data[] = $user_id;
+    for ($i = 1; $i < count(EXPORT_CHOICES); $i++) {
       $selected_data[] = 'N/A';
     }
   }
-  // Prepare data for csv file export if $type = 'utf8'
+  // Prepare data for csv file export if $format = 'utf8'
   else {
     // Iterate through chosen data sets
     foreach(EXPORT_CHOICES as $key => $item) {
@@ -255,7 +262,7 @@ function select_data($data, $key, $type = null) {
       switch ($item) {
         case 'id':
         case 'displayname':
-          $selected_data[] = $type != 'utf8'
+          $selected_data[] = $format != 'utf8'
             // Apply utf8_decode on ID and displayname
             ? utf8_decode($data['ocs']['data'][$item])
             : $data['ocs']['data'][$item];
@@ -273,7 +280,7 @@ function select_data($data, $key, $type = null) {
           break;
         // Make the display of 'enabled' bool pretty in the browser
         case 'enabled':
-        $selected_data[] = $type == 'utf8'
+        $selected_data[] = $format == 'utf8'
           ? $data['ocs']['data'][$item]
           : ($data['ocs']['data'][$item] == true
             ? '<span style="color: green">&#10004;</span>'
@@ -282,14 +289,14 @@ function select_data($data, $key, $type = null) {
         case 'total':
         case 'used':
         case 'free':
-          $selected_data[] = $type != 'utf8'
+          $selected_data[] = $format != 'utf8'
             ? format_size($data['ocs']['data']['quota'][$item])
             : $data['ocs']['data']['quota'][$item];
           break;
         // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
         case 'subadmin':
         case 'groups':
-          $selected_data[] = $type != 'utf8'
+          $selected_data[] = $format != 'utf8'
             ? utf8_decode(build_csv_line($data['ocs']['data'][$item], true))
             : build_csv_line($data['ocs']['data'][$item]);
           break;
@@ -311,17 +318,11 @@ function select_data($data, $key, $type = null) {
   *
   */
 function print_status_message() {
-  global $selected_user_data;
-
-  // Calculate total script runtime
-  $timestamp_script_end = microtime(true);
-  $time_total = number_format(round(
-                $timestamp_script_end - TIMESTAMP_SCRIPT_START, 1),1);
 
   // Output status message
   echo '<font face="Helvetica">
-    Exported ' . count($selected_user_data) . ' records from ' . TARGET_URL .
-    ' on ' . date(DATE_RFC1123) . ' in ' . $time_total . ' seconds.<hr>';
+    Exported ' . count($_SESSION['raw_user_data']) . ' records from ' . TARGET_URL .
+    ' on ' . date(DATE_RFC1123) . ' in ' . $_SESSION['time_total'] . ' seconds.<hr>';
 }
 
 /**
@@ -553,18 +554,18 @@ function build_table_group_data() {
   *
   * Creates a string in 'mailto:' notation containing all user emails
   *
-  * @param  $type         Send emails as 'to', 'cc' or 'bcc'
+  * @param  $mode         Send emails as 'to', 'cc' or 'bcc'
   * OPTIONAL              DEFAULT: 'bcc'
   *
   * @return $mailto_list  Exported emails as mailto: string for mass mailing
   *
   */
-function build_mailto_list($type = 'bcc') {
+function build_mailto_list($mode = 'bcc') {
   // Invoke global variables
   global $selected_user_data;
-  // If a custom message mode was chosen, set $type to MESSAGE_MODE constant
+  // If a custom message mode was chosen, set $mode to MESSAGE_MODE constant
   if (MESSAGE_MODE == 'cc' || MESSAGE_MODE == 'to') {
-    $type = MESSAGE_MODE;
+    $mode = MESSAGE_MODE;
   }
 
   // Search for and return position of key 'email' in $export_choices variable
@@ -573,7 +574,7 @@ function build_mailto_list($type = 'bcc') {
   // Begin if 'email' key is present
   if ($keypos != null) {
     // Initiate construction of mailto string, setting 'to:', 'cc:' or 'bcc:'
-    $mailto_list = 'mailto:?' . $type . '=';
+    $mailto_list = 'mailto:?' . $mode . '=';
     // Iterate through collected user data and add email addresses
     for ($row = 0; $row < sizeof($selected_user_data); $row++) {
       if ($selected_user_data[$row][$keypos] == 'N/A') {
@@ -616,7 +617,7 @@ function build_csv_user_data($data, $delimiter = ',') {
         } else { $csv_user_data .= $data[$row][$col]; }
       } else { $csv_user_data .= $data[$row][$col]; }
       // Put column separators between cells but not at the end of a record
-      if ($col != sizeof($data[$row])) {
+      if ($col < sizeof($data[$row])-1) {
         $csv_user_data .= $delimiter;
       }
     }

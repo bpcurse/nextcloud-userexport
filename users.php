@@ -34,8 +34,11 @@
         exit('<br>Please first connect to a server on the authentication page!');
       }
       echo '<hr>' . $_SESSION['target_url']
-        . '<br>Number of user accounts: ' . count($_SESSION['userlist'])
-        . '<hr><br><u>Include the following user data:</u><br><br>
+        . '<br>Number of user accounts: ' . count($_SESSION['userlist']);
+
+      $_SESSION['raw_user_data'] = fetch_raw_user_data();
+
+      echo '<hr><br><u>Include the following user data:</u><br><br>
         <form method="post" action="users_detail.php"><table><tr>';
 
         foreach ($_SESSION['data_options'] as $option => $title) {
@@ -68,18 +71,22 @@
 
     ?>
     <br><br>
-    <u>Display results as:</u><br><br>
+    <u>Format as:</u>
     <input type='radio' name='export_type' value='table'
       <?php if ($export_type == 'table' || $export_type == null)
         {echo 'checked=\"checked\"';} ?>> Table
     <input type='radio' name='export_type' value='csv'
       <?php if ($export_type == 'csv') {echo 'checked=\"checked\"';} ?>> CSV
     <br><br>
-    <span style="font-size: small">
-    A CSV formatted file can be downloaded on the next page regardless of the above selection</span>
+    <input style="background-color: #4c6489; color: white; height: 45px; width: 300px;"
+      type='submit' onclick='users_detail.php' value='Display'>
+    <br><br><br>
+    <u>Download as:</u>
+    <input type='radio' name='download_type' value='table'> Table
+    <input type='radio' name='download_type' value='csv' checked='checked'> CSV
     <br><br>
-    <input style="background-color: #4c6489; color: white; height: 45px"
-      type="submit" onclick="submit" value="Fetch user data from server">
+    <input style='background-color: green; color: white; height: 45px; width: 300px;'
+      type='submit' onclick='download.php' value='Download'>
     </form>
   </body>
 </html>

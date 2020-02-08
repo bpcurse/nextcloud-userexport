@@ -42,7 +42,8 @@
 
   <body>
     <?php include ("navigation.php"); ?>
-    <form method='post' action='users.php' id='auth_form'><font face='Helvetica'>
+    <form method='post' action='users.php' id='auth_form'>
+      <font face='Helvetica'>
       <br><u>URL and login data:</u><br><br>
       <table>
       <tr><td><label for='url'>Target URL</label></td>
@@ -58,7 +59,10 @@
         value='<?php echo $user_pass; ?>'></td></tr>
       </table>
       <br>
-      <input type='submit' name='submit' value='Connect'></font>
+      <input style="background-color: #4c6489; color: white; height: 45px"
+        value='Connect and fetch data from server (this may take a while)'
+        type='submit' name='submit'>
+      </font>
     </form>
   </body>
 </html>
