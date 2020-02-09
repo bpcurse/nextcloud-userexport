@@ -2,6 +2,8 @@
 
   session_start();
   $active_page = "index";
+  require("functions.php");
+  include("config.php");
 
   // Get parameters if any
   if (isset($_GET['url'])) {
@@ -28,7 +30,7 @@
   $_SESSION['data_options'] = [
     'id' => 'User ID', 'displayname' => 'Displayname', 'email' => 'Email',
     'lastLogin' => 'Last Login', 'backend' => 'Backend', 'enabled' => 'Enabled',
-    'total' => 'Quota total', 'used' => 'Quota used', 'free' => 'Quota free',
+    'quota' => 'Quota limit', 'used' => 'Quota used', 'free' => 'Quota free',
     'groups' => 'Groups', 'subadmin' => 'Subadmin', 'language' => 'Language',
     'locale' => 'Locale'];
 
@@ -64,5 +66,28 @@
         type='submit' name='submit'>
       </font>
     </form>
+    <?php
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+      // Set SESSION variables to POST values
+      if (isset($_POST['target_url'])) {
+        $_SESSION['user_name'] = $_POST['user_name'];
+        $_SESSION['user_pass'] = $_POST['user_pass'];
+
+        // Check if plain HTTP is used without override command and exit if not
+        $_SESSION['target_url'] = check_https($_POST['target_url']);
+
+        // Fast cURL API call fetching the userlist (containing only user IDs) from target server
+        $_SESSION['userlist'] = fetch_userlist();
+        // Fetch grouplist from target server
+        $_SESSION['grouplist'] = fetch_grouplist();
+      }
+
+      // Fetch all user details (this can take a long time)
+      $_SESSION['raw_user_data'] = fetch_raw_user_data();
+
+      echo '<br><hr>Connected to server: ' . $_SESSION['target_url'] . '<hr>';
+      print_status_message();
+    }
+    ?>
   </body>
 </html>

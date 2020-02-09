@@ -1,5 +1,7 @@
 <?php
 
+include("config.php");
+
 /**
   * Fetch the list containing all user IDs from the server
   *
@@ -286,7 +288,7 @@ function select_data($data, $user_id, $format = null) {
             ? '<span style="color: green">&#10004;</span>'
             : '<span style="color: red">&#10008;</span>');
           break;
-        case 'total':
+        case 'quota':
         case 'used':
         case 'free':
           $selected_data[] = $format != 'utf8'
@@ -321,8 +323,15 @@ function print_status_message() {
 
   // Output status message
   echo '<font face="Helvetica">
-    Exported ' . count($_SESSION['raw_user_data']) . ' records from ' . TARGET_URL .
-    ' on ' . date(DATE_RFC1123) . ' in ' . $_SESSION['time_total'] . ' seconds.<hr>';
+    Fetched ' . count($_SESSION['raw_user_data']) . ' users and '
+    . count($_SESSION['grouplist']) . ' groups on ' . date(DATE_RFC1123)
+    . ' in ' . $_SESSION['time_total'] . ' seconds.<br>';
+
+    /*. '<hr>Largest group: '
+    . '<br>Smallest group: '
+    . '<br><br>Users with last login'
+    . '<br>Never: '
+    . '<br>>6 Months: ';*/
 }
 
 /**
@@ -401,8 +410,8 @@ function random_str(
   *
   */
 function build_csv_file($list = 'default', $headers = 'default') {
-  // Invoke global variables
-  global $selected_user_data_utf8;
+
+  if (!TEMP_FOLDER) { define(TEMP_FOLDER, "export_temp"); }
 
   // Delete contents of temporary folder, if file was not deleted after last run
   delete_folder_content(TEMP_FOLDER);
@@ -434,6 +443,35 @@ function build_csv_file($list = 'default', $headers = 'default') {
   // Close active file handle
   fclose($csv_file);
   return $csv_filename;
+}
+
+/**
+  * Initiate file download
+  *
+  * The selected file (by filename) will be downloaded and deleted afterwards
+  * It can be downloaded using an alternative filename, if supplied
+  *
+  * @param  $filename           Filename on the server
+  * @param  $mime_type          MIME type to be sent in the header
+  * OPTIONAL                    DEFAULT: 'application/csv'
+  * @param  $filename_download  Filename for download
+  * OPTIONAL                    DEFAULT: 'download'
+  * @param  $folder             Folder to prepend in front of the server filename
+  * OPTIONAL                    DEFAULT: '.'
+  *
+  */
+function download_file($filename, $mime_type = 'application/csv',
+  $filename_download = 'download', $folder = '.') {
+  // make sure file is deleted even if user cancels download
+  ignore_user_abort(true);
+
+  header('Content-Type: ' . $mime_type);
+  header("Content-Transfer-Encoding: Binary");
+  header("Content-disposition: attachment; filename=\"" . $filename_download . "\"");
+
+  readfile($folder . '/' . $filename);
+  // delete file
+  unlink($folder . '/' . $filename);
 }
 
 /**
@@ -488,7 +526,7 @@ function build_table_user_data($selected_user_data) {
   '</tr>';
 
   // Search for and return position of quota keys in EXPORT_CHOICES
-  $keypos_right_align[] = array_search('total',EXPORT_CHOICES);
+  $keypos_right_align[] = array_search('quota',EXPORT_CHOICES);
   $keypos_right_align[] = array_search('used',EXPORT_CHOICES);
   $keypos_right_align[] = array_search('free',EXPORT_CHOICES);
 
@@ -531,7 +569,7 @@ function build_table_group_data() {
       background-color: #4C6489;
       color:white;
       padding: 8px 4px 4px;}
-    td {padding: 4px 4px 0px;}
+    td {padding: 4px 4px 0px; width: auto; min-width: 100px;}
     tr:nth-child(even) {background-color: #f2f2f2;}
   </style>';
 
@@ -639,6 +677,8 @@ function build_csv_user_data($data, $delimiter = ',') {
 function format_size($size) {
   if ($size == 0) {
     return "-";
+  } elseif ($size == -3) {
+    return "unlimited";
   }
 
   $s = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');

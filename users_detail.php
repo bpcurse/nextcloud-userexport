@@ -3,9 +3,28 @@
   session_start();
   $active_page = "users";
   require("functions.php");
+  include("config.php");
+
   // Filter POST array and save keys with value 'true' as constant
   define('EXPORT_CHOICES', array_keys($_POST,'true'));
-  define('EXPORT_TYPE', $_POST['export_type']);
+  $export_type = $_POST['export_type'];
+  $display_or_download = $_POST['submit'];
+  $filename = $_POST['file'];
+  $mime_type = $_POST['mime'];
+  $filename_download = $_POST['name'];
+
+  if ($display_or_download == "Download (CSV)") {
+    // Set filename or create one depending on GET parameters
+    if($filename_download == null) {
+      $filename_download = "nextcloud-userlist_" . date("Y-m-d_Hi") . ".csv";
+    }
+
+    // Create and populate CSV file with selected user data and set filename variable
+    $filename = build_csv_file(select_user_data('utf8'));
+
+    download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
+    exit();
+  }
 
 ?>
 
@@ -23,11 +42,17 @@
       . '<br>Number of user accounts: ' . count($_SESSION['userlist'])
       . '<hr>';
 
-    /**
-      * Display results page either as HTML table or comma separated values (CSV)
-      */
-    if (EXPORT_TYPE == 'table') { echo build_table_user_data(select_user_data()); }
-    elseif (EXPORT_TYPE == 'csv') { echo build_csv_user_data(select_user_data()); }
+    if ($display_or_download == "Display") {
+      /**
+        * Display results page either as HTML table or comma separated values (CSV)
+        */
+      if ($export_type == 'table') {
+        echo build_table_user_data(select_user_data());
+      }
+      elseif ($export_type == 'csv') {
+        echo build_csv_user_data(select_user_data());
+      }
+    }
 
     ?>
   </body>

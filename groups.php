@@ -3,6 +3,7 @@
   session_start();
   $active_page = "groups";
   require("functions.php");
+  include("config.php");
 
 ?>
 
@@ -17,10 +18,8 @@
 
     include ("navigation.php");
     if (!$_SESSION['authenticated']) {
-      exit('<br>Please first connect to a server on the authentication page!');
+      exit('<br>Please first connect to a server on the server page!');
     }
-    // Fetch grouplist from target server
-    $_SESSION['grouplist'] = fetch_grouplist();
     echo '<hr>' . $_SESSION['target_url']
       . '<br>Number of groups: ' . count($_SESSION['grouplist']) . '<hr>';
 
