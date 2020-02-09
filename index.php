@@ -2,8 +2,8 @@
 
   session_start();
   $active_page = "index";
-  require("functions.php");
-  include("config.php");
+  require 'functions.php';
+  include 'config.php';
 
   // Get parameters if any
   if (isset($_GET['url'])) {
@@ -44,25 +44,28 @@
 
   <body>
     <?php include ("navigation.php"); ?>
-    <form method='post' action='users.php' id='auth_form'>
+    <form method='post' id='auth_form'>
       <font face='Helvetica'>
-      <br><u>URL and login data:</u><br><br>
+      <br>
+      <u>URL and login data:</u>
+      <br><br>
       <table>
-      <tr><td><label for='url'>Target URL</label></td>
-      <td colspan="3"><input id='url' type='text' name='target_url' size='36'
-        placeholder='https://cloud.example.com'
-        value='<?php echo $target_url; ?>'>
-      </td></tr>
-      <tr><td><label for='user'>Username</label></td>
-      <td><input id='user' type='text' name='user_name' size='10' placeholder='username'
-        value='<?php echo $user_name; ?>'></td>
-      <td><label for='pass'>Password</label></td>
-      <td><input id='pass' type='password' name='user_pass' size='10' placeholder='password'
-        value='<?php echo $user_pass; ?>'></td></tr>
+        <tr><td><label for='url'>Target URL</label></td>
+        <td colspan="3"><input id='url' type='text' name='target_url' size='36'
+          placeholder='https://cloud.example.com'
+          value='<?php echo $target_url; ?>'>
+        </td></tr>
+        <tr><td><label for='user'>Username</label></td>
+        <td><input id='user' type='text' name='user_name' size='10'
+          placeholder='username' value='<?php echo $user_name; ?>'></td>
+        <td><label for='pass'>Password</label></td>
+        <td><input id='pass' type='password' name='user_pass' size='10'
+          placeholder='password' value='<?php echo $user_pass; ?>'></td>
+        </tr>
       </table>
       <br>
       <input style="background-color: #4c6489; color: white; height: 45px"
-        value='Connect and fetch data from server (this may take a while)'
+        value='Connect and fetch data from server (this may take minutes!)'
         type='submit' name='submit'>
       </font>
     </form>
@@ -85,7 +88,6 @@
       // Fetch all user details (this can take a long time)
       $_SESSION['raw_user_data'] = fetch_raw_user_data();
 
-      echo '<br><hr>Connected to server: ' . $_SESSION['target_url'] . '<hr>';
       print_status_message();
     }
     ?>

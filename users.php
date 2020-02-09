@@ -1,9 +1,9 @@
 <?php
 
   session_start();
-  $active_page = "users";
-  require("functions.php");
-  include("config.php");
+  $active_page = 'users';
+  require 'functions.php';
+  include 'config.php';
 
   $export_type = $_SESSION['export_type'];
 
@@ -20,7 +20,7 @@
 
       include ("navigation.php");
       if (!$_SESSION['authenticated']) {
-        exit('<br>Please first connect to a server on the server page!');
+        exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
       }
       echo '<hr>' . $_SESSION['target_url']
         . '<br>Number of user accounts: ' . count($_SESSION['userlist']);

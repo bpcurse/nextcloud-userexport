@@ -1,6 +1,6 @@
 <?php
 
-include("config.php");
+include 'config.php';
 
 /**
   * Fetch the list containing all user IDs from the server
@@ -311,6 +311,20 @@ function select_data($data, $user_id, $format = null) {
   return $selected_data;
 }
 
+function select_group_members($group, $format = null) {
+  foreach ($_SESSION['userlist'] as $key => $user_id) {
+    // Call select_data function to filter/format request data
+    $data = $_SESSION['raw_user_data'][$key];
+    if (in_array($group, $data['ocs']['data']['groups'])) {
+      $group_members[] = $format == 'utf8'
+        ? [$user_id, $data['ocs']['data']['displayname']]
+        : array_map('utf8_decode', [$user_id, $data['ocs']['data']['displayname']]);
+    }
+
+  }
+  return $group_members;
+}
+
 /**
   * Print status message
   *
@@ -322,8 +336,8 @@ function select_data($data, $user_id, $format = null) {
 function print_status_message() {
 
   // Output status message
-  echo '<font face="Helvetica">
-    Fetched ' . count($_SESSION['raw_user_data']) . ' users and '
+  echo '<br><hr>Connected to server: ' . $_SESSION['target_url']
+    . '<hr>Fetched ' . count($_SESSION['raw_user_data']) . ' users and '
     . count($_SESSION['grouplist']) . ' groups on ' . date(DATE_RFC1123)
     . ' in ' . $_SESSION['time_total'] . ' seconds.<br>';
 
@@ -569,18 +583,24 @@ function build_table_group_data() {
       background-color: #4C6489;
       color:white;
       padding: 8px 4px 4px;}
-    td {padding: 4px 4px 0px; width: auto; min-width: 100px;}
+    td {padding: 4px 4px 0px; width: auto; min-width: 150px;}
     tr:nth-child(even) {background-color: #f2f2f2;}
   </style>';
 
   // Define HTML table and set header cell content
   $table_group_data_headers = '<table><tr>';
-  $table_group_data_headers .= '<th>Group</th>';
-  '</tr>';
+  $table_group_data_headers .=
+     '<th>Group</th>
+      <th>User IDs</th>
+      <th>Displaynames<th>
+      </tr>';
 
   // Iterate through collected user data by row and column, build HTML table
   for ($row = 0; $row < sizeof($grouplist); $row++) {
+    $members = select_group_members($grouplist[$row]);
     $table_group_data .= '<tr><td>' . utf8_decode($grouplist[$row])
+      . '</td><td>' . build_csv_line(array_column($members,0),true)
+      . '</td><td>' . build_csv_line(array_column($members,1),true)
       . '</td></tr>';
   }
   $table_group_data .= '</table>';
