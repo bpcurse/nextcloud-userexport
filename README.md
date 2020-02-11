@@ -49,14 +49,14 @@ You can use the following GET parameters with this script:
   - `to`  
   - `cc`
 
-(**Preselect data to export** not released yet, added to master)
+**Select data to export**
 - `select`
   - `id`, `displayname`, `email`, `lastLogin`[case sensitive!], `backend`, `enabled`, `total`, `used`, `free`, `groups`, `subadmin`, `language`, `locale`
 
 **Examples:**
 ```
 https://mydomain.org/userexport.php/?url=https://cloud.example.com&user=myusername&pass=goodpassword&type=csv
-https://userexport.mydomain.org/?url=https://cloud.example.com&user=myusername&msg_mode=to
+https://userexport.mydomain.org/?url=https://cloud.example.com&user=myusername&msg_mode=to&select=id,displayname,enabled,used,lastLogin
 ```
 
 If you do not supply one of the parameters you can fill in the corresponding fields afterwards in the form (e.g. password).
