@@ -65,7 +65,7 @@
       </table>
       <br>
       <input style="background-color: #4c6489; color: white; height: 45px"
-        value='Connect and fetch data from server (this may take minutes!)'
+        value='Connect/fetch data from server (this may take several seconds or even minutes)'
         type='submit' name='submit'>
       </font>
     </form>

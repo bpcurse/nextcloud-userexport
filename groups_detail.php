@@ -17,8 +17,8 @@
       $filename_download = "nextcloud-grouplist_" . date("Y-m-d_Hi") . ".csv";
     }
 
-    // Create and populate CSV file with selected user data and set filename variable
-    $filename = build_csv_file(select_user_data('utf8'));
+    // Create and populate CSV file with selected group data and set filename variable
+    $filename = build_csv_file(build_csv_group_data('utf8','array'),'group,loginID,displayname');
 
     download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
     exit();
@@ -40,9 +40,20 @@
       exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
     }
     echo '<hr>' . $_SESSION['target_url']
-      . '<br>Number of groups: ' . count($_SESSION['grouplist']) . '<hr>';
+      . '<br>Number of groups: ' . count($_SESSION['grouplist'])
+      . '<hr>';
 
-    echo build_table_group_data();
+    if ($display_or_download == "Display") {
+      /**
+        * Display results page either as HTML table or comma separated values (CSV)
+        */
+      if ($export_type == 'table') {
+        echo build_table_group_data();
+      }
+      elseif ($export_type == 'csv') {
+        echo build_csv_group_data();
+      }
+    }
 
     ?>
   </body>

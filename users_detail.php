@@ -38,6 +38,9 @@
     <?php
 
     include ("navigation.php");
+    if (!$_SESSION['authenticated']) {
+      exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
+    }
     echo '<hr>' . $_SESSION['target_url']
       . '<br>Number of user accounts: ' . count($_SESSION['userlist'])
       . '<hr>';
