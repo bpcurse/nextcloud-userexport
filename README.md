@@ -87,3 +87,12 @@ I am thinking of another script to cover the use case of **importing** users fro
 ## Additional Info
 Inspired by comments to this github issue:
 https://github.com/nextcloud/server/issues/14715
+
+## Screenshots
+**Login page**
+
+![nextcloud-userexport_v0 4 1_login_page](https://user-images.githubusercontent.com/29312856/74459593-dd649a80-4e8b-11ea-9067-71a09a5356a5.png)
+
+**Userlist**
+
+![nextcloud-userexport_v0 4 1_userlist_page](https://user-images.githubusercontent.com/29312856/74459605-e190b800-4e8b-11ea-8736-bff583fa3971.png)
