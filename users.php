@@ -22,10 +22,10 @@
       if (!$_SESSION['authenticated']) {
         exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
       }
-      echo '<hr>' . $_SESSION['target_url']
-        . '<br>Number of user accounts: ' . count($_SESSION['userlist']);
 
-      echo '<hr><br><u>Include the following user data:</u><br><br>
+      print_status_overview();
+
+      echo '<br><u>Include the following user data:</u><br><br>
         <form method="post" action="users_detail.php"><table><tr>';
 
         foreach ($_SESSION['data_options'] as $option => $title) {

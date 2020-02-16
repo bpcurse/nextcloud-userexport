@@ -7,7 +7,7 @@
 
   // Get parameters if any
   if (isset($_GET['url'])) {
-    $target_url = $_GET['url'];
+    $target_url = filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL);
   }
   if (isset($_GET['user'])) {
     $user_name = $_GET['user'];
@@ -27,12 +27,8 @@
   if ($_SESSION['data_choices'] === null) {
     $_SESSION['data_choices'] = ['id', 'displayname', 'email', 'lastLogin'];
   }
-  $_SESSION['data_options'] = [
-    'id' => 'User ID', 'displayname' => 'Displayname', 'email' => 'Email',
-    'lastLogin' => 'Last Login', 'backend' => 'Backend', 'enabled' => 'Enabled',
-    'quota' => 'Quota limit', 'used' => 'Quota used', 'free' => 'Quota free',
-    'groups' => 'Groups', 'subadmin' => 'Subadmin', 'language' => 'Language',
-    'locale' => 'Locale'];
+
+  set_data_options();
 
 ?>
 
@@ -51,22 +47,25 @@
       <br><br>
       <table>
         <tr><td><label for='url'>Target URL</label></td>
-        <td colspan="3"><input id='url' type='text' name='target_url' size='36'
+        <td colspan="3">
+          <input id='url' type='text' name='target_url' size='36' required
           placeholder='https://cloud.example.com'
           value='<?php echo $target_url; ?>'>
         </td></tr>
         <tr><td><label for='user'>Username</label></td>
-        <td><input id='user' type='text' name='user_name' size='10'
+        <td><input id='user' type='text' name='user_name' size='10' required
           placeholder='username' value='<?php echo $user_name; ?>'></td>
         <td><label for='pass'>Password</label></td>
-        <td><input id='pass' type='password' name='user_pass' size='10'
+        <td><input id='pass' type='password' name='user_pass' size='10' required
           placeholder='password' value='<?php echo $user_pass; ?>'></td>
         </tr>
       </table>
       <br>
-      <input style="background-color: #4c6489; color: white; height: 45px"
-        value='Connect/fetch data from server (this may take several seconds or even minutes)'
-        type='submit' name='submit'>
+      <input style="background-color: #4c6489; color: white;
+        height: 45px;"
+        value='Connect/fetch data from server' type='submit' name='submit'>
+        <br><span style="font-size: small; color: grey;">
+          This may take a while. Be patient.</span>
       </font>
     </form>
     <?php
@@ -79,16 +78,20 @@
         // Check if plain HTTP is used without override command and exit if not
         $_SESSION['target_url'] = check_https($_POST['target_url']);
 
-        // Fast cURL API call fetching the userlist (containing only user IDs) from target server
+        // Fast cURL API call fetching userlist (containing only user IDs) from target server
         $_SESSION['userlist'] = fetch_userlist();
-        // Fetch grouplist from target server
+        // Fast cURL API call fetching grouplist (containing only group names) from target server
         $_SESSION['grouplist'] = fetch_grouplist();
+
+        // Count the list items and save them as session variable
+        $_SESSION['usercount'] = count($_SESSION['userlist']);
+        $_SESSION['groupcount'] = count($_SESSION['grouplist']);
       }
 
       // Fetch all user details (this can take a long time)
       $_SESSION['raw_user_data'] = fetch_raw_user_data();
 
-      print_status_message();
+      print_status_success();
     }
     ?>
   </body>

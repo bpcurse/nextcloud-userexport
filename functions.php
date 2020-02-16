@@ -25,6 +25,18 @@ function set_curl_options($ch, $type, $id = null) {
 }
 
 /**
+* TODO
+*/
+function set_data_options() {
+  $_SESSION['data_options'] = [
+    'id' => 'User ID', 'displayname' => 'Displayname', 'email' => 'Email',
+    'lastLogin' => 'Last Login', 'backend' => 'Backend', 'enabled' => 'Enabled',
+    'quota' => 'Quota limit', 'used' => 'Quota used', 'free' => 'Quota free',
+    'groups' => 'Groups', 'subadmin' => 'Subadmin', 'language' => 'Language',
+    'locale' => 'Locale'];
+}
+
+/**
   * Check secure outgoing connection
   *
   * Depending on the first five chars of the supplied URL:
@@ -235,10 +247,11 @@ function fetch_raw_user_data() {
 /**
 * TODO
 */
-function select_user_data($format = null) {
+function select_data_all_users($export_choices = null, $format = null) {
+  $export_choices = $export_choices ?? $_SESSION['data_choices'];
   foreach ($_SESSION['userlist'] as $key => $user_id) {
     // Call select_data function to filter/format request data
-    $selected_user_data[] = select_data($_SESSION['raw_user_data'][$key], $user_id, $format);
+    $selected_user_data[] = select_data_single_user($_SESSION['raw_user_data'][$key], $user_id, $export_choices, $format);
   }
   return $selected_user_data;
 }
@@ -253,42 +266,40 @@ function select_user_data($format = null) {
   *
   * @return $selected_data  Result of $data filtering
   */
-function select_data($data, $user_id, $format = null) {
+function select_data_single_user($data, $user_id, $export_choices, $format = null) {
   if ($data['ocs']['meta']['statuscode'] == 997) {
     $selected_data[] = $user_id;
-    for ($i = 1; $i < count(EXPORT_CHOICES); $i++) {
+    for ($i = 1; $i < count($export_choices); $i++) {
       $selected_data[] = 'N/A';
     }
   }
   // Prepare data for csv file export if $format = 'utf8'
   else {
     // Iterate through chosen data sets
-    foreach(EXPORT_CHOICES as $key => $item) {
+    foreach($export_choices as $key => $item) {
+      $item_data = $data['ocs']['data'][$item];
       // Filter/format different data sets
       switch ($item) {
         case 'id':
         case 'displayname':
           $selected_data[] = $format != 'utf8'
             // Apply utf8_decode on ID and displayname
-            ? utf8_decode($data['ocs']['data'][$item])
-            : $data['ocs']['data'][$item];
+            ? utf8_decode($item_data) : $item_data;
           break;
         // Convert email data set to lowercase
         case 'email':
-          $selected_data[] = strtolower($data['ocs']['data'][$item]);
+          $selected_data[] = strtolower($item_data);
           break;
         case 'lastLogin':
-          $last_login = $data['ocs']['data'][$item];
           // If user has never logged in set $last_login to '-'
-          $selected_data[] = $last_login == 0 ? '-' :
+          $selected_data[] = $item_data == 0 ? '-' :
             // Format unix timestamp to YYYY-MM-DD after trimming last 3 chars
-            date("Y-m-d",substr($last_login,0,10));
+            date("Y-m-d", substr($item_data, 0, 10));
           break;
         // Make the display of 'enabled' bool pretty in the browser
         case 'enabled':
-        $selected_data[] = $format == 'utf8'
-          ? $data['ocs']['data'][$item]
-          : ($data['ocs']['data'][$item] == true
+        $selected_data[] = $format == 'utf8' ? $item_data
+          : ($item_data == true
             ? '<span style="color: green">&#10004;</span>'
             : '<span style="color: red">&#10008;</span>');
           break;
@@ -302,13 +313,18 @@ function select_data($data, $user_id, $format = null) {
         // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
         case 'subadmin':
         case 'groups':
-          $selected_data[] = $format != 'utf8'
-            ? utf8_decode(build_csv_line($data['ocs']['data'][$item], true))
-            : build_csv_line($data['ocs']['data'][$item]);
+          $selected_data[] = empty($item_data) ? '-'
+            : ($format != 'utf8'
+              ? utf8_decode(build_csv_line($item_data, true))
+              : build_csv_line($item_data));
+          break;
+        case 'locale':
+          // If user has not set a locale use '-'
+          $selected_data[] = $item_data == '' ? '-' : $item_data;
           break;
         // If none of the above apply
         default:
-          $selected_data[] = $data['ocs']['data'][$item];
+          $selected_data[] = $item_data;
       }
     }
   }
@@ -340,20 +356,30 @@ function select_group_members($group, $format = null) {
   * Change the standard used to display the timestamp to your needs
   *
   */
-function print_status_message() {
+function print_status_success() {
 
-  // Output status message
+  // Output status message after receiving user and group data
   echo '<br><hr>Connected to server: ' . $_SESSION['target_url']
     . ' <span style="color: green">&#10004;</span>'
     . '<br>Fetched ' . count($_SESSION['raw_user_data']) . ' users and '
     . count($_SESSION['grouplist']) . ' groups on ' . date(DATE_RFC1123)
     . ' in ' . $_SESSION['time_total'] . ' seconds.<hr>';
 
-    /*. '<hr>Largest group: '
+    /* TODO. '<hr>Largest group: '
     . '<br>Smallest group: '
     . '<br><br>Users with last login'
     . '<br>Never: '
     . '<br>>6 Months: ';*/
+}
+
+/**
+  * TODO
+  */
+function print_status_overview() {
+  echo '<hr>' . $_SESSION['target_url']
+    . '<br>Total: ' . $_SESSION['usercount'] . ' Users | '
+    . $_SESSION['groupcount'] . ' Groups
+    <hr>';
 }
 
 /**
@@ -362,26 +388,18 @@ function print_status_message() {
   * Provides buttons for CSV file download and mass mail via 'mailto:' string
   *
   */
-function show_control_buttons() {
+function show_button_mailto() {
   // Build and store email list formatted as 'mailto:'
   $mailto_list = build_mailto_list();
-  // Show download CSV file button, POST hidden form items to download.php on click
-  echo
-  '<form method="post" action="download.php"><font face="Helvetica">
-    <input type="hidden" name="file" value="' . CSV_FILENAME . '">
-    <input type="hidden" name="mime" value="application/csv">
-    <input type="hidden" name="temp" value="' . TEMP_FOLDER . '">
-    <input style="background-color: green; color: white; height: 35px"
-      type="submit" name="submit" value="Download CSV file">';
 
   // Show mass mail button (only if email addresses were provided)
   if ($mailto_list != false) {
-    echo
-    ' <input style="background-color: blue; color: white; height: 35px"
+    echo '<form>
+      <input style="background-color: blue; color: white; height: 35px"
       type="button" onclick="window.location.href = \'' . $mailto_list .
-      '\'" value="Write email to all users"/>';
+      '\'" value="Write email to all users"/>
+      </form>';
   }
-  echo '</form><hr>';
 }
 
 /**
@@ -445,7 +463,7 @@ function build_csv_file($list, $headers = 'default') {
   * OPTIONAL                    DEFAULT: '.'
   *
   */
-function download_file($filename, $mime_type = 'application/csv',
+function download_file($filename, $mime_type = 'text/csv',
   $filename_download = 'download', $folder = '.') {
   // make sure file is deleted even if user cancels download
   ignore_user_abort(true);
@@ -490,6 +508,7 @@ function delete_folder_content($folder) {
   *
   */
 function build_table_user_data($selected_user_data) {
+  $data_choices = $_SESSION['data_choices'];
   // Define table CSS style
   $table_user_data_style =
   '<style>
@@ -505,18 +524,18 @@ function build_table_user_data($selected_user_data) {
 
   // Define HTML table and set header cell content
   $table_user_data_headers = '<table><tr>';
-  foreach(EXPORT_CHOICES as $item) {
+  foreach($data_choices as $item) {
     $table_user_data_headers .= '<th>' . $item . '</th>';
   }
   '</tr>';
 
-  // Search for and return position of quota keys in EXPORT_CHOICES
-  $keypos_right_align[] = array_search('quota',EXPORT_CHOICES);
-  $keypos_right_align[] = array_search('used',EXPORT_CHOICES);
-  $keypos_right_align[] = array_search('free',EXPORT_CHOICES);
+  // Search for and return position of quota keys in $export_choices
+  $keypos_right_align[] = array_search('quota', $data_choices);
+  $keypos_right_align[] = array_search('used', $data_choices);
+  $keypos_right_align[] = array_search('free', $data_choices);
 
-  // Search for and return position of 'enabled' in EXPORT_CHOICES
-  $keypos_center_align = array_search('enabled',EXPORT_CHOICES);
+  // Search for and return position of 'enabled' in $export_choices
+  $keypos_center_align = array_search('enabled', $data_choices);
 
   // Iterate through collected user data by row and column, build HTML table
   for ($row = 0; $row < sizeof($selected_user_data); $row++) {
@@ -592,29 +611,22 @@ function build_table_group_data() {
   * @return $mailto_list  Exported emails as mailto: string for mass mailing
   *
   */
-function build_mailto_list($mode = 'bcc') {
-  $selected_user_data = $_SESSION['TODO'] ;
-  // If a custom message mode was chosen, set $mode to MESSAGE_MODE constant
-  if (MESSAGE_MODE == 'cc' || MESSAGE_MODE == 'to') {
-    $mode = MESSAGE_MODE;
-  }
-
-  // Search for and return position of key 'email' in $export_choices variable
-  $keypos = array_search('email',$export_choices);
+function build_mailto_list($user_data = null, $message_mode = 'bcc') {
+  $user_data = $user_data ?? $_SESSION['raw_user_data'];
 
   // Begin if 'email' key is present
-  if ($keypos != null) {
+  if ($user_data[0]['ocs']['data']['email']) {
     // Initiate construction of mailto string, setting 'to:', 'cc:' or 'bcc:'
-    $mailto_list = 'mailto:?' . $mode . '=';
+    $mailto_list = 'mailto:?' . $message_mode . '=';
     // Iterate through collected user data and add email addresses
-    for ($row = 0; $row < sizeof($selected_user_data); $row++) {
-      if ($selected_user_data[$row][$keypos] == 'N/A') {
+    for ($row = 0; $row < sizeof($user_data); $row++) {
+      if ($user_data[$row]['ocs']['data']['email'] == 'N/A') {
         continue;
       }
       if ($row == 0) {
-        $mailto_list .= $selected_user_data[$row][$keypos];
+        $mailto_list .= $user_data[$row]['ocs']['data']['email'];
       } else {
-        $mailto_list .= ',' . $selected_user_data[$row][$keypos];
+        $mailto_list .= ',' . $user_data[$row]['ocs']['data']['email'];
       }
     }
     // Set email subject
@@ -730,7 +742,7 @@ function build_csv_line($array, $space = false, $delimiter = ',') {
   */
 function build_csv_export_key_list($delimiter = ',') {
   $i = 0;
-  foreach (EXPORT_CHOICES as $item) {
+  foreach ($_SESSION['data_choices'] as $item) {
     if ($i == 0) {
       $csv_line = $item;
     } else {

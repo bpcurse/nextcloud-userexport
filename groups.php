@@ -20,13 +20,13 @@
       if (!$_SESSION['authenticated']) {
         exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
       }
-      echo '<hr>' . $_SESSION['target_url']
-        . '<br>Number of groups: ' . count($_SESSION['grouplist']);
+
+      print_status_overview();
+
     ?>
 
-    <hr><form method="post" action="groups_detail.php">
-    <br><br>
-    <u>Format as:</u>
+    <form method="post" action="groups_detail.php">
+    <br><u>Format as:</u>
     <input type='radio' name='export_type' value='table' checked="checked"> Table
     <input type='radio' name='export_type' value='csv'> CSV
     <br><br>

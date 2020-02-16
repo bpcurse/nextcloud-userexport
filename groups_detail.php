@@ -7,10 +7,7 @@
 
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
-  $filename = $_POST['file']; // TODO unused
-  $mime_type = $_POST['mime']; // TODO unused
-  $filename_download = $_POST['name']; // TODO unused
-
+  
   if ($display_or_download == "Download (CSV)") {
     // Set filename or create one depending on GET parameters
     if($filename_download == null) {
@@ -39,9 +36,8 @@
     if (!$_SESSION['authenticated']) {
       exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
     }
-    echo '<hr>' . $_SESSION['target_url']
-      . '<br>Number of groups: ' . count($_SESSION['grouplist'])
-      . '<hr>';
+
+    print_status_overview();
 
     if ($display_or_download == "Display") {
       /**
