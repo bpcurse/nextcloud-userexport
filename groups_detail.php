@@ -7,7 +7,7 @@
 
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
-  
+
   if ($display_or_download == "Download (CSV)") {
     // Set filename or create one depending on GET parameters
     if($filename_download == null) {
@@ -15,7 +15,7 @@
     }
 
     // Create and populate CSV file with selected group data and set filename variable
-    $filename = build_csv_file(build_csv_group_data('utf8','array'),'group,loginID,displayname');
+    $filename = build_csv_file(build_group_data('array'),'group,loginID,displayname');
 
     download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
     exit();
@@ -47,7 +47,7 @@
         echo build_table_group_data();
       }
       elseif ($export_type == 'csv') {
-        echo build_csv_group_data();
+        echo build_group_data();
       }
     }
 

@@ -7,6 +7,7 @@ include 'config.php';
   * Set cURL options
   *
   * @param $ch          cURL handle
+  * @param $type        'users' or 'groups' API
   * @param $user_id     User ID of the target user
   * OPTIONAL            DEFAULT: null
   *
@@ -25,7 +26,9 @@ function set_curl_options($ch, $type, $id = null) {
 }
 
 /**
-* TODO
+* Populate session array 'data_options' with all data options that can be selected
+*
+* @return $_SESSION['data_options']
 */
 function set_data_options() {
   $_SESSION['data_options'] = [
@@ -87,26 +90,41 @@ function check_curl_response($ch, $data) {
     // Iterate through common cURL error codes, exit and return custom error messages or default message
     switch (curl_errno($ch)) {
       case 6:
-        exit('<font color="red" face="Helvetica"><hr>
-          <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
-          <br>' . curl_error($ch) . '<font color="black"><hr>
-          Please check provided URL and network connection</font>');
+        exit('
+          <font color="red">
+            <hr><b>Error: cURL (code ' . curl_errno($ch) . ')</b>
+            <br>' . curl_error($ch) .
+          '<font color="black">
+            <hr>Please check provided URL and network connection
+          </font>');
       case 51:
-        exit('<font color="red" face="Helvetica"><hr>
-          <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
-          <br>' . curl_error($ch) . '<font color="black"><hr>
-          Please check provided URL</font>');
+        exit('
+          <font color="red">
+            <hr>
+            <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
+            <br>' . curl_error($ch) .
+          '<font color="black">
+            <hr>
+            Please check provided URL
+          </font>');
       default:
-        exit('<font color="red" face="Helvetica"><hr>
-          <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
-          <br>' . curl_error($ch) . '<font color="black"><hr></font>');
+        exit('
+          <font color="red">
+            <hr>
+            <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
+            <br>' . curl_error($ch) . '
+            <hr>
+          </font>');
     }
   }
 
   if ($data === null) {
-    exit('<font color="red" face="Helvetica"><hr>
-    <b>Error: The API response was empty</b>
-    <font color="black"><hr></font>');
+    exit('
+      <font color="red">
+        <hr>
+        <b>Error: The API response was empty</b>
+        <hr>
+      </font>');
   }
   // Read statuscode from API response
   $status = $data['ocs']['meta']['statuscode'];
@@ -118,28 +136,39 @@ function check_curl_response($ch, $data) {
       // 100 or 200 mean OK -> break switch case and continue normal script execution
       break;
     case 404:
-      exit('<font color="red" face="Helvetica"><hr>
-      <b>Error: User does not exist (Statuscode ' . $status . ')</b>
-      <font color="black"><hr></font>');
+      exit('
+        <font color="red">
+          <hr>
+          <b>Error: User does not exist (Statuscode: ' . $status . ')</b>
+          <hr>
+        </font>');
       break;
     case 997:
-      exit('<font color="red" face="Helvetica"><hr>
-      <b>Error: Authentication (Statuscode ' . $status . ')</b><br>Please check username/password
-      <font color="black"><hr>
-      Hint: The provided user needs to be admin or group admin</font>');
+      exit('
+        <font color="red">
+          <hr><b>Error: Authentication (Statuscode: ' . $status . ')</b>
+          <br>Please check username/password
+        <font color="black">
+          <hr>Hint: The provided user needs to be admin or group admin
+        </font>');
     default:
-      exit('<font color="red" face="Helvetica"><hr>
-      <b>Error: Unknown (Statuscode ' . $status . ')</b>
-      <font color="black"><hr></font>');
+      exit('
+        <font color="red">
+          <hr>
+          <b>Error: Unknown (Statuscode: ' . $status . ')</b>
+          <hr>
+        </font>');
   }
 }
 
 /**
   * Fetch the list containing all user IDs from the server
   *
+  * @return $users
+  *
   */
 function fetch_userlist() {
-  // Initialize cURL handle to fetch user id list and set options
+  // Initialize cURL handle to fetch user ID list and set options
   $ch = curl_init();
   set_curl_options($ch, 'users');
 
@@ -163,6 +192,8 @@ function fetch_userlist() {
 
 /**
   * Fetch the list containing all group IDs from the server
+  *
+  * @return $groups
   *
   */
 function fetch_grouplist() {
@@ -190,13 +221,12 @@ function fetch_grouplist() {
 }
 
 /**
-  * Initialize individual cURL handles, set options and append them to
-  * multi handle list
+  * Initialize individual cURL handles, set options and append them to multi handle list
+  *
+  * @return $raw_user_data
+  *
   */
 function fetch_raw_user_data() {
-  // Save the script's start timestamp to measure execution time
-  define('TIMESTAMP_SCRIPT_START', microtime(true));
-
   // Initialize cURL multi handle for parallel requests
   $mh = curl_multi_init();
 
@@ -245,7 +275,15 @@ function fetch_raw_user_data() {
 }
 
 /**
-* TODO
+* Iterate through userlist and call select_data_single_user each time
+*
+* @param  $export_choices   Array containing a list of data columns to be taken into account
+*         OPTIONAL          DEFAULT: null
+* @param  $format           decode UTF8?
+*         OPTIONAL          DEFAULT: null (decode UTF8)
+*
+* @return $selected_user_data
+*         ARRAY
 */
 function select_data_all_users($export_choices = null, $format = null) {
   $export_choices = $export_choices ?? $_SESSION['data_choices'];
@@ -260,20 +298,25 @@ function select_data_all_users($export_choices = null, $format = null) {
   * Select elements from array "$data" and decode UTF8 or not
   * depending on parameters
   *
-  * @param $data    Single user record data array
-  * @param $fromat  If not 'utf8', UTF8 will be decoded for browser display
-  * OPTIONAL        DEFAULT: null
+  * @param  $data           Single user record data array
+  * @param  $user_id        ID of the user to be processed
+  * @param  $export_choices Array containing a list of data columns to be taken into account
+  * @param  $format         If not 'utf8', UTF8 will be decoded for browser display
+  *         OPTIONAL        DEFAULT: null
   *
   * @return $selected_data  Result of $data filtering
+  *         ARRAY
   */
 function select_data_single_user($data, $user_id, $export_choices, $format = null) {
+  // If data is not returned due to missing permissions (group admins) set 'N/A' instead
   if ($data['ocs']['meta']['statuscode'] == 997) {
     $selected_data[] = $user_id;
     for ($i = 1; $i < count($export_choices); $i++) {
       $selected_data[] = 'N/A';
     }
   }
-  // Prepare data for csv file export if $format = 'utf8'
+
+  // Prepare data for CSV file export if $format = 'utf8'
   else {
     // Iterate through chosen data sets
     foreach($export_choices as $key => $item) {
@@ -315,7 +358,7 @@ function select_data_single_user($data, $user_id, $export_choices, $format = nul
         case 'groups':
           $selected_data[] = empty($item_data) ? '-'
             : ($format != 'utf8'
-              ? utf8_decode(build_csv_line($item_data, true))
+              ? utf8_decode(build_csv_line($item_data, ', '))
               : build_csv_line($item_data));
           break;
         case 'locale':
@@ -332,9 +375,17 @@ function select_data_single_user($data, $user_id, $export_choices, $format = nul
 }
 
 /**
-* TODO
+* Find all users belonging to a given group an return an array containing userID and displayname
+*
+* @param  $group    The name of the group to search for
+* @param  $format   If not 'utf8', UTF8 will be decoded for browser display
+*         OPTIONAL  DEFAULT: null
+*
+* @return $group_members
+*
 */
 function select_group_members($group, $format = null) {
+  // Iterate through userlist
   foreach ($_SESSION['userlist'] as $key => $user_id) {
     // Call select_data function to filter/format request data
     $data = $_SESSION['raw_user_data'][$key];
@@ -349,31 +400,27 @@ function select_group_members($group, $format = null) {
 }
 
 /**
-  * Print status message
+  * Print status message on successful server connection
   *
-  * Status message contains user count, target instance, export timestamp and
-  * runtime in seconds
-  * Change the standard used to display the timestamp to your needs
+  * Status message contains user count, target instance, timestamp and runtime in seconds
+  *
+  * Change the standard in 'date(DATE_ATOM)' used to display the timestamp to your needs
   *
   */
 function print_status_success() {
-
   // Output status message after receiving user and group data
-  echo '<br><hr>Connected to server: ' . $_SESSION['target_url']
+  echo '
+    <hr>Connected to server: ' . $_SESSION['target_url']
     . ' <span style="color: green">&#10004;</span>'
     . '<br>Fetched ' . count($_SESSION['raw_user_data']) . ' users and '
-    . count($_SESSION['grouplist']) . ' groups on ' . date(DATE_RFC1123)
-    . ' in ' . $_SESSION['time_total'] . ' seconds.<hr>';
-
-    /* TODO. '<hr>Largest group: '
-    . '<br>Smallest group: '
-    . '<br><br>Users with last login'
-    . '<br>Never: '
-    . '<br>>6 Months: ';*/
+    . count($_SESSION['grouplist']) . ' groups in ' . $_SESSION['time_total']
+    . ' seconds on ' . date(DATE_ATOM)
+    . '<hr>You can now access all menu options';
 }
 
 /**
-  * TODO
+  * Status printed on each page, showing the active server and user/group count
+  *
   */
 function print_status_overview() {
   echo '<hr>' . $_SESSION['target_url']
@@ -383,21 +430,27 @@ function print_status_overview() {
 }
 
 /**
-  * Show control buttons on results page
+  * Show control button to send emails
   *
-  * Provides buttons for CSV file download and mass mail via 'mailto:' string
+  * Provides a button for basic mass mailing via 'mailto:' string
   *
+  * @param  $user_data    User data array in raw format ([key][ocs][data][email])
+  *         OPTIONAL      DEFAULT: null (full user list will be used)
+  * @param  $button_text  Text to display on the button
+  *         OPTIONAL      DEFAULT: 'send email to all users'
+  * @param  $message_mode How to send emails (to, cc, bcc)
+  *         OPTIONAL      DEFAULT: 'bcc'
   */
-function show_button_mailto() {
+function show_button_mailto($user_data = null, $button_text = 'send email to all users', $message_mode = 'bcc') {
   // Build and store email list formatted as 'mailto:'
-  $mailto_list = build_mailto_list();
+  $mailto_list = build_mailto_list($user_data, $message_mode);
 
   // Show mass mail button (only if email addresses were provided)
   if ($mailto_list != false) {
     echo '<form>
       <input style="background-color: blue; color: white; height: 35px"
       type="button" onclick="window.location.href = \'' . $mailto_list .
-      '\'" value="Write email to all users"/>
+      '\'" value="' . $button_text . '"/>
       </form>';
   }
 }
@@ -407,7 +460,7 @@ function show_button_mailto() {
   *
   * Creates a file containing provided array data as comma separated values
   *
-  * @param $list            Data array containing e.g. collected user data
+  * @param $list            Data array containing user data
   * OPTIONAL                DEFAULT: global $selected_user_data_utf8
   * @param $headers         CSV line containing the column headers
   * OPTIONAL                DEFAULT: List from $export_choices variable
@@ -422,9 +475,9 @@ function build_csv_file($list, $headers = 'default') {
   // Delete contents of temporary folder, if file was not deleted after last run
   delete_folder_content(TEMP_FOLDER);
 
-  // Create headers from $export_choices key list if not supplied
+  // Create headers from session variable 'data_choices' if not supplied
   if ($headers == 'default') {
-    $headers = build_csv_export_key_list();
+    $headers = build_csv_line();
   }
 
   // Set random filename
@@ -456,7 +509,7 @@ function build_csv_file($list, $headers = 'default') {
   *
   * @param  $filename           Filename on the server
   * @param  $mime_type          MIME type to be sent in the header
-  * OPTIONAL                    DEFAULT: 'application/csv'
+  * OPTIONAL                    DEFAULT: 'text/csv'
   * @param  $filename_download  Filename for download
   * OPTIONAL                    DEFAULT: 'download'
   * @param  $folder             Folder to prepend in front of the server filename
@@ -504,11 +557,14 @@ function delete_folder_content($folder) {
   *
   * Creates and returns a formatted HTML table containing the userlist
   *
+  * @param  $user_data  Array containing selected and formatted user data
+  *
   * @return $table_user_data_style concatenated with $table_user_data_headers and $table_user_data
   *
   */
-function build_table_user_data($selected_user_data) {
+function build_table_user_data($user_data) {
   $data_choices = $_SESSION['data_choices'];
+
   // Define table CSS style
   $table_user_data_style =
   '<style>
@@ -538,22 +594,22 @@ function build_table_user_data($selected_user_data) {
   $keypos_center_align = array_search('enabled', $data_choices);
 
   // Iterate through collected user data by row and column, build HTML table
-  for ($row = 0; $row < sizeof($selected_user_data); $row++) {
+  for ($row = 0; $row < sizeof($user_data); $row++) {
     $table_user_data .= '<tr>';
-    for ($col = 0; $col < sizeof($selected_user_data[$row]); $col++) {
+    for ($col = 0; $col < sizeof($user_data[$row]); $col++) {
       $color_text = 'color: unset';
-      if ($selected_user_data[$row][$col] == 'N/A') {
+      if ($user_data[$row][$col] == 'N/A') {
         $color_text = 'color: grey;';
       }
       if (in_array($col, array_filter($keypos_right_align))) {
-        $table_user_data .= '<td style="text-align:right;white-space:nowrap;'
-        . $color_text . '">' . $selected_user_data[$row][$col] . '</td>';
+        $table_user_data .= '<td style="text-align: right; white-space: nowrap;'
+        . $color_text . '">' . $user_data[$row][$col] . '</td>';
       } elseif ($col === $keypos_center_align) {
-        $table_user_data .= '<td style="text-align:center;' . $color_text . '">'
-          . $selected_user_data[$row][$col] . '</td>';
+        $table_user_data .= '<td style="text-align: center;' . $color_text . '">'
+          . $user_data[$row][$col] . '</td>';
       } else {
         $table_user_data .= '<td style="' . $color_text . '">'
-        . $selected_user_data[$row][$col] . '</td>';
+        . $user_data[$row][$col] . '</td>';
       }
     }
     $table_user_data .= '</tr>';
@@ -563,7 +619,10 @@ function build_table_user_data($selected_user_data) {
 }
 
 /**
-* TODO
+* Build group table showing all associated userIDs and displaynames
+*
+* @return $table_group_data_style concatenated with $table_group_data_headers and $table_group_data
+*
 */
 function build_table_group_data() {
   $grouplist = $_SESSION['grouplist'];
@@ -592,8 +651,8 @@ function build_table_group_data() {
   for ($row = 0; $row < sizeof($grouplist); $row++) {
     $members = select_group_members($grouplist[$row]);
     $table_group_data .= '<tr><td>' . utf8_decode($grouplist[$row])
-      . '</td><td>' . build_csv_line(array_column($members,0),true)
-      . '</td><td>' . build_csv_line(array_column($members,1),true)
+      . '</td><td>' . build_csv_line(array_column($members,0),', ')
+      . '</td><td>' . build_csv_line(array_column($members,1),', ')
       . '</td></tr>';
   }
   $table_group_data .= '</table>';
@@ -606,7 +665,7 @@ function build_table_group_data() {
   * Creates a string in 'mailto:' notation containing all user emails
   *
   * @param  $mode         Send emails as 'to', 'cc' or 'bcc'
-  * OPTIONAL              DEFAULT: 'bcc'
+  *         OPTIONAL      DEFAULT: 'bcc'
   *
   * @return $mailto_list  Exported emails as mailto: string for mass mailing
   *
@@ -643,12 +702,15 @@ function build_mailto_list($user_data = null, $message_mode = 'bcc') {
   *
   * Build CSV formatted string containing the user data
   *
-  * @return $csv_user_data  CSV formatted string containing the user data
+  * @param  $data       Build a comma separated string from supplied array
+  * @param  $delimiter  Delimiter to be used between data columns
+  *
+  * @return $csv_user_data  CSV formatted string containing the processed data
   *
   */
 function build_csv_user_data($data, $delimiter = ',') {
   // Add headers to $csv_user_data variable
-  $csv_user_data .= build_csv_export_key_list($delimiter) . '<br>';
+  $csv_user_data .= build_csv_line(null, $delimiter) . '<br>';
 
   // Iterate through collected user data by row and column, build CSV output
   for ($row = 0; $row < sizeof($data); $row++) {
@@ -671,84 +733,58 @@ function build_csv_user_data($data, $delimiter = ',') {
 }
 
 /**
-  * CSV string creation
+  * Build array or CSV formatted string containing the group and user data
   *
-  * Build CSV formatted string containing the group data
+  * @param  $array  Return an array or CSV
   *
-  * @return $csv_group_data CSV formatted string containing the group data
+  * @return $group_data Array or CSV formatted string containing the group associated user data
   *
   */
-function build_csv_group_data($format = null, $array = null) {
+function build_group_data($array = null) {
   $grouplist = $_SESSION['grouplist'];
 
-  // Add headers to $csv_user_data variable
+  // Add headers to $group_data variable
   if (!$array) {
-    $csv_group_data .= 'group,loginID,displayname<br>';
+    $group_data .= 'group,loginID,displayname<br>';
   }
 
-  // Iterate through collected user data by row and column, build CSV output
+  // Iterate through collected group data by row and column, build CSV output
   for ($row = 0; $row < sizeof($grouplist); $row++) {
     $members = select_group_members($grouplist[$row],$format);
     if ($array == 'array') {
-      $csv_group_data[$row+1] = [$grouplist[$row],
+      $group_data[$row+1] = [$grouplist[$row],
         build_csv_line(array_column($members,0)),
         build_csv_line(array_column($members,1))];
     } else {
-      $csv_group_data .= utf8_decode($grouplist[$row])
+      $group_data .= utf8_decode($grouplist[$row])
         . ',"' . build_csv_line(array_column($members,0))
         . '","' . build_csv_line(array_column($members,1))
         . '"<br>';
       }
   }
-  return $csv_group_data;
+  return $group_data;
 }
 
-// Merge the following two functions into one if reasonable - TODO
 /**
   * Build a comma separated line from a given array
   *
-  * @param $array       Array to
-  * @param $space       Puts a space behind each delimiter if true
-  * OPTIONAL            DEFAULT: false
-  * @param $delimiter   Which char to put between cells
-  * OPTIONAL            DEFAULT: ','
+  * @param  $array       Array to build from
+  *         OPTIONAL     DEFAULT: null (session variable 'data_choices')
+  * @param  $delimiter   Which char to put between cells
+  *         OPTIONAL     DEFAULT: ','
   *
   * @return $csv_line   CSV formatted string
   *
   */
-function build_csv_line($array, $space = false, $delimiter = ',') {
-  $i = 0;
-  foreach($array as $item) {
-    if ($i == 0) {
-      $csv_line .= $item;
-    }
-    elseif ($space == false) {
-      $csv_line .= $delimiter . $item;
-    } else {
-      $csv_line .= $delimiter . ' ' . $item;
-    }
-    $i++;
-  }
-  return $csv_line;
-}
-
-/**
-  * Build a comma separated line from $export_choices variable
-  *
-  * @param  $delimiter  Which char to put between cells
-  *
-  * @return $csv_line   CSV formatted string
-  *
-  */
-function build_csv_export_key_list($delimiter = ',') {
-  $i = 0;
-  foreach ($_SESSION['data_choices'] as $item) {
-    if ($i == 0) {
+function build_csv_line($array = null, $delimiter = ',') {
+  $array = $array ?? $_SESSION['data_choices'];
+  foreach($array as $key => $item) {
+    if ($key === 0) {
       $csv_line = $item;
-    } else {
+    }
+    else {
       $csv_line .= $delimiter . $item;
     }
-    $i++;
   }
   return $csv_line;
 }

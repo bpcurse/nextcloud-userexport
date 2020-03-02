@@ -63,7 +63,7 @@
       <br>
       <input style="background-color: #4c6489; color: white;
         height: 45px;"
-        value='Connect/fetch data from server' type='submit' name='submit'>
+        value='Connect and fetch data from server' type='submit' name='submit'>
         <br><span style="font-size: small; color: grey;">
           This may take a while. Be patient.</span>
       </font>
@@ -74,6 +74,9 @@
       if (isset($_POST['target_url'])) {
         $_SESSION['user_name'] = $_POST['user_name'];
         $_SESSION['user_pass'] = $_POST['user_pass'];
+
+        // Save the script's start timestamp to measure execution time
+        define('TIMESTAMP_SCRIPT_START', microtime(true));
 
         // Check if plain HTTP is used without override command and exit if not
         $_SESSION['target_url'] = check_https($_POST['target_url']);

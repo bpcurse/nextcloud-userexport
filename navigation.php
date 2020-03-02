@@ -9,5 +9,5 @@
   { echo ' id="currentpage"'; } ?>><a href="groups.php">Groups</a></li>
   <li<?php if ($active_page == "email")
   { echo ' id="currentpage"'; } ?>><a href="email.php">Email</a></li>
-  <li style="float:right;"><b><a style="color: red;" href="https://github.com/bpcurse/nextcloud-userexport">nextcloud-userexport v1.0.0 Alpha 6</a></b>
+  <li style="float:right;"><b><a style="color: red;" href="https://github.com/bpcurse/nextcloud-userexport">nextcloud-userexport v1.0.0 Beta 1</a></b>
 </ul></div>
