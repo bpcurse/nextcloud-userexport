@@ -10,9 +10,8 @@
 
   if ($display_or_download == "Download (CSV)") {
     // Set filename or create one depending on GET parameters
-    if($filename_download == null) {
+    if($filename_download == null)
       $filename_download = "nextcloud-grouplist_" . date("Y-m-d_Hi") . ".csv";
-    }
 
     // Create and populate CSV file with selected group data and set filename variable
     $filename = build_csv_file(build_group_data('array'),'group,loginID,displayname');
@@ -33,9 +32,8 @@
     <?php
 
     include ("navigation.php");
-    if (!$_SESSION['authenticated']) {
+    if (!$_SESSION['authenticated'])
       exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
-    }
 
     print_status_overview();
 
@@ -43,12 +41,10 @@
       /**
         * Display results page either as HTML table or comma separated values (CSV)
         */
-      if ($export_type == 'table') {
+      if ($export_type == 'table')
         echo build_table_group_data();
-      }
-      elseif ($export_type == 'csv') {
+      elseif ($export_type == 'csv')
         echo build_group_data();
-      }
     }
 
     ?>

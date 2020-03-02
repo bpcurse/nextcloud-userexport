@@ -57,7 +57,7 @@ function check_https($url) {
   $trim_url = substr($url,0,5);
 
   // Check if plain HTTP is used without override command and exit if not
-  if ($trim_url != 'https' && $trim_url != '!http') {
+  if ($trim_url != 'https' && $trim_url != '!http')
     exit('<font color="red" face="Helvetica"><hr>
     <b>The use of plain HTTP and other protocols is blocked for security reasons.</b>
     <br>Please use HTTPS instead.
@@ -65,12 +65,11 @@ function check_https($url) {
     <br>You can override this safety precaution and send your admin credentials
     <u><b>unencrypted</b></u> if you really need to by inserting \'!\' before \'http\'
     <br>e.g.: !http://cloud.example.com</font>');
-  }
 
   // Remove '!' if HTTPS check override is selected by use of '!http'
-  if ($trim_url == '!http') {
+  if ($trim_url == '!http')
     $url = ltrim($trim_url,'!');
-  }
+
   return $url;
 }
 
@@ -287,10 +286,11 @@ function fetch_raw_user_data() {
 */
 function select_data_all_users($export_choices = null, $format = null) {
   $export_choices = $export_choices ?? $_SESSION['data_choices'];
-  foreach ($_SESSION['userlist'] as $key => $user_id) {
+  foreach ($_SESSION['userlist'] as $key => $user_id)
     // Call select_data function to filter/format request data
-    $selected_user_data[] = select_data_single_user($_SESSION['raw_user_data'][$key], $user_id, $export_choices, $format);
-  }
+    $selected_user_data[] = select_data_single_user(
+      $_SESSION['raw_user_data'][$key], $user_id, $export_choices, $format);
+
   return $selected_user_data;
 }
 
@@ -307,13 +307,13 @@ function select_data_all_users($export_choices = null, $format = null) {
   * @return $selected_data  Result of $data filtering
   *         ARRAY
   */
-function select_data_single_user($data, $user_id, $export_choices, $format = null) {
+function select_data_single_user(
+  $data, $user_id, $export_choices, $format = null) {
   // If data is not returned due to missing permissions (group admins) set 'N/A' instead
   if ($data['ocs']['meta']['statuscode'] == 997) {
     $selected_data[] = $user_id;
-    for ($i = 1; $i < count($export_choices); $i++) {
+    for ($i = 1; $i < count($export_choices); $i++)
       $selected_data[] = 'N/A';
-    }
   }
 
   // Prepare data for CSV file export if $format = 'utf8'
@@ -389,12 +389,10 @@ function select_group_members($group, $format = null) {
   foreach ($_SESSION['userlist'] as $key => $user_id) {
     // Call select_data function to filter/format request data
     $data = $_SESSION['raw_user_data'][$key];
-    if (in_array($group, $data['ocs']['data']['groups'])) {
+    if (in_array($group, $data['ocs']['data']['groups']))
       $group_members[] = $format == 'utf8'
         ? [$user_id, $data['ocs']['data']['displayname']]
         : array_map('utf8_decode', [$user_id, $data['ocs']['data']['displayname']]);
-    }
-
   }
   return $group_members;
 }
@@ -446,13 +444,13 @@ function show_button_mailto($user_data = null, $button_text = 'send email to all
   $mailto_list = build_mailto_list($user_data, $message_mode);
 
   // Show mass mail button (only if email addresses were provided)
-  if ($mailto_list != false) {
-    echo '<form>
-      <input style="background-color: blue; color: white; height: 35px"
-      type="button" onclick="window.location.href = \'' . $mailto_list .
-      '\'" value="' . $button_text . '"/>
+  if ($mailto_list != false)
+    echo '
+      <form>
+        <input style="background-color: blue; color: white; height: 35px"
+          type="button" onclick="window.location.href = \'' . $mailto_list .
+          '\'" value="' . $button_text . '"/>
       </form>';
-  }
 }
 
 /**
@@ -470,32 +468,36 @@ function show_button_mailto($user_data = null, $button_text = 'send email to all
   */
 function build_csv_file($list, $headers = 'default') {
 
-  if (!TEMP_FOLDER) { define(TEMP_FOLDER, "export_temp"); }
+  if (!TEMP_FOLDER)
+    define(TEMP_FOLDER, "export_temp");
 
   // Delete contents of temporary folder, if file was not deleted after last run
   delete_folder_content(TEMP_FOLDER);
 
   // Create headers from session variable 'data_choices' if not supplied
-  if ($headers == 'default') {
+  if ($headers == 'default')
     $headers = build_csv_line();
-  }
 
   // Set random filename
   $csv_filename = random_str(32) . '.csv';
+
   // Check if temporary folder already exists, else make directory
-  if (!file_exists(TEMP_FOLDER)) {
+  if (!file_exists(TEMP_FOLDER))
     mkdir(TEMP_FOLDER, 0755, true);
-  }
+
   // Create/open file with write access and return file handle
   $csv_file = fopen(TEMP_FOLDER . '/' . $csv_filename,"w");
+
   // Set file permissions (rw-r-----)
   chmod(TEMP_FOLDER . '/' . $csv_filename, 0640);
+
   // Write selected headers as first line to file
   fwrite($csv_file, $headers . "\n");
+
   // Iterate through provided data array and append each line to the file
-  foreach ($list as $line) {
+  foreach ($list as $line)
     fputcsv($csv_file, $line);
-  }
+
   // Close active file handle
   fclose($csv_file);
   return $csv_filename;
@@ -539,17 +541,15 @@ function download_file($filename, $mime_type = 'text/csv',
   *
   */
 function delete_folder_content($folder) {
-  if ($folder == null || $folder == ".") {
+  if ($folder == null || $folder == ".")
     return;
-  }
+
   // Get filelist from target folder
   $files = glob($folder . '/*');
   // Iterate through filelist and delete all except hidden files (e.g. .htaccess)
-  foreach($files as $file) {
-    if(is_file($file)) {
+  foreach($files as $file)
+    if(is_file($file))
       unlink($file);
-    }
-  }
 }
 
 /**
@@ -580,10 +580,11 @@ function build_table_user_data($user_data) {
 
   // Define HTML table and set header cell content
   $table_user_data_headers = '<table><tr>';
-  foreach($data_choices as $item) {
+
+  foreach($data_choices as $item)
     $table_user_data_headers .= '<th>' . $item . '</th>';
-  }
-  '</tr>';
+
+  $table_user_data_headers .= '</tr>';
 
   // Search for and return position of quota keys in $export_choices
   $keypos_right_align[] = array_search('quota', $data_choices);
@@ -598,9 +599,8 @@ function build_table_user_data($user_data) {
     $table_user_data .= '<tr>';
     for ($col = 0; $col < sizeof($user_data[$row]); $col++) {
       $color_text = 'color: unset';
-      if ($user_data[$row][$col] == 'N/A') {
+      if ($user_data[$row][$col] == 'N/A')
         $color_text = 'color: grey;';
-      }
       if (in_array($col, array_filter($keypos_right_align))) {
         $table_user_data .= '<td style="text-align: right; white-space: nowrap;'
         . $color_text . '">' . $user_data[$row][$col] . '</td>';
@@ -679,14 +679,13 @@ function build_mailto_list($user_data = null, $message_mode = 'bcc') {
     $mailto_list = 'mailto:?' . $message_mode . '=';
     // Iterate through collected user data and add email addresses
     for ($row = 0; $row < sizeof($user_data); $row++) {
-      if ($user_data[$row]['ocs']['data']['email'] == 'N/A') {
+      $user_email = $user_data[$row]['ocs']['data']['email'];
+      if ($user_email == 'N/A')
         continue;
-      }
-      if ($row == 0) {
-        $mailto_list .= $user_data[$row]['ocs']['data']['email'];
-      } else {
-        $mailto_list .= ',' . $user_data[$row]['ocs']['data']['email'];
-      }
+      if ($row == 0)
+        $mailto_list .= $user_email;
+      else
+        $mailto_list .= ',' . $user_email;
     }
     // Set email subject
     $mailto_list .= '&subject=All%20user%20mail';
@@ -722,9 +721,8 @@ function build_csv_user_data($data, $delimiter = ',') {
         } else { $csv_user_data .= $data[$row][$col]; }
       } else { $csv_user_data .= $data[$row][$col]; }
       // Put column separators between cells but not at the end of a record
-      if ($col < sizeof($data[$row])-1) {
+      if ($col < sizeof($data[$row])-1)
         $csv_user_data .= $delimiter;
-      }
     }
     // Indicate the start of a new record
     $csv_user_data .= '<br>';
@@ -744,9 +742,8 @@ function build_group_data($array = null) {
   $grouplist = $_SESSION['grouplist'];
 
   // Add headers to $group_data variable
-  if (!$array) {
+  if (!$array)
     $group_data .= 'group,loginID,displayname<br>';
-  }
 
   // Iterate through collected group data by row and column, build CSV output
   for ($row = 0; $row < sizeof($grouplist); $row++) {
@@ -779,12 +776,10 @@ function build_group_data($array = null) {
 function build_csv_line($array = null, $delimiter = ',') {
   $array = $array ?? $_SESSION['data_choices'];
   foreach($array as $key => $item) {
-    if ($key === 0) {
+    if ($key === 0)
       $csv_line = $item;
-    }
-    else {
+    else
       $csv_line .= $delimiter . $item;
-    }
   }
   return $csv_line;
 }
@@ -799,11 +794,10 @@ function build_csv_line($array = null, $delimiter = ',') {
   *
   */
 function format_size($size) {
-  if ($size == 0) {
+  if ($size == 0)
     return "-";
-  } elseif ($size == -3) {
+  elseif ($size == -3)
     return "unlimited";
-  }
 
   $s = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
   $e = floor(log($size, 1024));
@@ -834,14 +828,12 @@ function random_str(
   int $length = 64,
   string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
   ): string {
-    if ($length < 1) {
+    if ($length < 1)
       throw new \RangeException("Length must be a positive integer");
-    }
     $pieces = [];
     $max = mb_strlen($keyspace, '8bit') - 1;
-    for ($i = 0; $i < $length; ++$i) {
+    for ($i = 0; $i < $length; ++$i)
       $pieces []= $keyspace[random_int(0, $max)];
-    }
     return implode('', $pieces);
 }
 

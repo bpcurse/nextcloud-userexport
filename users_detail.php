@@ -12,9 +12,8 @@
 
   if ($display_or_download == "Download (CSV)") {
     // Set filename or create one depending on GET parameters
-    if($filename_download == null) {
+    if($filename_download == null)
       $filename_download = "nextcloud-userlist_" . date("Y-m-d_Hi") . ".csv";
-    }
 
     // Create and populate CSV file with selected user data and set filename variable
     $filename = build_csv_file(select_data_all_users($_SESSION['data_choices'], 'utf8'));
@@ -45,12 +44,10 @@
       /**
         * Display results page either as HTML table or comma separated values (CSV)
         */
-      if ($export_type == 'table') {
+      if ($export_type == 'table')
         echo build_table_user_data(select_data_all_users());
-      }
-      elseif ($export_type == 'csv') {
+      elseif ($export_type == 'csv')
         echo build_csv_user_data(select_data_all_users());
-      }
     }
 
     ?>

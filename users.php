@@ -19,9 +19,8 @@
     <?php
 
       include ("navigation.php");
-      if (!$_SESSION['authenticated']) {
+      if (!$_SESSION['authenticated'])
         exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
-      }
 
       print_status_overview();
 
@@ -61,9 +60,10 @@
     <u>Format as:</u>
     <input type='radio' name='export_type' value='table'
       <?php if ($export_type == 'table' || $export_type == null)
-        {echo 'checked=\"checked\"';} ?>> Table
+        echo 'checked=\"checked\"'; ?>> Table
     <input type='radio' name='export_type' value='csv'
-      <?php if ($export_type == 'csv') {echo 'checked=\"checked\"';} ?>> CSV
+      <?php if ($export_type == 'csv')
+        echo 'checked=\"checked\"'; ?>> CSV
     <br><br>
     <input style="background-color: #4c6489; color: white; height: 45px; width: 300px;"
       type='submit' name='submit' value='Display'>
