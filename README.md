@@ -1,26 +1,31 @@
 # Nextcloud userexport
-PHP script to export user lists using Nextcloud's user metadata OCS API and curl.
+PHP script to export user and group lists using Nextcloud's user metadata OCS API and cURL.
+
+## How it works
+The script uses cURL to make calls to Nextcloud's user metadata OCS API and displays the results either through an HTML table or a CSV list that can be easily copied to calc/excel. You can download a CSV formatted file as well.
+
+https://docs.nextcloud.com/server/17/developer_manual/client_apis/OCS/ocs-api-overview.html#user-metadata
 
 ## Installation
-- Upload `index.php`, `userexport.php` and `download.php` to a directory on your webserver and open `index.php` in a browser. You can point a subdomain like `https://export.cloud.example.com` at it.
+- Upload all files to a directory on your webserver and open `index.php` in a browser. You can point a subdomain like `https://export.cloud.example.com` at it.
 - **Make sure it is only accessible via https://** as you will be providing nextcloud admin credentials to it.
 
 ## General usage
 - Enter the URL of the Nextcloud target instance incl. https://
 - Enter a username that has admin (or group admin) rights
 - Enter the corresponding password
-- Choose which user metadata to export by selecting checkboxes
-- Change the display type (if necessary)
-- Click on "submit" and wait
+- Click on "connect" and wait
 
-You can download a CSV formatted file for direct import by clicking a button on the results page.
+After the script has successfully downloaded user and group data you can access other options from the top navigation bar.
 
-Simple mass mailing to all users on the list is also provided by a button on the results page.
-This will open your email application with a mailto: string containing all email addresses as bcc. You can change to 'cc' or 'to' by using a GET parameter.
+## Security
+- Do not use `http://` unless you have a very good reason to do so.
 
-Do not use `http://` unless you have a very good reason to do so.
 The script will block outgoing plain HTTP connections and warn you unless you override this security measure with `!http://...`
 
+- Group admins (as long as they do not belong themselves to the `admin` group) will not receive information on users that are members of `admin` group, even if they are members of the group the group admin manages.
+
+## Performance
 API calls via cURL are slow. **Querying several hundred user accounts can take some minutes**. Be patient :)
 
 CURL parallel requests have been implemented in v0.2.0 and provide a relevant speed boost, but that's about as fast as it gets.
@@ -28,7 +33,21 @@ Approximately 10-15s/100users.
 
 A progress indicator isn't implemented yet, but it's on the list.
 
-Group admins (as long as they do not belong themselves to the `admin` group) will not receive information on users that are members of `admin` group, even if they are members of the group the group admin manages.
+## "Users" view:
+- Choose which user metadata should be displayed or downloaded by selecting checkboxes
+- Change display type (if necessary) and click on display **OR**
+- Download data as CSV file by clicking the download button
+
+## "Groups" view:
+- Change display type (if necessary) and click on display **OR**
+- Download data as CSV file by clicking the download button
+
+## "Email" view: 
+- Simple mass mailing to all users on the list is provided by clicking a button (Javascript needs to be enabled).
+
+This will open your email application with a mailto: string containing all email addresses as bcc. You can change to 'cc' or 'to' by using the GET parameter `msg_mode` (see chapter "Parameters").
+
+Enhanced functionality regarding emails is planned.
 
 ## Parameters
 You can use the following GET parameters with this script:
@@ -62,11 +81,6 @@ https://userexport.mydomain.org/?url=https://cloud.example.com&user=myusername&m
 If you do not supply one of the parameters you can fill in the corresponding fields afterwards in the form (e.g. password).
 Prefilled form fields can also be edited by user input.
 
-## How it works
-The script uses cURL to make calls to Nextcloud's user metadata OCS API and displays them either through an HTML table or a CSV list that can be easily copied to calc/excel.
-
-https://docs.nextcloud.com/server/17/developer_manual/client_apis/OCS/ocs-api-overview.html#user-metadata
-
 ## Nextcloud integration
 You can integrate it by using the external sites app and show it only to your admin group.
 Prefill URL and user name by using GET parameters and a nextcloud placeholder like this:
@@ -82,7 +96,7 @@ I will try to maintain and enhance this script as long as Nextcloud does not pro
 Any hints to enhancements or security issues are highly welcome.
 If you would like to contribute, please open an issue or a pull request.
 
-I am thinking of another script to cover the use case of **importing** users from csv files.
+You can still use the simpler v0.4.1, if you prefer.
 
 ## Additional Info
 Inspired by comments to this github issue:
@@ -90,9 +104,10 @@ https://github.com/nextcloud/server/issues/14715
 
 ## Screenshots
 **Login page**
-
-![nextcloud-userexport_v0 4 1_login_page](https://user-images.githubusercontent.com/29312856/74459593-dd649a80-4e8b-11ea-9067-71a09a5356a5.png)
+TODO
 
 **Userlist**
+TODO
 
-![nextcloud-userexport_v0 4 1_userlist_page](https://user-images.githubusercontent.com/29312856/74459605-e190b800-4e8b-11ea-8736-bff583fa3971.png)
+**Grouplist**
+TODO
