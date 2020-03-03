@@ -331,7 +331,7 @@ function select_data_single_user(
           break;
         // Convert email data set to lowercase
         case 'email':
-          $selected_data[] = strtolower($item_data);
+          $selected_data[] = $item_data == null ? '-' : strtolower($item_data);
           break;
         case 'lastLogin':
           // If user has never logged in set $last_login to '-'
@@ -442,7 +442,8 @@ function print_status_overview() {
   * @param  $message_mode How to send emails (to, cc, bcc)
   *         OPTIONAL      DEFAULT: 'bcc'
   */
-function show_button_mailto($user_data = null, $button_text = 'Send email to all users', $message_mode = 'bcc') {
+function show_button_mailto($message_mode = 'bcc', $user_data = null,
+  $button_text = 'Send email to all users') {
   // Build and store email list formatted as 'mailto:'
   $mailto_list = build_mailto_list($user_data, $message_mode);
 
@@ -562,27 +563,14 @@ function delete_folder_content($folder) {
   *
   * @param  $user_data  Array containing selected and formatted user data
   *
-  * @return $table_user_data_style concatenated with $table_user_data_headers and $table_user_data
+  * @return $table_user_data_headers concatenated with $table_user_data
   *
   */
 function build_table_user_data($user_data) {
   $data_choices = $_SESSION['data_choices'];
 
-  // Define table CSS style
-  $table_user_data_style =
-  '<style>
-    table {border-collapse: collapse;font-family: "Helvetica";}
-    table,td,th {border: 1px solid #ddd;}
-    th {text-align: left;
-      background-color: #4C6489;
-      color:white;
-      padding: 8px 4px 4px;}
-    td {padding: 4px 4px 0px;}
-    tr:nth-child(even) {background-color: #f2f2f2;}
-  </style>';
-
   // Define HTML table and set header cell content
-  $table_user_data_headers = '<table id="sortable"><tr>';
+  $table_user_data_headers = '<table id="list"><tr>';
 
   foreach($data_choices as $item) {
     if (in_array($item, ['quota','used','free']))
@@ -628,36 +616,24 @@ function build_table_user_data($user_data) {
     $table_user_data .= '</tr>';
   }
   $table_user_data .= '</table>';
-  return $table_user_data_style . $table_user_data_headers . $table_user_data;
+  return $table_user_data_headers . $table_user_data;
 }
 
 /**
 * Build group table showing all associated userIDs and displaynames
 *
-* @return $table_group_data_style concatenated with $table_group_data_headers and $table_group_data
+* @return $table_group_data_headers concatenated with $table_group_data
 *
 */
 function build_table_group_data() {
   $grouplist = $_SESSION['grouplist'];
-  // Define table CSS style
-  $table_group_data_style =
-  '<style>
-    table {border-collapse: collapse;font-family: "Helvetica";}
-    table,td,th {border: 1px solid #ddd;}
-    th {text-align: left;
-      background-color: #4C6489;
-      color:white;
-      padding: 8px 4px 4px;}
-    td {padding: 4px 4px 0px; width: auto; min-width: 150px;}
-    tr:nth-child(even) {background-color: #f2f2f2;}
-  </style>';
 
   // Define HTML table and set header cell content
-  $table_group_data_headers = '<table><tr>';
+  $table_group_data_headers = '<table id="list"><tr>';
   $table_group_data_headers .=
-     '<th>Group</th>
-      <th>UserID</th>
-      <th>Displayname</th>
+     '<th onclick="sortTable()">Group</th>
+      <th onclick="sortTable()">UserID</th>
+      <th onclick="sortTable()">Displayname</th>
       </tr>';
 
   // Iterate through collected user data by row and column, build HTML table
@@ -676,7 +652,7 @@ function build_table_group_data() {
       . '</td><td>' . $user_ids . '</td><td>' . $user_displaynames . '</td></tr>';
   }
   $table_group_data .= '</table>';
-  return $table_group_data_style . $table_group_data_headers . $table_group_data;
+  return $table_group_data_headers . $table_group_data;
 }
 
 /**

@@ -22,7 +22,7 @@
 
       print_status_overview();
 
-      show_button_mailto();
+      show_button_mailto($_SESSION['message_mode']);
 
       /* TODO Future release
 

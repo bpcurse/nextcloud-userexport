@@ -50,6 +50,26 @@
   width: 300px;
 }
 
-#sortable th {
+table {
+  border-collapse: collapse;
+}
+
+#list table, #list td, #list th {
+  border: 1px solid #ddd;
+}
+
+#list th {
+  text-align: left;
+  background-color: #4C6489;
+  color: white;
+  padding: 8px 4px 4px;
   cursor: pointer;
+}
+
+#list td {
+  padding: 4px 4px 0px;
+}
+
+#list tr:nth-child(even) {
+  background-color: #f2f2f2;
 }

@@ -5,22 +5,18 @@
   require 'functions.php';
   include 'config.php';
 
-  // Get parameters if any
-  if (isset($_GET['url']))
-    $target_url = filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL);
-  if (isset($_GET['user']))
-    $user_name = $_GET['user'];
-  if (isset($_GET['pass']))
-    $user_pass = $_GET['pass'];
-  if (isset($_GET['type']))
-    $_SESSION['export_type'] = $_GET['type'];
-  if (isset($_GET['msg_mode']))
-    $_SESSION['message_mode'] = $_GET['msg_mode'];
-  if (isset($_GET['select']))
-    $_SESSION['data_choices'] = explode(",", $_GET["select"]);
-  if ($_SESSION['data_choices'] === null)
-    $_SESSION['data_choices'] = ['id', 'displayname', 'email', 'lastLogin'];
-
+  /**
+  * Get parameters if any, set defaults
+  */
+  $target_url = $_GET['url']
+    ?? filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL);
+  $user_name = $_GET['user'];
+  $user_pass = $_GET['pass'];
+  $_SESSION['data_choices'] = isset($_GET["select"])
+    ? explode(",", $_GET["select"])
+    : ['id', 'displayname', 'email', 'lastLogin'];
+  $_SESSION['export_type'] = $_GET['type'] ?? 'table';
+  $_SESSION['message_mode'] = $_GET['msg_mode'] ?? 'bcc';
   set_data_options();
 
 ?>

@@ -7,6 +7,9 @@
 
   // Filter POST array and save keys with value 'true' as constant
   $_SESSION['data_choices'] = array_keys($_POST,'true');
+  if (!$_SESSION['data_choices'])
+    exit('At least one column needs to be selected. <a href="users.php">
+      Return to form</a>');
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
 
@@ -28,31 +31,30 @@
   <head>
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>Nextcloud user export</title>
+    <script>
+      /**
+        * Source of the following function 'sortTable':
+        * https://stackoverflow.com/a/49041392
+        *
+        * sort table columns on header click
+        *
+        */
+      function sortTable() {
+        const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+
+        const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
+          v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+          )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+        document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
+          const table = th.closest('table');
+        Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+          .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+          .forEach(tr => table.appendChild(tr) );
+        })));
+      }
+    </script>
   </head>
-
-  <script>
-    /**
-      * Source of the following function 'sortTable':
-      * https://stackoverflow.com/a/49041392
-      *
-      * sort table columns on header click
-      *
-      */
-    function sortTable() {
-      const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
-
-      const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
-        v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-        )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
-
-      document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
-        const table = th.closest('table');
-      Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
-        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-        .forEach(tr => table.appendChild(tr) );
-      })));
-    }
-  </script>
 
   <body>
     <?php
