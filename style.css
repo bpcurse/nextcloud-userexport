@@ -35,3 +35,21 @@
 #navigation li a:hover {
   background-color: #8097b9;
 }
+
+#button-blue {
+  background-color: #4c6489;
+  color: white;
+  height: 45px;
+  width: 300px;
+}
+
+#button-green {
+  background-color: green;
+  color: white;
+  height: 45px;
+  width: 300px;
+}
+
+#sortable th {
+  cursor: pointer;
+}

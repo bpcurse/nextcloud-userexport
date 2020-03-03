@@ -335,9 +335,11 @@ function select_data_single_user(
           break;
         case 'lastLogin':
           // If user has never logged in set $last_login to '-'
-          $selected_data[] = $item_data == 0 ? '-' :
+          $selected_data[] = $item_data == 0
+            ? ($format == 'utf8' ? '-'
+                : '<span style="color: red;">&#10008;</span>')
             // Format unix timestamp to YYYY-MM-DD after trimming last 3 chars
-            date("Y-m-d", substr($item_data, 0, 10));
+            : date("Y-m-d", substr($item_data, 0, 10));
           break;
         // Make the display of 'enabled' bool pretty in the browser
         case 'enabled':
@@ -388,6 +390,7 @@ function select_group_members($group, $format = null) {
   // Iterate through userlist
   foreach ($_SESSION['userlist'] as $key => $user_id) {
     // Call select_data function to filter/format request data
+    //echo'<pre>';print_r($_SESSION['raw_user_data']);echo'</pre>';
     $data = $_SESSION['raw_user_data'][$key];
     if (in_array($group, $data['ocs']['data']['groups']))
       $group_members[] = $format == 'utf8'
@@ -413,7 +416,7 @@ function print_status_success() {
     . '<br>Fetched ' . count($_SESSION['raw_user_data']) . ' users and '
     . count($_SESSION['grouplist']) . ' groups in ' . $_SESSION['time_total']
     . ' seconds on ' . date(DATE_ATOM)
-    . '<hr>You can now access all menu options';
+    . '<hr><span style="color: darkgreen;">You can now access all menu options</span>';
 }
 
 /**
@@ -439,7 +442,7 @@ function print_status_overview() {
   * @param  $message_mode How to send emails (to, cc, bcc)
   *         OPTIONAL      DEFAULT: 'bcc'
   */
-function show_button_mailto($user_data = null, $button_text = 'send email to all users', $message_mode = 'bcc') {
+function show_button_mailto($user_data = null, $button_text = 'Send email to all users', $message_mode = 'bcc') {
   // Build and store email list formatted as 'mailto:'
   $mailto_list = build_mailto_list($user_data, $message_mode);
 
@@ -447,8 +450,8 @@ function show_button_mailto($user_data = null, $button_text = 'send email to all
   if ($mailto_list != false)
     echo '
       <form>
-        <input style="background-color: blue; color: white; height: 35px"
-          type="button" onclick="window.location.href = \'' . $mailto_list .
+        <input id="button-blue" type="button"
+          onclick="window.location.href = \'' . $mailto_list .
           '\'" value="' . $button_text . '"/>
       </form>';
 }
@@ -579,38 +582,48 @@ function build_table_user_data($user_data) {
   </style>';
 
   // Define HTML table and set header cell content
-  $table_user_data_headers = '<table><tr>';
+  $table_user_data_headers = '<table id="sortable"><tr>';
 
-  foreach($data_choices as $item)
-    $table_user_data_headers .= '<th>' . $item . '</th>';
+  foreach($data_choices as $item) {
+    if (in_array($item, ['quota','used','free']))
+      $sort = null;
+    else
+      $sort = ' onclick="sortTable()"';
 
+    $table_user_data_headers .= '<th' . $sort . '>' . $item . '</th>';
+  }
   $table_user_data_headers .= '</tr>';
 
-  // Search for and return position of quota keys in $export_choices
+  // Search for and return position of quota keys in $data_choices
   $keypos_right_align[] = array_search('quota', $data_choices);
   $keypos_right_align[] = array_search('used', $data_choices);
   $keypos_right_align[] = array_search('free', $data_choices);
 
-  // Search for and return position of 'enabled' in $export_choices
-  $keypos_center_align = array_search('enabled', $data_choices);
+  // Search for and return position of 'enabled' and 'lastLogin' in $data_choices
+  $keypos_center_align[] = array_search('enabled', $data_choices);
+  $keypos_center_align[] = array_search('lastLogin', $data_choices);
 
   // Iterate through collected user data by row and column, build HTML table
   for ($row = 0; $row < sizeof($user_data); $row++) {
     $table_user_data .= '<tr>';
     for ($col = 0; $col < sizeof($user_data[$row]); $col++) {
       $color_text = 'color: unset';
-      if ($user_data[$row][$col] == 'N/A')
+      $selected_data = $user_data[$row][$col];
+
+      if ($selected_data == 'N/A')
         $color_text = 'color: grey;';
-      if (in_array($col, array_filter($keypos_right_align))) {
-        $table_user_data .= '<td style="text-align: right; white-space: nowrap;'
-        . $color_text . '">' . $user_data[$row][$col] . '</td>';
-      } elseif ($col === $keypos_center_align) {
-        $table_user_data .= '<td style="text-align: center;' . $color_text . '">'
-          . $user_data[$row][$col] . '</td>';
-      } else {
-        $table_user_data .= '<td style="' . $color_text . '">'
-        . $user_data[$row][$col] . '</td>';
-      }
+
+      if ($selected_data == "&infin;")
+        $align = 'text-align: center; font-size: large;';
+      elseif (in_array($col, array_filter($keypos_right_align)))
+        $align = 'text-align: right; white-space: nowrap;';
+      elseif (in_array($col, array_filter($keypos_center_align)))
+        $align = 'text-align: center;';
+      else
+        $align = null;
+
+      $table_user_data .= '<td style="' . $align . $color_text . '">'
+        . $selected_data . '</td>';
     }
     $table_user_data .= '</tr>';
   }
@@ -650,10 +663,17 @@ function build_table_group_data() {
   // Iterate through collected user data by row and column, build HTML table
   for ($row = 0; $row < sizeof($grouplist); $row++) {
     $members = select_group_members($grouplist[$row]);
+
+    // Check if group has no users associated, else list them as CSV
+    $user_ids = $members === null
+      ? '-'
+      : build_csv_line(array_column($members, 0),', ');
+    $user_displaynames = $members === null
+      ? '-'
+      : build_csv_line(array_column($members, 1),', ');
+
     $table_group_data .= '<tr><td>' . utf8_decode($grouplist[$row])
-      . '</td><td>' . build_csv_line(array_column($members,0),', ')
-      . '</td><td>' . build_csv_line(array_column($members,1),', ')
-      . '</td></tr>';
+      . '</td><td>' . $user_ids . '</td><td>' . $user_displaynames . '</td></tr>';
   }
   $table_group_data .= '</table>';
   return $table_group_data_style . $table_group_data_headers . $table_group_data;
@@ -733,12 +753,15 @@ function build_csv_user_data($data, $delimiter = ',') {
 /**
   * Build array or CSV formatted string containing the group and user data
   *
-  * @param  $array  Return an array or CSV
+  * @param  $array      Return an array or CSV
+  *         OPTIONAL    DEFAULT = 'null'
+  * @param  $format     Whether to return utf8 formatted data ('utf8') or not
+  *         OPTIONAL    DEFAULT = 'null'
   *
   * @return $group_data Array or CSV formatted string containing the group associated user data
   *
   */
-function build_group_data($array = null) {
+function build_group_data($array = null, $format = null) {
   $grouplist = $_SESSION['grouplist'];
 
   // Add headers to $group_data variable
@@ -747,17 +770,21 @@ function build_group_data($array = null) {
 
   // Iterate through collected group data by row and column, build CSV output
   for ($row = 0; $row < sizeof($grouplist); $row++) {
-    $members = select_group_members($grouplist[$row],$format);
-    if ($array == 'array') {
-      $group_data[$row+1] = [$grouplist[$row],
-        build_csv_line(array_column($members,0)),
-        build_csv_line(array_column($members,1))];
-    } else {
-      $group_data .= utf8_decode($grouplist[$row])
-        . ',"' . build_csv_line(array_column($members,0))
-        . '","' . build_csv_line(array_column($members,1))
-        . '"<br>';
-      }
+    $members = select_group_members($grouplist[$row], $format);
+
+    // Check if group has no users associated, else list them as CSV
+    $user_ids = $members === null
+      ? '-'
+      : build_csv_line(array_column($members, 0),', ');
+    $user_displaynames = $members === null
+      ? '-'
+      : build_csv_line(array_column($members, 1),', ');
+
+    if ($array == 'array')
+      $group_data[$row+1] = [$grouplist[$row], $user_ids, $user_displaynames];
+    else
+      $group_data .= utf8_decode($grouplist[$row]) . ',"' . $user_ids . '","'
+        . $user_displaynames . '"<br>';
   }
   return $group_data;
 }
@@ -795,14 +822,14 @@ function build_csv_line($array = null, $delimiter = ',') {
   */
 function format_size($size) {
   if ($size == 0)
-    return "-";
+    return "0 MB";
   elseif ($size == -3)
-    return "unlimited";
+    return '&infin;';
 
   $s = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
   $e = floor(log($size, 1024));
 
-  return number_format(round($size/pow(1024, $e), 2),2).' '.$s[$e];
+  return number_format(round($size/pow(1024, $e), 1),1).' '.$s[$e];
 }
 
 /**

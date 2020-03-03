@@ -41,7 +41,7 @@
       <table>
         <tr><td><label for='url'>Target URL</label></td>
         <td colspan="3">
-          <input id='url' type='text' name='target_url' size='36' required
+          <input id='url' type='text' name='target_url' size='32' required
           placeholder='https://cloud.example.com'
           value='<?php echo $target_url; ?>'>
         </td></tr>
@@ -54,11 +54,15 @@
         </tr>
       </table>
       <br>
-      <input style="background-color: #4c6489; color: white;
-        height: 45px;"
-        value='Connect and fetch data from server' type='submit' name='submit'>
-        <br><span style="font-size: small; color: grey;">
-          This may take a while. Be patient.</span>
+      <table>
+      <tr><td>
+        <input id='button-blue' value='Connect and fetch data from server'
+          type='submit' name='submit'>
+      </td></tr>
+      <tr><td style="text-align: center; font-size: small; color: grey;">
+        This may take a while. Be patient...
+      </td></tr>
+      </table>
       </font>
     </form>
     <?php

@@ -12,6 +12,6 @@
       echo ' id="currentpage"'; ?>><a href="email.php">Email</a></li>
     <li style="float:right;"><b><a style="color: red;"
       href="https://github.com/bpcurse/nextcloud-userexport">
-      nextcloud-userexport v1.0.0 Beta 1</a></b>
+      nextcloud-userexport v1.0.0 Beta 2</a></b>
   </ul>
 </div>

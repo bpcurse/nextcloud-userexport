@@ -65,11 +65,9 @@
       <?php if ($export_type == 'csv')
         echo 'checked=\"checked\"'; ?>> CSV
     <br><br>
-    <input style="background-color: #4c6489; color: white; height: 45px; width: 300px;"
-      type='submit' name='submit' value='Display'>
+    <input id='button-blue' type='submit' name='submit' value='Display'>
     <br><br>
-    <input style='background-color: green; color: white; height: 45px; width: 300px;'
-      type='submit' name='submit' value='Download (CSV)'>
+    <input id='button-green' type='submit' name='submit' value='Download (CSV)'>
     </form>
   </body>
 </html>
