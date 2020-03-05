@@ -13,6 +13,6 @@
 define('TEMP_FOLDER', 'export_temp');
 
 // Set localization language
-$language = 'de';
+$language = 'en';
 
 // EOF

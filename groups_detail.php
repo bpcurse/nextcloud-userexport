@@ -4,7 +4,8 @@
   $active_page = 'groups';
   require 'functions.php';
   include 'config.php';
-
+  require 'l10n/' . $_SESSION['language'] . '.php';
+  
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
 

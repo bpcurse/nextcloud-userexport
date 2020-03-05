@@ -4,6 +4,7 @@
   $active_page = 'users';
   require 'functions.php';
   include 'config.php';
+  require 'l10n/' . $_SESSION['language'] . '.php';
 
   // Filter POST array and save keys with value 'true' as constant
   $_SESSION['data_choices'] = array_keys($_POST,'true');

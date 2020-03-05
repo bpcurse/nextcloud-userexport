@@ -67,7 +67,7 @@
           type='submit' name='submit'>
       </td></tr>
       <tr><td style="text-align: center; font-size: small; color: grey;">
-        <?php echo WAIT ?>
+        <?php echo L10N_WAIT ?>
       </td></tr>
       </table>
       </font>

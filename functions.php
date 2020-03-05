@@ -1,8 +1,5 @@
 <?php
 
-// Read parameters from config file
-include 'config.php';
-
 /**
   * Set cURL options
   *
@@ -14,10 +11,12 @@ include 'config.php';
   */
 function set_curl_options($ch, $type, $id = null) {
   $id = $id === null ? null : '/' . rawurlencode($id);
-  curl_setopt($ch, CURLOPT_URL, $_SESSION['target_url'] . '/ocs/v1.php/cloud/' . $type . $id);
+  curl_setopt($ch, CURLOPT_URL, $_SESSION['target_url']
+    . '/ocs/v1.php/cloud/' . $type . $id);
   curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-  curl_setopt($ch, CURLOPT_USERPWD, $_SESSION['user_name'] . ':' . $_SESSION['user_pass']);
+  curl_setopt($ch, CURLOPT_USERPWD, $_SESSION['user_name'] . ':'
+    . $_SESSION['user_pass']);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'OCS-APIRequest: true',
@@ -59,11 +58,10 @@ function check_https($url) {
   // Check if plain HTTP is used without override command and exit if not
   if ($trim_url != 'https' && $trim_url != '!http')
     exit('<font color="red" face="Helvetica"><hr>
-    <b>The use of plain HTTP and other protocols is blocked for security reasons.</b>
-    <br>Please use HTTPS instead.
+    <b>' . L10N_HTTP_IS_BLOCKED . '</b>
+    <br>' . L10N_HTTPS_RECOMMENDATION . '
     <font color="black"><hr>
-    <br>You can override this safety precaution and send your admin credentials
-    <u><b>unencrypted</b></u> if you really need to by inserting \'!\' before \'http\'
+    <br>' . L10N_HTTPS_OVERRIDE_HINT . '
     <br>e.g.: !http://cloud.example.com</font>');
 
   // Remove '!' if HTTPS check override is selected by use of '!http'
@@ -91,26 +89,27 @@ function check_curl_response($ch, $data) {
       case 6:
         exit('
           <font color="red">
-            <hr><b>Error: cURL (code ' . curl_errno($ch) . ')</b>
+            <hr>
+            <b>' . L10N_ERROR . ' cURL (code ' . curl_errno($ch) . ')</b>
             <br>' . curl_error($ch) .
           '<font color="black">
-            <hr>Please check provided URL and network connection
+            <hr>' . L10N_ERROR_CURL_CONNECTION . '
           </font>');
       case 51:
         exit('
           <font color="red">
             <hr>
-            <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
+            <b>' . L10N_ERROR . ' cURL (code ' . curl_errno($ch) . ')</b>
             <br>' . curl_error($ch) .
           '<font color="black">
             <hr>
-            Please check provided URL
+            ' . L10N_ERROR_URL . '
           </font>');
       default:
         exit('
           <font color="red">
             <hr>
-            <b>Error: cURL (code ' . curl_errno($ch) . ')</b>
+            <b>' . L10N_ERROR . ' cURL (code ' . curl_errno($ch) . ')</b>
             <br>' . curl_error($ch) . '
             <hr>
           </font>');
@@ -121,7 +120,7 @@ function check_curl_response($ch, $data) {
     exit('
       <font color="red">
         <hr>
-        <b>Error: The API response was empty</b>
+        <b>' . L10N_ERROR . ' ' . L10N_ERROR_EMPTY_API_RESPONSE . '</b>
         <hr>
       </font>');
   }
@@ -138,14 +137,14 @@ function check_curl_response($ch, $data) {
       exit('
         <font color="red">
           <hr>
-          <b>Error: User does not exist (Statuscode: ' . $status . ')</b>
+          <b>' . L10N_ERROR . ' User does not exist (Statuscode: ' . $status . ')</b>
           <hr>
         </font>');
       break;
     case 997:
       exit('
         <font color="red">
-          <hr><b>Error: Authentication (Statuscode: ' . $status . ')</b>
+          <hr><b>' . L10N_ERROR . ' Authentication (Statuscode: ' . $status . ')</b>
           <br>Please check username/password
         <font color="black">
           <hr>Hint: The provided user needs to be admin or group admin
@@ -154,7 +153,7 @@ function check_curl_response($ch, $data) {
       exit('
         <font color="red">
           <hr>
-          <b>Error: Unknown (Statuscode: ' . $status . ')</b>
+          <b>' . L10N_ERROR . ' Unknown (Statuscode: ' . $status . ')</b>
           <hr>
         </font>');
   }
@@ -390,7 +389,6 @@ function select_group_members($group, $format = null) {
   // Iterate through userlist
   foreach ($_SESSION['userlist'] as $key => $user_id) {
     // Call select_data function to filter/format request data
-    //echo'<pre>';print_r($_SESSION['raw_user_data']);echo'</pre>';
     $data = $_SESSION['raw_user_data'][$key];
     if (in_array($group, $data['ocs']['data']['groups']))
       $group_members[] = $format == 'utf8'
@@ -411,12 +409,13 @@ function select_group_members($group, $format = null) {
 function print_status_success() {
   // Output status message after receiving user and group data
   echo '
-    <hr>Connected to server: ' . $_SESSION['target_url']
+    <hr>' . L10N_CONNECTED_TO_SERVER . ' ' . $_SESSION['target_url']
     . ' <span style="color: green">&#10004;</span>'
-    . '<br>Fetched ' . count($_SESSION['raw_user_data']) . ' users and '
-    . count($_SESSION['grouplist']) . ' groups in ' . $_SESSION['time_total']
-    . ' seconds on ' . date(DATE_ATOM)
-    . '<hr><span style="color: darkgreen;">You can now access all menu options</span>';
+    . '<br>' . L10N_DOWNLOADED . count($_SESSION['raw_user_data']) . ' ' . L10N_USERS_AND . ' '
+    . count($_SESSION['grouplist']) . ' ' . L10N_GROUPS_IN . ' ' . $_SESSION['time_total']
+    . ' ' . L10N_SECONDS_ON . ' ' . date(DATE_ATOM)
+    . '<hr><span style="color: darkgreen;">' . L10N_ACCESS_TO_ALL_MENU_OPTIONS
+    . '</span>';
 }
 
 /**
@@ -425,8 +424,8 @@ function print_status_success() {
   */
 function print_status_overview() {
   echo '<hr>' . $_SESSION['target_url']
-    . '<br>Total: ' . $_SESSION['usercount'] . ' Users | '
-    . $_SESSION['groupcount'] . ' Groups
+    . '<br>' . L10N_TOTAL . ' ' . $_SESSION['usercount'] . ' ' . L10N_USERS . ' | '
+    . $_SESSION['groupcount'] . ' ' . L10N_GROUPS . '
     <hr>';
 }
 
@@ -443,7 +442,7 @@ function print_status_overview() {
   *         OPTIONAL      DEFAULT: 'bcc'
   */
 function show_button_mailto($message_mode = 'bcc', $user_data = null,
-  $button_text = 'Send email to all users') {
+  $button_text = L10N_SEND_EMAIL_TO_ALL_USERS) {
   // Build and store email list formatted as 'mailto:'
   $mailto_list = build_mailto_list($user_data, $message_mode);
 
@@ -631,9 +630,9 @@ function build_table_group_data() {
   // Define HTML table and set header cell content
   $table_group_data_headers = '<table id="list"><tr>';
   $table_group_data_headers .=
-     '<th onclick="sortTable()">Group</th>
-      <th onclick="sortTable()">UserID</th>
-      <th onclick="sortTable()">Displayname</th>
+     '<th onclick="sortTable()">' . L10N_GROUP . '</th>
+      <th onclick="sortTable()">' . L10N_USER_ID . '</th>
+      <th onclick="sortTable()">' . L10N_DISPLAYNAME . '</th>
       </tr>';
 
   // Iterate through collected user data by row and column, build HTML table
@@ -684,7 +683,7 @@ function build_mailto_list($user_data = null, $message_mode = 'bcc') {
         $mailto_list .= ',' . $user_email;
     }
     // Set email subject
-    $mailto_list .= '&subject=All%20user%20mail';
+    $mailto_list .= '&subject=' . L10N_SUBJECT_ALL_USER_MAIL;
     return $mailto_list;
   } else {
     // Return false if mailto list has not been constructed due to missing email data
@@ -742,7 +741,7 @@ function build_group_data($array = null, $format = null) {
 
   // Add headers to $group_data variable
   if (!$array)
-    $group_data .= 'group,loginID,displayname<br>';
+    $group_data .= L10N_CSV_GROUP_HEADERS . '<br>';
 
   // Iterate through collected group data by row and column, build CSV output
   for ($row = 0; $row < sizeof($grouplist); $row++) {

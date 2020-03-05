@@ -74,7 +74,7 @@
 
     ?>
     <br><br>
-    <u>Format as:</u>
+    <u><?php echo L10N_FORMAT_AS ?></u>
     <input type='radio' name='export_type' value='table'
       <?php if ($export_type == 'table' || $export_type == null)
         echo 'checked=\"checked\"'; ?>> <?php echo L10N_TABLE ?>

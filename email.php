@@ -4,10 +4,12 @@
   $active_page = 'email';
   require 'functions.php';
   include 'config.php';
+  require 'l10n/' . $_SESSION['language'] . '.php';
+
+  echo '<html lang="' . $_SESSION['language'] . '">'
 
 ?>
 
-<html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>Nextcloud user export</title>
@@ -18,7 +20,7 @@
 
       include ("navigation.php");
       if (!$_SESSION['authenticated'])
-        exit('<br>' . ERROR_CONNECTION_NEEDED);
+        exit('<br>' . L10N_ERROR_CONNECTION_NEEDED);
 
       print_status_overview();
 
