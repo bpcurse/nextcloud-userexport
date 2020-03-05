@@ -411,11 +411,12 @@ function print_status_success() {
   echo '
     <hr>' . L10N_CONNECTED_TO_SERVER . ' ' . $_SESSION['target_url']
     . ' <span style="color: green">&#10004;</span>'
-    . '<br>' . L10N_DOWNLOADED . count($_SESSION['raw_user_data']) . ' ' . L10N_USERS_AND . ' '
-    . count($_SESSION['grouplist']) . ' ' . L10N_GROUPS_IN . ' ' . $_SESSION['time_total']
-    . ' ' . L10N_SECONDS_ON . ' ' . date(DATE_ATOM)
-    . '<hr><span style="color: darkgreen;">' . L10N_ACCESS_TO_ALL_MENU_OPTIONS
-    . '</span>';
+    . '<br>' . L10N_DOWNLOADED . ' ' . count($_SESSION['raw_user_data']) . ' '
+    . L10N_USERS_AND . ' ' . count($_SESSION['grouplist']) . ' '
+    . L10N_GROUPS_IN . ' ' . $_SESSION['time_total'] . ' ' . L10N_SECONDS_ON
+    . ' ' . date(DATE_ATOM) .
+    '<hr><span style="color: darkgreen;">'
+    . L10N_ACCESS_TO_ALL_MENU_OPTIONS . '</span>';
 }
 
 /**
