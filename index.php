@@ -5,6 +5,10 @@
   require 'functions.php';
   include 'config.php';
 
+  // Set UI language to config value or to english, if it is not configured
+  $_SESSION['language'] = $language ?? 'en';
+  require 'l10n/' . $_SESSION['language'] . '.php';
+
   /**
   * Get parameters if any, set defaults
   */
@@ -19,9 +23,10 @@
   $_SESSION['message_mode'] = $_GET['msg_mode'] ?? 'bcc';
   set_data_options();
 
+  echo '<html lang="' . $_SESSION['language'] . '">'
+
 ?>
 
-<html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>Nextcloud user export</title>
@@ -32,31 +37,37 @@
     <form method='post' id='auth_form'>
       <font face='Helvetica'>
       <br>
-      <u>URL and login data:</u>
+      <u><?php echo L10N_URL_AND_LOGIN_DATA ?></u>
       <br><br>
       <table>
-        <tr><td><label for='url'>Target URL</label></td>
+        <tr><td style="text-align: right;">
+          <label for='url'><?php echo L10N_TARGET_URL ?></label>
+        </td>
         <td colspan="3">
           <input id='url' type='text' name='target_url' size='32' required
           placeholder='https://cloud.example.com'
           value='<?php echo $target_url; ?>'>
         </td></tr>
-        <tr><td><label for='user'>Username</label></td>
+        <tr><td><label for='user'><?php echo L10N_USERNAME ?></label></td>
         <td><input id='user' type='text' name='user_name' size='10' required
-          placeholder='username' value='<?php echo $user_name; ?>'></td>
-        <td><label for='pass'>Password</label></td>
+          placeholder='<?php echo L10N_USERNAME ?>'
+          value='<?php echo $user_name; ?>'>
+        </td>
+        <td><label for='pass'><?php echo L10N_PASSWORD ?></label></td>
         <td><input id='pass' type='password' name='user_pass' size='10' required
-          placeholder='password' value='<?php echo $user_pass; ?>'></td>
+          placeholder='<?php echo L10N_PASSWORD ?>'
+          value='<?php echo $user_pass; ?>'>
+        </td>
         </tr>
       </table>
       <br>
       <table>
       <tr><td>
-        <input id='button-blue' value='Connect and fetch data from server'
+        <input id='button-blue' value='<?php echo L10N_CONNECT_AND_FETCH ?>'
           type='submit' name='submit'>
       </td></tr>
       <tr><td style="text-align: center; font-size: small; color: grey;">
-        This may take a while. Be patient...
+        <?php echo WAIT ?>
       </td></tr>
       </table>
       </font>

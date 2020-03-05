@@ -4,12 +4,14 @@
   $active_page = 'users';
   require 'functions.php';
   include 'config.php';
+  require 'l10n/' . $_SESSION['language'] . '.php';
 
   $export_type = $_SESSION['export_type'];
 
+  echo '<html lang="' . $_SESSION['language'] . '">'
+
 ?>
 
-<html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>Nextcloud user export</title>
@@ -28,11 +30,11 @@
 
       include ("navigation.php");
       if (!$_SESSION['authenticated'])
-        exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
+        exit('<br>' . L10N_ERROR_CONNECTION_NEEDED);
 
       print_status_overview();
 
-      echo '<br><u>Include the following user data:</u><br><br>
+      echo '<br><u>' . L10N_SELECT_USER_DATA . '</u><br><br>
         <form method="post" action="users_detail.php">
         <table id="options">
         <tr>';
@@ -75,14 +77,16 @@
     <u>Format as:</u>
     <input type='radio' name='export_type' value='table'
       <?php if ($export_type == 'table' || $export_type == null)
-        echo 'checked=\"checked\"'; ?>> Table
+        echo 'checked=\"checked\"'; ?>> <?php echo L10N_TABLE ?>
     <input type='radio' name='export_type' value='csv'
       <?php if ($export_type == 'csv')
         echo 'checked=\"checked\"'; ?>> CSV
     <br><br>
-    <input id='button-blue' type='submit' name='submit' value='Display'>
+    <input id='button-blue' type='submit' name='submit'
+      value='<?php echo L10N_DISPLAY ?>'>
     <br><br>
-    <input id='button-green' type='submit' name='submit' value='Download (CSV)'>
+    <input id='button-green' type='submit' name='submit'
+      value='<?php echo L10N_DOWNLOAD_CSV ?>'>
     </form>
   </body>
 </html>

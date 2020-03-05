@@ -12,4 +12,7 @@
 // Temporary folder to store csv files in
 define('TEMP_FOLDER', 'export_temp');
 
+// Set localization language
+$language = 'de';
+
 // EOF
