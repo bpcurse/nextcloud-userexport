@@ -47,17 +47,17 @@ function set_data_options() {
   * - In case '!http' -> remove '!' and return trimmed URL
   * - In case 'http:' or anything else -> exit with insecure connection warning
   *
-  * @param  $url  URL to be processed
+  * @param  $input_url    URL to be processed
   *
-  * @return $url  URL after processing
+  * @return $output_url   URL after processing
   *
   */
-function check_https($url) {
+function check_https($input_url) {
   // Save the first five chars of the URL to a new variable '$trim_url'
-  $trim_url = substr($url,0,5);
+  $trimmed_url = substr($input_url,0,5);
 
   // Check if plain HTTP is used without override command and exit if not
-  if ($trim_url != 'https' && $trim_url != '!http')
+  if ($trimmed_url != 'https' && $trimmed_url != '!http')
     exit('<font color="red" face="Helvetica"><hr>
     <b>The use of plain HTTP and other protocols is blocked for security reasons.</b>
     <br>Please use HTTPS instead.
@@ -67,10 +67,24 @@ function check_https($url) {
     <br>e.g.: !http://cloud.example.com</font>');
 
   // Remove '!' if HTTPS check override is selected by use of '!http'
-  if ($trim_url == '!http')
-    $url = ltrim($trim_url,'!');
+  $output_url = $trimmed_url == '!http'
+    ? ltrim($input_url,'!')
+    : $input_url;
 
-  return $url;
+  return $output_url;
+}
+
+/**
+  * Remove httpx:// from given URL and return the trimmed version
+  *
+  * @param  $url      URL to be trimmed
+  *
+  * @return $trim_url URL without http:// or https://
+  *
+  */
+function removehttpx($input_url) {
+  $trimmed_url = preg_replace('(^https?://)', '', $input_url);
+  return $trimmed_url;
 }
 
 /**
@@ -411,7 +425,7 @@ function select_group_members($group, $format = null) {
 function print_status_success() {
   // Output status message after receiving user and group data
   echo '
-    <hr>Connected to server: ' . $_SESSION['target_url']
+    <hr>Connected to server: ' . removehttpx($_SESSION['target_url'])
     . ' <span style="color: green">&#10004;</span>'
     . '<br>Fetched ' . count($_SESSION['raw_user_data']) . ' users and '
     . count($_SESSION['grouplist']) . ' groups in ' . $_SESSION['time_total']
@@ -424,7 +438,7 @@ function print_status_success() {
   *
   */
 function print_status_overview() {
-  echo '<hr>' . $_SESSION['target_url']
+  echo '<hr>' . removehttpx($_SESSION['target_url'])
     . '<br>Total: ' . $_SESSION['usercount'] . ' Users | '
     . $_SESSION['groupcount'] . ' Groups
     <hr>';
