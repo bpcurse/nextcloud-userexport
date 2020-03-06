@@ -36,7 +36,7 @@
   define('L10N_DOWNLOADED', 'Heruntergeladen:');
   define('L10N_USERS_AND', 'Benutzer und');
   define('L10N_GROUPS_IN', 'Gruppen in');
-  define('L10N_SECONDS_ON', 'Sekunden am');
+  define('L10N_SECONDS', 'Sekunden');
   define('L10N_LAST_LOGIN', 'Letzte Anmeldung');
   define('L10N_BACKEND', 'Backend');
   define('L10N_ENABLED', 'Aktiviert');

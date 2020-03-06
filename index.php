@@ -2,12 +2,12 @@
 
   session_start();
   $active_page = "index";
-  require 'functions.php';
-  include 'config.php';
+  require_once 'functions.php';
+  include_once 'config.php';
 
   // Set UI language to config value or to english, if it is not configured
   $_SESSION['language'] = $language ?? 'en';
-  require 'l10n/' . $_SESSION['language'] . '.php';
+  require_once 'l10n/' . $_SESSION['language'] . '.php';
 
   /**
   * Get parameters if any, set defaults
@@ -98,6 +98,7 @@
       // Fetch all user details (this can take a long time)
       $_SESSION['raw_user_data'] = fetch_raw_user_data();
 
+      calculate_quota();
       print_status_success();
     }
     ?>

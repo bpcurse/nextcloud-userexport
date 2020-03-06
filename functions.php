@@ -418,6 +418,28 @@ function select_group_members($group, $format = null) {
 }
 
 /**
+  * Calculate how much disk space is assigned, used and unclaimed by users
+  *
+  */
+function calculate_quota() {
+  $_SESSION['quota_total_assigned'] = 0;
+  $_SESSION['quota_total_free'] = 0;
+  $_SESSION['quota_total_used'] = 0;
+
+  foreach($_SESSION['raw_user_data'] as $user_data) {
+    $_SESSION['quota_total_used'] += $user_data['ocs']['data']['quota']['used'];
+    $_SESSION['quota_total_free'] +=
+      $user_data['ocs']['data']['quota']['free'];
+
+    $quota_assigned = $user_data['ocs']['data']['quota']['quota'];
+    $_SESSION['quota_total_assigned'] += $quota_assigned > 0
+      ? $quota_assigned
+      : 0;
+    $_SESSION['quota_total_assigned_infin'] = ($quota_assigned == -3);
+  }
+}
+
+/**
   * Print status message on successful server connection
   *
   * Status message contains user count, target instance, timestamp and runtime in seconds
@@ -432,8 +454,8 @@ function print_status_success() {
     . ' <span style="color: green">&#10004;</span>'
     . '<br>' . L10N_DOWNLOADED . ' ' . count($_SESSION['raw_user_data']) . ' '
     . L10N_USERS_AND . ' ' . count($_SESSION['grouplist']) . ' '
-    . L10N_GROUPS_IN . ' ' . $_SESSION['time_total'] . ' ' . L10N_SECONDS_ON
-    . ' ' . date(DATE_ATOM) .
+    . L10N_GROUPS_IN . ' ' . $_SESSION['time_total'] . ' ' . L10N_SECONDS
+    . '<br>Timestamp: ' . date(DATE_ATOM) .
     '<hr><span style="color: darkgreen;">'
     . L10N_ACCESS_TO_ALL_MENU_OPTIONS . '</span>';
 }
@@ -443,10 +465,17 @@ function print_status_success() {
   *
   */
 function print_status_overview() {
+  $infinite = $_SESSION['quota_total_assigned_infin']
+    ? ' (includes &infin; values!)'
+    : '';
+
   echo '<hr>' . removehttpx($_SESSION['target_url'])
     . '<br>' . L10N_TOTAL . $_SESSION['usercount'] . ' ' . L10N_USERS . ' | '
-    . $_SESSION['groupcount'] . ' ' . L10N_GROUPS . '
-    <hr>';
+    . $_SESSION['groupcount'] . ' ' . L10N_GROUPS
+    . '<br>Quota: used ' . format_size($_SESSION['quota_total_used'])
+    . ' | free ' . format_size($_SESSION['quota_total_free'])
+    . ' | assigned ' . format_size($_SESSION['quota_total_assigned'])
+    . $infinite . '<hr>';
 }
 
 /**
