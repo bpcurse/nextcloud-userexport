@@ -104,10 +104,10 @@ https://github.com/nextcloud/server/issues/14715
 
 ## Screenshots
 **Login page**
-TODO
+![nextcloud-userexport_v1 0 0_login_page](https://user-images.githubusercontent.com/29312856/75972989-bcb0c300-5ed4-11ea-9024-401e0f13d87c.png)
+
+**Data selection**
+![nextcloud-userexport_v1 0 0_users_page](https://user-images.githubusercontent.com/29312856/75974056-7b211780-5ed6-11ea-890f-ca5c35a82631.png)
 
 **Userlist**
-TODO
-
-**Grouplist**
-TODO
+![nextcloud-userexport_v1 0 0_users_details_page](https://user-images.githubusercontent.com/29312856/75973031-ce926600-5ed4-11ea-9f12-360c9dfdc10a.png)
