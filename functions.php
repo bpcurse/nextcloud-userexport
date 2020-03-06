@@ -443,11 +443,8 @@ function print_status_success() {
   *
   */
 function print_status_overview() {
-  echo '<hr>' . $_SESSION['target_url']
-    . '<br>' . L10N_TOTAL . ' ' . $_SESSION['usercount'] . ' ' . L10N_USERS . ' | '
-    . $_SESSION['groupcount'] . ' ' . L10N_GROUPS . '
   echo '<hr>' . removehttpx($_SESSION['target_url'])
-    . '<br>' . L10N_TOTAL . $_SESSION['usercount'] . L10N_USERS . ' | '
+    . '<br>' . L10N_TOTAL . $_SESSION['usercount'] . ' ' . L10N_USERS . ' | '
     . $_SESSION['groupcount'] . ' ' . L10N_GROUPS . '
     <hr>';
 }

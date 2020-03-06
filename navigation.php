@@ -18,6 +18,6 @@
       echo ' id="currentpage"'; ?>><a href="email.php"><?php echo L10N_EMAIL ?></a></li>
     <li style="float:right;"><a style="font-size: 14px;"
       href="https://github.com/bpcurse/nextcloud-userexport">
-      Nextcloud Userexport v1.0.0</a>
+      Nextcloud Userexport v1.1.0 beta</a>
   </ul>
 </div>

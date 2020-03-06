@@ -34,7 +34,7 @@
   define('L10N_SUBJECT_ALL_USER_MAIL', 'All%20user%20mail');
   define('L10N_CSV_GROUP_HEADERS', 'group,loginID,displayname');
   define('L10N_DOWNLOADED', 'Downloaded:');
-  define('L10N_USERS_AND', 'Users and');
+  define('L10N_USERS_AND', 'users and');
   define('L10N_GROUPS_IN', 'groups in');
   define('L10N_SECONDS_ON', 'seconds on');
   define('L10N_LAST_LOGIN', 'Last login');

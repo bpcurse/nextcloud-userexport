@@ -2,9 +2,9 @@
 
   session_start();
   $active_page = 'email';
-  require 'functions.php';
-  include 'config.php';
-  require 'l10n/' . $_SESSION['language'] . '.php';
+  require_once 'functions.php';
+  include_once 'config.php';
+  require_once 'l10n/' . $_SESSION['language'] . '.php';
 
   echo '<html lang="' . $_SESSION['language'] . '">'
 
