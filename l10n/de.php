@@ -55,5 +55,6 @@
   define('L10N_HINT_ADMIN_OR_GROUP_ADMIN', 'Hinweis: Der angegebene Benutzer muss Administrator oder Gruppenadministraor sein');
   define('L10N_UNKNOWN', 'unbekannt');
   define('L10N_STATUSCODE', 'Statuscode: ');
+  define('L10N_NUMBER_SIGN', '#');
 
 // EOF

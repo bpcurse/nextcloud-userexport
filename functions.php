@@ -656,6 +656,8 @@ function build_table_group_data() {
   $table_group_data_headers = '<table id="list"><tr>';
   $table_group_data_headers .=
      '<th onclick="sortTable()">' . L10N_GROUP . '</th>
+      <th onclick="sortTable()" style="text-align: center;">' . L10N_NUMBER_SIGN
+        .'</th>
       <th onclick="sortTable()">' . L10N_USER_ID . '</th>
       <th onclick="sortTable()">' . L10N_DISPLAYNAME . '</th>
       </tr>';
@@ -673,7 +675,8 @@ function build_table_group_data() {
       : build_csv_line(array_column($members, 1),', ');
 
     $table_group_data .= '<tr><td>' . utf8_decode($grouplist[$row])
-      . '</td><td>' . $user_ids . '</td><td>' . $user_displaynames . '</td></tr>';
+      . '</td><td style="text-align: right;">' . count($members) . '</td><td>'
+      . $user_ids . '</td><td>' . $user_displaynames . '</td></tr>';
   }
   $table_group_data .= '</table>';
   return $table_group_data_headers . $table_group_data;
