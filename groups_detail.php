@@ -2,13 +2,14 @@
 
   session_start();
   $active_page = 'groups';
-  require 'functions.php';
-  include 'config.php';
+  require_once 'functions.php';
+  include_once 'config.php';
+  require_once 'l10n/' . $_SESSION['language'] . '.php';
 
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
 
-  if ($display_or_download == "Download (CSV)") {
+  if ($display_or_download == "download") {
     // Set filename or create one depending on GET parameters
     if($filename_download == null)
       $filename_download = "nextcloud-grouplist_" . date("Y-m-d_Hi") . ".csv";
@@ -20,9 +21,10 @@
     exit();
   }
 
+  echo '<html lang="' . $_SESSION['language'] . '">'
+
 ?>
 
-<html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>Nextcloud user export</title>
@@ -60,15 +62,13 @@
 
     print_status_overview();
 
-    if ($display_or_download == "Display") {
-      /**
-        * Display results page either as HTML table or comma separated values (CSV)
-        */
-      if ($export_type == 'table')
-        echo build_table_group_data();
-      elseif ($export_type == 'csv')
-        echo build_group_data();
-    }
+    /**
+      * Display results page either as HTML table or comma separated values (CSV)
+      */
+    if ($export_type == 'table')
+      echo build_table_group_data();
+    else
+      echo build_group_data();
 
     ?>
   </body>

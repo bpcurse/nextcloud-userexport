@@ -2,14 +2,16 @@
 
   session_start();
   $active_page = 'users';
-  require 'functions.php';
-  include 'config.php';
+  require_once 'functions.php';
+  include_once 'config.php';
+  require_once 'l10n/' . $_SESSION['language'] . '.php';
 
   $export_type = $_SESSION['export_type'];
 
+  echo '<html lang="' . $_SESSION['language'] . '">'
+
 ?>
 
-<html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>Nextcloud user export</title>
@@ -28,11 +30,11 @@
 
       include ("navigation.php");
       if (!$_SESSION['authenticated'])
-        exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
+        exit('<br>' . L10N_CONNECTION_NEEDED);
 
       print_status_overview();
 
-      echo '<br><u>Include the following user data:</u><br><br>
+      echo '<br><u>' . L10N_SELECT_USER_DATA . '</u><br><br>
         <form method="post" action="users_detail.php">
         <table id="options">
         <tr>';
@@ -66,23 +68,26 @@
 
       echo '<tr><td colspan=3 style="height: 10px;"></td></tr>
             <tr><td style="background-color: whitesmoke;">
-              <input type="checkbox" onClick="toggle(this)" /> Toggle all
+              <input type="checkbox" onClick="toggle(this)" /> '
+                . L10N_TOGGLE_ALL . '
             </td></tr>
           </table>';
 
     ?>
     <br><br>
-    <u>Format as:</u>
+    <u><?php echo L10N_FORMAT_AS ?></u>
     <input type='radio' name='export_type' value='table'
       <?php if ($export_type == 'table' || $export_type == null)
-        echo 'checked=\"checked\"'; ?>> Table
+        echo 'checked=\"checked\"'; ?>> <?php echo L10N_TABLE ?>
     <input type='radio' name='export_type' value='csv'
       <?php if ($export_type == 'csv')
         echo 'checked=\"checked\"'; ?>> CSV
     <br><br>
-    <input id='button-blue' type='submit' name='submit' value='Display'>
+    <button id='button-blue' type='submit' name='submit'
+      value='display'><?php echo L10N_DISPLAY ?></button>
     <br><br>
-    <input id='button-green' type='submit' name='submit' value='Download (CSV)'>
+    <button id='button-green' type='submit' name='submit'
+      value='download'><?php echo L10N_DOWNLOAD_CSV ?></button>
     </form>
   </body>
 </html>
