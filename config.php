@@ -9,10 +9,15 @@
 // Default password (NOT RECOMMENDED)
 // $user_pass = 'goodpassword';
 
-// Temporary folder to store csv files in
+// Folder to temporarily store csv files
 define('TEMP_FOLDER', 'export_temp');
 
-// Set localization language
+/**
+  * Set UI language
+  * Available languages can be found in the l10n directory
+  * e.g. 'en.php'
+  *
+  */
 $language = 'en';
 
 // EOF

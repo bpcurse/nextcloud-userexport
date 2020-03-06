@@ -2,22 +2,21 @@
 
   session_start();
   $active_page = 'users';
-  require 'functions.php';
-  include 'config.php';
-  require 'l10n/' . $_SESSION['language'] . '.php';
+  require_once 'functions.php';
+  include_once 'config.php';
+  require_once 'l10n/' . $_SESSION['language'] . '.php';
 
   // Filter POST array and save keys with value 'true' as constant
   $_SESSION['data_choices'] = array_keys($_POST,'true');
   if (!$_SESSION['data_choices'])
-    exit('At least one column needs to be selected. <a href="users.php">
-      Return to form</a>');
+    exit(L10N_ERROR . L10N_SELECT_AT_LEAST_ONE_COLUMN . L10N_RETURN_TO_FORM);
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
 
-  if ($display_or_download == "Download (CSV)") {
+  if ($display_or_download == 'download') {
     // Set filename or create one depending on GET parameters
     if($filename_download == null)
-      $filename_download = "nextcloud-userlist_" . date("Y-m-d_Hi") . ".csv";
+      $filename_download = 'nextcloud-userlist_' . date("Y-m-d_Hi") . '.csv';
 
     // Create and populate CSV file with selected user data and set filename variable
     $filename = build_csv_file(select_data_all_users($_SESSION['data_choices'], 'utf8'));
@@ -26,9 +25,10 @@
     exit();
   }
 
+  echo '<html lang="' . $_SESSION['language'] . '">'
+
 ?>
 
-<html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>Nextcloud user export</title>
@@ -67,15 +67,13 @@
 
     print_status_overview();
 
-    if ($display_or_download == "Display") {
-      /**
-        * Display results page either as HTML table or comma separated values (CSV)
-        */
-      if ($export_type == 'table')
-        echo build_table_user_data(select_data_all_users());
-      elseif ($export_type == 'csv')
-        echo build_csv_user_data(select_data_all_users());
-    }
+    /**
+      * Display results page either as HTML table or comma separated values (CSV)
+      */
+    if ($export_type == 'table')
+      echo build_table_user_data(select_data_all_users());
+    else
+      echo build_csv_user_data(select_data_all_users());
 
     ?>
   </body>

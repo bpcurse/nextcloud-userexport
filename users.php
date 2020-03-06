@@ -2,9 +2,9 @@
 
   session_start();
   $active_page = 'users';
-  require 'functions.php';
-  include 'config.php';
-  require 'l10n/' . $_SESSION['language'] . '.php';
+  require_once 'functions.php';
+  include_once 'config.php';
+  require_once 'l10n/' . $_SESSION['language'] . '.php';
 
   $export_type = $_SESSION['export_type'];
 
@@ -30,7 +30,7 @@
 
       include ("navigation.php");
       if (!$_SESSION['authenticated'])
-        exit('<br>' . L10N_ERROR_CONNECTION_NEEDED);
+        exit('<br>' . L10N_CONNECTION_NEEDED);
 
       print_status_overview();
 
@@ -68,7 +68,8 @@
 
       echo '<tr><td colspan=3 style="height: 10px;"></td></tr>
             <tr><td style="background-color: whitesmoke;">
-              <input type="checkbox" onClick="toggle(this)" /> Toggle all
+              <input type="checkbox" onClick="toggle(this)" /> '
+                . L10N_TOGGLE_ALL . '
             </td></tr>
           </table>';
 
@@ -82,11 +83,11 @@
       <?php if ($export_type == 'csv')
         echo 'checked=\"checked\"'; ?>> CSV
     <br><br>
-    <input id='button-blue' type='submit' name='submit'
-      value='<?php echo L10N_DISPLAY ?>'>
+    <button id='button-blue' type='submit' name='submit'
+      value='display'><?php echo L10N_DISPLAY ?></button>
     <br><br>
-    <input id='button-green' type='submit' name='submit'
-      value='<?php echo L10N_DOWNLOAD_CSV ?>'>
+    <button id='button-green' type='submit' name='submit'
+      value='download'><?php echo L10N_DOWNLOAD_CSV ?></button>
     </form>
   </body>
 </html>

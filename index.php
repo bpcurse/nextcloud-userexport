@@ -37,11 +37,11 @@
     <form method='post' id='auth_form'>
       <font face='Helvetica'>
       <br>
-      <u><?php echo L10N_URL_AND_LOGIN_DATA ?></u>
+      <u><?php echo L10N_SERVER_AND_LOGIN_DATA ?></u>
       <br><br>
       <table>
         <tr><td style="text-align: right;">
-          <label for='url'><?php echo L10N_TARGET_URL ?></label>
+          <label for='url'><?php echo L10N_SERVER ?></label>
         </td>
         <td colspan="3">
           <input id='url' type='text' name='target_url' size='32' required

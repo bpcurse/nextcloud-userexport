@@ -20,7 +20,7 @@
 
       include ("navigation.php");
       if (!$_SESSION['authenticated'])
-        exit('<br>' . L10N_ERROR_CONNECTION_NEEDED);
+        exit('<br>' . L10N_CONNECTION_NEEDED);
 
       print_status_overview();
 

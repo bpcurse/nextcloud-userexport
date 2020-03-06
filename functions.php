@@ -31,11 +31,13 @@ function set_curl_options($ch, $type, $id = null) {
 */
 function set_data_options() {
   $_SESSION['data_options'] = [
-    'id' => 'User ID', 'displayname' => 'Displayname', 'email' => 'Email',
-    'lastLogin' => 'Last Login', 'backend' => 'Backend', 'enabled' => 'Enabled',
-    'quota' => 'Quota limit', 'used' => 'Quota used', 'free' => 'Quota free',
-    'groups' => 'Groups', 'subadmin' => 'Subadmin', 'language' => 'Language',
-    'locale' => 'Locale'];
+    'id' => L10N_USER_ID, 'displayname' => L10N_DISPLAYNAME,
+    'email' => L10N_EMAIL, 'lastLogin' => L10N_LAST_LOGIN,
+    'backend' => L10N_BACKEND, 'enabled' => L10N_ENABLED,
+    'quota' => L10N_QUOTA_LIMIT, 'used' => L10N_QUOTA_USED,
+    'free' => L10N_QUOTA_FREE, 'groups' => L10N_GROUPS,
+    'subadmin' => L10N_SUBADMIN, 'language' => L10N_LANGUAGE,
+    'locale' => L10N_LOCALE];
 }
 
 /**
@@ -57,12 +59,12 @@ function check_https($url) {
 
   // Check if plain HTTP is used without override command and exit if not
   if ($trim_url != 'https' && $trim_url != '!http')
-    exit('<font color="red" face="Helvetica"><hr>
+    exit('<font color="red"><hr>
     <b>' . L10N_HTTP_IS_BLOCKED . '</b>
     <br>' . L10N_HTTPS_RECOMMENDATION . '
     <font color="black"><hr>
     <br>' . L10N_HTTPS_OVERRIDE_HINT . '
-    <br>e.g.: !http://cloud.example.com</font>');
+    <br>' . L10N_EG . '!http://cloud.example.com</font>');
 
   // Remove '!' if HTTPS check override is selected by use of '!http'
   if ($trim_url == '!http')
@@ -90,7 +92,7 @@ function check_curl_response($ch, $data) {
         exit('
           <font color="red">
             <hr>
-            <b>' . L10N_ERROR . ' cURL (code ' . curl_errno($ch) . ')</b>
+            <b>' . L10N_ERROR . 'cURL ('. L10N_STATUSCODE . curl_errno($ch) . ')</b>
             <br>' . curl_error($ch) .
           '<font color="black">
             <hr>' . L10N_ERROR_CURL_CONNECTION . '
@@ -99,7 +101,7 @@ function check_curl_response($ch, $data) {
         exit('
           <font color="red">
             <hr>
-            <b>' . L10N_ERROR . ' cURL (code ' . curl_errno($ch) . ')</b>
+            <b>' . L10N_ERROR . 'cURL ('. L10N_STATUSCODE . curl_errno($ch) . ')</b>
             <br>' . curl_error($ch) .
           '<font color="black">
             <hr>
@@ -109,7 +111,7 @@ function check_curl_response($ch, $data) {
         exit('
           <font color="red">
             <hr>
-            <b>' . L10N_ERROR . ' cURL (code ' . curl_errno($ch) . ')</b>
+            <b>' . L10N_ERROR . 'cURL ('. L10N_STATUSCODE . curl_errno($ch) . ')</b>
             <br>' . curl_error($ch) . '
             <hr>
           </font>');
@@ -120,7 +122,7 @@ function check_curl_response($ch, $data) {
     exit('
       <font color="red">
         <hr>
-        <b>' . L10N_ERROR . ' ' . L10N_ERROR_EMPTY_API_RESPONSE . '</b>
+        <b>' . L10N_ERROR . L10N_ERROR_EMPTY_API_RESPONSE . '</b>
         <hr>
       </font>');
   }
@@ -137,23 +139,24 @@ function check_curl_response($ch, $data) {
       exit('
         <font color="red">
           <hr>
-          <b>' . L10N_ERROR . ' User does not exist (Statuscode: ' . $status . ')</b>
+          <b>' . L10N_ERROR . L10N_USER_DOES_NOT_EXIST
+            .' ('. L10N_STATUSCODE . $status . ')</b>
           <hr>
         </font>');
       break;
     case 997:
       exit('
         <font color="red">
-          <hr><b>' . L10N_ERROR . ' Authentication (Statuscode: ' . $status . ')</b>
-          <br>Please check username/password
+          <hr><b>' . L10N_ERROR . L10N_AUTHENTICATION . ' ('. L10N_STATUSCODE . $status . ')</b>
+          <br>' . L10N_CHECK_USER_PASS . '
         <font color="black">
-          <hr>Hint: The provided user needs to be admin or group admin
+          <hr>' . L10N_HINT_ADMIN_OR_GROUP_ADMIN . '
         </font>');
     default:
       exit('
         <font color="red">
           <hr>
-          <b>' . L10N_ERROR . ' Unknown (Statuscode: ' . $status . ')</b>
+          <b>' . L10N_ERROR . L10N_UNKNOWN . ' ('. L10N_STATUSCODE . $status . ')</b>
           <hr>
         </font>');
   }
@@ -572,13 +575,18 @@ function build_table_user_data($user_data) {
   // Define HTML table and set header cell content
   $table_user_data_headers = '<table id="list"><tr>';
 
-  foreach($data_choices as $item) {
-    if (in_array($item, ['quota','used','free']))
+  foreach($data_choices as $choice) {
+    if (in_array($choice, ['quota','used','free']))
       $sort = null;
     else
       $sort = ' onclick="sortTable()"';
 
-    $table_user_data_headers .= '<th' . $sort . '>' . $item . '</th>';
+    foreach($_SESSION['data_options'] as $option => $title) {
+      if ($choice == $option)
+        $choice = $title;
+    }
+
+    $table_user_data_headers .= '<th' . $sort . '>' . $choice . '</th>';
   }
   $table_user_data_headers .= '</tr>';
 
