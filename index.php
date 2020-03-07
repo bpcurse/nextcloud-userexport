@@ -28,7 +28,7 @@
 ?>
 
   <head>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style.php">
     <title>Nextcloud user export</title>
   </head>
 
@@ -63,7 +63,7 @@
       <br>
       <table>
       <tr><td>
-        <input id='button-blue' value='<?php echo L10N_CONNECT_AND_FETCH ?>'
+        <input id='button-connect' value='<?php echo L10N_CONNECT_AND_FETCH ?>'
           type='submit' name='submit'>
       </td></tr>
       <tr><td style="text-align: center; font-size: small; color: grey;">
@@ -86,13 +86,16 @@
         $_SESSION['target_url'] = check_https($_POST['target_url']);
 
         // Fast cURL API call fetching userlist (containing only user IDs) from target server
-        $_SESSION['userlist'] = fetch_userlist();
+        fetch_userlist();
         // Fast cURL API call fetching grouplist (containing only group names) from target server
-        $_SESSION['grouplist'] = fetch_grouplist();
+        fetch_grouplist();
+        fetch_raw_groupfolders_data();
 
         // Count the list items and save them as session variable
-        $_SESSION['usercount'] = count($_SESSION['userlist']);
-        $_SESSION['groupcount'] = count($_SESSION['grouplist']);
+        $_SESSION['user_count'] = count($_SESSION['userlist']);
+        $_SESSION['group_count'] = count($_SESSION['grouplist']);
+        $_SESSION['groupfolders_count'] =
+          count($_SESSION['groupfolders_raw']['ocs']['data']);
       }
 
       // Fetch all user details (this can take a long time)

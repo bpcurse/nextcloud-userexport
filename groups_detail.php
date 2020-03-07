@@ -26,7 +26,7 @@
 ?>
 
   <head>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style.php">
     <title>Nextcloud user export</title>
     <script>
       /**

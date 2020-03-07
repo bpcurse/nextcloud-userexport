@@ -17,7 +17,42 @@ define('TEMP_FOLDER', 'export_temp');
   * Available languages can be found in the l10n directory
   * e.g. 'en.php'
   *
+  * DEFAULT 'en';
+  *
   */
-$language = 'en';
+// $language = 'en';
+
+/**
+  * Alter UI design
+  *
+  * Use html color codes or
+  *
+  */
+/** Navigation (Menu) **/
+
+// $navigation_background_color = '';
+// $navigation_text_color = '';
+
+// $navigation_current_background_color = '';
+// $navigation_current_text_color = '';
+
+/** Buttons **/
+
+// $button_connect_background_color = '';
+// $button_connect_text_color = '';
+
+// $button_display_background_color = '';
+// $button_display_text_color = '';
+
+// $button_download_background_color = '';
+// $button_download_text_color = '';
+
+// $button_email_background_color = '';
+// $button_email_text_color = '';
+
+/** Tables **/
+
+// $table_header_background_color = '';
+// $table_header_text_color = '';
 
 // EOF

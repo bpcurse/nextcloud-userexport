@@ -11,7 +11,7 @@
 ?>
 
   <head>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style.php">
     <title>Nextcloud user export</title>
   </head>
 
@@ -32,10 +32,10 @@
       <?php echo L10N_TABLE ?>
     <input type='radio' name='export_type' value='csv'> <?php echo L10N_CSV ?>
     <br><br>
-    <button id="button-blue" type='submit' name='submit'
+    <button id="button-display" type='submit' name='submit'
       value='display'><?php echo L10N_DISPLAY ?></button>
     <br><br>
-    <button id="button-green" type='submit' name='submit'
+    <button id="button-download" type='submit' name='submit'
       value='download'><?php echo L10N_DOWNLOAD_CSV ?></button>
     </form>
   </body>

@@ -56,5 +56,6 @@
   define('L10N_UNKNOWN', 'unbekannt');
   define('L10N_STATUSCODE', 'Statuscode: ');
   define('L10N_NUMBER_SIGN', '#');
+  define('L10N_GROUPFOLDERS', 'Gruppenordner');
 
 // EOF

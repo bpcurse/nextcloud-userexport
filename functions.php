@@ -4,15 +4,27 @@
   * Set cURL options
   *
   * @param $ch          cURL handle
-  * @param $type        'users' or 'groups' API
+  * @param $target      'users', 'groups' or 'groupfolders' API
   * @param $user_id     User ID of the target user
   * OPTIONAL            DEFAULT: null
   *
   */
-function set_curl_options($ch, $type, $id = null) {
+function set_curl_options($ch, $target, $id = null) {
+  switch ($target) {
+    case 'users':
+      $path = '/ocs/v1.php/cloud/users';
+      break;
+    case 'groups':
+      $path = '/ocs/v1.php/cloud/groups';
+      break;
+    case 'groupfolders':
+      $path = '/index.php/apps/groupfolders/folders';
+      break;
+  }
+
   $id = $id === null ? null : '/' . rawurlencode($id);
-  curl_setopt($ch, CURLOPT_URL, $_SESSION['target_url']
-    . '/ocs/v1.php/cloud/' . $type . $id);
+
+  curl_setopt($ch, CURLOPT_URL, $_SESSION['target_url'] . $path . $id);
   curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
   curl_setopt($ch, CURLOPT_USERPWD, $_SESSION['user_name'] . ':'
@@ -181,8 +193,6 @@ function check_curl_response($ch, $data) {
 /**
   * Fetch the list containing all user IDs from the server
   *
-  * @return $users
-  *
   */
 function fetch_userlist() {
   // Initialize cURL handle to fetch user ID list and set options
@@ -204,7 +214,7 @@ function fetch_userlist() {
     // Set the session variable 'authenticated' to true to access other pages
     $_SESSION['authenticated'] = true;
   }
-  return $users;
+  $_SESSION['userlist'] = $users;
 }
 
 /**
@@ -228,13 +238,9 @@ function fetch_grouplist() {
   curl_close($ch);
 
   // Check if the userlist has been received and save user IDs to $users
-  if (isset($groups_raw['ocs']['data']['groups'])) {
-    $groups = $groups_raw['ocs']['data']['groups'];
+  $groups = $groups_raw['ocs']['data']['groups'] ?? null;
 
-    // Initialize cURL multi handle for parallel requests
-    $mh = curl_multi_init();
-  }
-  return $groups;
+  $_SESSION['grouplist'] = $groups;
 }
 
 /**
@@ -289,6 +295,25 @@ function fetch_raw_user_data() {
   $_SESSION['time_total'] = number_format(round(
                 $timestamp_script_end - TIMESTAMP_SCRIPT_START, 1),1);
   return $raw_user_data;
+}
+
+/**
+  * Download groupfolder data if enabled on the server
+  *
+  */
+function fetch_raw_groupfolders_data() {
+  // Initialize cURL handle to fetch user id list and set options
+  $ch = curl_init();
+  set_curl_options($ch, 'groupfolders');
+
+  // Fetch raw userlist and store user_ids in $users
+  $_SESSION['groupfolders_raw'] = json_decode(curl_exec($ch), true);
+
+  // Check for errors in cURL request
+  // check_curl_response($ch, $groupfolders_raw);
+
+  // Drop cURL handle
+  curl_close($ch);
 }
 
 /**
@@ -469,13 +494,14 @@ function print_status_overview() {
     ? ' (includes &infin; values!)'
     : '';
 
-  echo '<hr>' . removehttpx($_SESSION['target_url'])
-    . '<br>' . L10N_TOTAL . $_SESSION['usercount'] . ' ' . L10N_USERS . ' | '
-    . $_SESSION['groupcount'] . ' ' . L10N_GROUPS
-    . '<br>Quota: used ' . format_size($_SESSION['quota_total_used'])
-    . ' | free ' . format_size($_SESSION['quota_total_free'])
-    . ' | assigned ' . format_size($_SESSION['quota_total_assigned'])
-    . $infinite . '<hr>';
+  echo '<hr><table><tr><td colspan=4><a style="text-decoration: none; color: black;" href="' . $_SESSION['target_url'] . '" target="_blank">' . removehttpx($_SESSION['target_url']) . '</a>
+    </td></tr><tr style="height: 6px;"><td colspan=3></td></tr><tr><td>' . L10N_TOTAL . '</td><td>' . $_SESSION['user_count'] . ' ' . L10N_USERS . '</td><td>| '
+    . $_SESSION['group_count'] . ' ' . L10N_GROUPS . '</td><td>| '
+    . $_SESSION['groupfolders_count'] . ' ' . L10N_GROUPFOLDERS
+    . '</td></tr><tr><td>Quota:</td><td>' . format_size($_SESSION['quota_total_used'])
+    . ' used</td><td>| ' . format_size($_SESSION['quota_total_free'])
+    . ' free</td><td>| ' . format_size($_SESSION['quota_total_assigned'])
+    . $infinite . ' assigned</td></tr></table><hr>';
 }
 
 /**
@@ -499,7 +525,7 @@ function show_button_mailto($message_mode = 'bcc', $user_data = null,
   if ($mailto_list != false)
     echo '
       <form>
-        <input id="button-blue" type="button"
+        <input id="button-email" type="button"
           onclick="window.location.href = \'' . $mailto_list .
           '\'" value="' . $button_text . '"/>
       </form>';
