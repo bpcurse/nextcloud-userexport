@@ -307,7 +307,7 @@ function fetch_raw_groupfolders_data() {
   set_curl_options($ch, 'groupfolders');
 
   // Fetch raw userlist and store user_ids in $users
-  $_SESSION['groupfolders_raw'] = json_decode(curl_exec($ch), true);
+  $_SESSION['raw_groupfolders_data'] = json_decode(curl_exec($ch), true);
 
   // Check for errors in cURL request
   // check_curl_response($ch, $groupfolders_raw);
@@ -443,7 +443,7 @@ function select_group_members($group, $format = null) {
 }
 
 /**
-  * Calculate how much disk space is assigned, used and unclaimed by users
+  * Calculate how much disk space is assigned, used and available (user and groupfolder quota)
   *
   */
 function calculate_quota() {
@@ -461,6 +461,11 @@ function calculate_quota() {
       ? $quota_assigned
       : 0;
     $_SESSION['quota_total_assigned_infin'] = ($quota_assigned == -3);
+  }
+
+  foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
+    $_SESSION['quota_groupfolders_used'] += $groupfolder['size'];
+    $_SESSION['quota_groupfolders_assigned'] += $groupfolder['quota'];
   }
 }
 
@@ -494,14 +499,22 @@ function print_status_overview() {
     ? ' (includes &infin; values!)'
     : '';
 
-  echo '<hr><table><tr><td colspan=4><a style="text-decoration: none; color: black;" href="' . $_SESSION['target_url'] . '" target="_blank">' . removehttpx($_SESSION['target_url']) . '</a>
-    </td></tr><tr style="height: 6px;"><td colspan=3></td></tr><tr><td>' . L10N_TOTAL . '</td><td>' . $_SESSION['user_count'] . ' ' . L10N_USERS . '</td><td>| '
+  echo '<hr><table><tr><td colspan=4>
+    <a id="not-link" href="' . $_SESSION['target_url'] . '" target="_blank">'
+    . removehttpx($_SESSION['target_url']) . '</a></td></tr>
+    <tr style="height: 6px;"><td colspan=3></td></tr><tr><td>' . L10N_TOTAL
+    . '</td><td>' . $_SESSION['user_count'] . ' ' . L10N_USERS . '</td><td>| '
     . $_SESSION['group_count'] . ' ' . L10N_GROUPS . '</td><td>| '
     . $_SESSION['groupfolders_count'] . ' ' . L10N_GROUPFOLDERS
-    . '</td></tr><tr><td>Quota:</td><td>' . format_size($_SESSION['quota_total_used'])
-    . ' used</td><td>| ' . format_size($_SESSION['quota_total_free'])
-    . ' free</td><td>| ' . format_size($_SESSION['quota_total_assigned'])
-    . $infinite . ' assigned</td></tr></table><hr>';
+    . '</td></tr><tr><td>Quota:</td><td>'
+    . format_size($_SESSION['quota_total_used']) . ' used</td><td>| '
+    . format_size($_SESSION['quota_total_free']) . ' free</td><td>| '
+    . format_size($_SESSION['quota_total_assigned']) . $infinite
+    . ' assigned</td></tr><tr><td>Groupfolders:</td><td>'
+    . format_size($_SESSION['quota_groupfolders_used']) . ' used</td><td>| '
+    . format_size($_SESSION['quota_groupfolders_assigned']) . ' assigned</td></tr>
+    </table>
+    <hr>';
 }
 
 /**
@@ -738,6 +751,54 @@ function build_table_group_data() {
 }
 
 /**
+* Build group table showing all associated userIDs and displaynames
+*
+* @return $table_group_data_headers concatenated with $table_group_data
+*
+*/
+function build_table_groupfolder_data() {
+  // Define HTML table and set header cell content
+  $align_right = 'style="text-align: right;"';
+  $align_center = 'style="text-align: center;"';
+
+  $table_groupfolder_data_headers = '<table id="list"><tr>';
+  $table_groupfolder_data_headers .=
+     '<th onclick="sortTable()">' . L10N_ID . '</th>
+      <th onclick="sortTable()">' . L10N_NAME . '</th>
+      <th onclick="sortTable()">' . L10N_GROUPS . '</th>
+      <th ' . $align_right . ' onclick="sortTable()">' . L10N_QUOTA_USED . '</th>
+      <th ' . $align_right . ' onclick="sortTable()">' . L10N_QUOTA_LIMIT . '</th>
+      <th ' . $align_center . ' onclick="sortTable()">' . L10N_ACL . '</th>
+      <th onclick="sortTable()">' . L10N_ADMIN . '</th>
+      </tr>';
+
+  // Iterate through collected user data by row and column, build HTML table
+  foreach ($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
+    $groups = utf8_decode(build_csv_line($groupfolder['groups'], true));
+
+    $manager = null;
+    foreach ($groupfolder['manage'] as $item)
+      $manager = $item['id'];
+
+    $acl = ($groupfolder['acl'])
+      ? '<span style="color: green">&#10004;</span>'
+      : null;
+
+    $table_groupfolder_data .= '<tr><td>' . utf8_decode($groupfolder['id'])
+      . '</td><td>' . utf8_decode($groupfolder['mount_point'])
+      . '</td><td>' . $groups
+      . '</td><td ' . $align_right . '>' . format_size($groupfolder['size'])
+      . '</td><td ' . $align_right . '>' . format_size($groupfolder['quota'])
+      . '</td><td ' . $align_center . '>' . $acl
+      . '</td><td>' . $manager
+      . '</td></tr>' ;
+  }
+  $table_groupfolder_data .= '</table>';
+
+  return $table_groupfolder_data_headers . $table_groupfolder_data;
+}
+
+/**
   * Build 'mailto:' string
   *
   * Creates a string in 'mailto:' notation containing all user emails
@@ -850,21 +911,26 @@ function build_group_data($array = null, $format = null) {
 /**
   * Build a comma separated line from a given array
   *
-  * @param  $array       Array to build from
-  *         OPTIONAL     DEFAULT: null (session variable 'data_choices')
-  * @param  $delimiter   Which char to put between cells
-  *         OPTIONAL     DEFAULT: ','
+  * @param  $array        Array to build from
+  *         OPTIONAL      DEFAULT: null (session variable 'data_choices')
+  * @param  $return_key   Return array key instead of item
+  *         OPTIONAL      DEFAULT: false
+  * @param  $delimiter    Which char to put between cells
+  *         OPTIONAL      DEFAULT: ','
   *
   * @return $csv_line   CSV formatted string
   *
   */
-function build_csv_line($array = null, $delimiter = ',') {
+function build_csv_line($array = null, $return_key = false, $delimiter = ',') {
   $array = $array ?? $_SESSION['data_choices'];
+
+  $i = 0;
   foreach($array as $key => $item) {
-    if ($key === 0)
-      $csv_line = $item;
+    if ($return_key)
+      $csv_line .= ($i === 0) ? $key : $delimiter . $key;
     else
-      $csv_line .= $delimiter . $item;
+      $csv_line .= ($i === 0) ? $item : $delimiter . $item;
+    $i++;
   }
   return $csv_line;
 }

@@ -102,6 +102,11 @@ table {
   border-collapse: collapse;
 }
 
+#not-link {
+  text-decoration: none;
+  color: black;
+}
+
 #list table, #list td, #list th {
   border: 1px solid #ddd;
 }

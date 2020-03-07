@@ -12,7 +12,7 @@
 
   <head>
     <link rel="stylesheet" type="text/css" href="style.php">
-    <title>Nextcloud user export</title>
+    <title>Nextcloud Userexport</title>
   </head>
 
   <body>

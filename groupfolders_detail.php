@@ -1,7 +1,7 @@
 <?php
 
   session_start();
-  $active_page = 'groups';
+  $active_page = 'groupfolders';
   require_once 'functions.php';
   include_once 'config.php';
   require_once 'l10n/' . $_SESSION['language'] . '.php';
@@ -12,10 +12,10 @@
   if ($display_or_download == "download") {
     // Set filename or create one depending on GET parameters
     if($filename_download == null)
-      $filename_download = "nextcloud-grouplist_" . date("Y-m-d_Hi") . ".csv";
+      $filename_download = "nextcloud-groupfolderlist_" . date("Y-m-d_Hi") . ".csv";
 
     // Create and populate CSV file with selected group data and set filename variable
-    $filename = build_csv_file(build_group_data('array','utf8'),'group,loginID,displayname');
+    //TODO $filename = build_csv_file(build_group_data('array','utf8'),'group,loginID,displayname');
 
     download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
     exit();
@@ -66,9 +66,9 @@
       * Display results page either as HTML table or comma separated values (CSV)
       */
     if ($export_type == 'table')
-      echo build_table_group_data();
+      echo build_table_groupfolder_data();
     else
-      echo build_group_data();
+      echo build_groupfolder_data();
 
     ?>
   </body>

@@ -14,6 +14,9 @@
     <li<?php if ($active_page == "groups")
       echo ' id="currentpage"'; ?>><a href="groups.php"><?php echo L10N_GROUPS ?></a>
     </li>
+    <li<?php if ($active_page == "groupfolders")
+      echo ' id="currentpage"'; ?>><a href="groupfolders.php"><?php echo L10N_GROUPFOLDERS ?></a>
+    </li>
     <li<?php if ($active_page == "email")
       echo ' id="currentpage"'; ?>><a href="email.php"><?php echo L10N_EMAIL ?></a></li>
     <li style="float:right;"><a style="font-size: 14px;"

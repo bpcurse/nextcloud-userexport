@@ -1,7 +1,7 @@
 <?php
 
   session_start();
-  $active_page = 'groups';
+  $active_page = 'groupfolders';
   require_once 'functions.php';
   include_once 'config.php';
   require_once 'l10n/' . $_SESSION['language'] . '.php';
@@ -26,7 +26,7 @@
 
     ?>
 
-    <form method="post" action="groups_detail.php">
+    <form method="post" action="groupfolders_detail.php">
     <br><u><?php echo L10N_FORMAT_AS ?></u>
     <input type='radio' name='export_type' value='table' checked="checked">
       <?php echo L10N_TABLE ?>

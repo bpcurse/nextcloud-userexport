@@ -57,5 +57,9 @@
   define('L10N_STATUSCODE', 'Statuscode: ');
   define('L10N_NUMBER_SIGN', '#');
   define('L10N_GROUPFOLDERS', 'Gruppenordner');
+  define('L10N_ID', 'ID');
+  define('L10N_NAME', 'Name');
+  define('L10N_ACL', 'ACL');
+  define('L10N_ADMIN', 'Admin');
 
 // EOF
