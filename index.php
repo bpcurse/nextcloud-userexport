@@ -50,7 +50,7 @@
       $_SESSION['group_count'] = count($_SESSION['grouplist']);
       $_SESSION['groupfolders_count'] =
         $_SESSION['groupfolders_active'] == true
-        ? count($_SESSION['groupfolders_raw']['ocs']['data']) : null;
+        ? count($_SESSION['raw_groupfolders_data']['ocs']['data']) : null;
     }
 
     // Fetch all user details (this can take a long time)

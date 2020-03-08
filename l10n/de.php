@@ -62,7 +62,7 @@
   define('L10N_ACL', 'ACL');
   define('L10N_ADMIN', 'Admin');
   define('L10N_STATISTICS', 'Statistik');
-  define('L10N_PERCENTAGE_USED', '% genutzt');
+  define('L10N_PERCENTAGE_USED', 'Genutzt %');
   define('L10N_LOGOUT', 'Abmelden');
 
 // EOF

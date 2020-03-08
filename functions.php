@@ -311,9 +311,8 @@ function fetch_raw_groupfolders_data() {
 
   // Fetch raw userlist and store user_ids in $users
   $_SESSION['raw_groupfolders_data'] = json_decode(curl_exec($ch), true);
-
-  $_SESSION['groupfolders_active'] = ($_SESSION['raw_groupfolders_data']);
-  echo $_SESSION['groupfolders_active'];
+  if ($_SESSION['raw_groupfolders_data'])
+    $_SESSION['groupfolders_active'] = true;
 
   // Drop cURL handle
   curl_close($ch);
@@ -590,7 +589,7 @@ function show_button_mailto($message_mode = 'bcc', $user_data = null,
   *
   * @param $list            Data array containing user data
   * OPTIONAL                DEFAULT: global $selected_user_data_utf8
-  * @param $headers         CSV line containing the column headers
+  * @param $headers         CSV line containing the column headers, set null if none
   * OPTIONAL                DEFAULT: List from $export_choices variable
   *
   * @return $csv_filename   Filename of the newly created file
@@ -622,7 +621,8 @@ function build_csv_file($list, $headers = 'default') {
   chmod(TEMP_FOLDER . '/' . $csv_filename, 0640);
 
   // Write selected headers as first line to file
-  fwrite($csv_file, $headers . "\n");
+  if (!$headers === null)
+    fwrite($csv_file, $headers . "\n");
 
   // Iterate through provided data array and append each line to the file
   foreach ($list as $line)
@@ -954,6 +954,56 @@ function build_group_data($array = null, $format = null) {
         . $user_displaynames . '"<br>';
   }
   return $group_data;
+}
+
+/**
+  * Build array or CSV formatted string containing the group and user data
+  *
+  * @param  $array      Return an array or CSV
+  *         OPTIONAL    DEFAULT = 'null'
+  * @param  $format     Whether to return utf8 formatted data ('utf8') or not
+  *         OPTIONAL    DEFAULT = 'null'
+  *
+  * @return $group_data Array or CSV formatted string containing the group associated user data
+  *
+  */
+function build_groupfolder_data($array = null) {
+  if (!$array)
+    // Add headers to $group_data variable
+    $groupfolder_return_data .= L10N_ID . ',' . L10N_NAME . ',' . L10N_GROUPS . ','
+      . L10N_QUOTA_USED . ',' . L10N_PERCENTAGE_USED . ',' . L10N_QUOTA_LIMIT
+      . ',' . L10N_ACL . ',' . L10N_ADMIN . '<br>';
+  else
+    $groupfolder_return_data[] = [L10N_ID,L10N_NAME,L10N_GROUPS,L10N_QUOTA_USED,
+      L10N_PERCENTAGE_USED,L10N_QUOTA_LIMIT,L10N_ACL,L10N_ADMIN];
+
+  // Iterate through collected groupfolder data, build CSV output or array
+  foreach ($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
+    $groups = build_csv_line($groupfolder['groups'], true, ', ');
+
+    $manager = null;
+    foreach ($groupfolder['manage'] as $item)
+      $manager = $item['id'];
+
+    if (!$array)
+      $acl = ($groupfolder['acl'])
+        ? '<span style="color: green">&#10004;</span>'
+        : null;
+    else
+      $acl = $groupfolder['acl'];
+
+    $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100);
+
+    $groupfolder_data = [$groupfolder['id'],$groupfolder['mount_point'],
+      $groups,format_size($groupfolder['size']),$percent_used,
+      format_size($groupfolder['quota']),$acl,$manager];
+
+    if (!$array)
+      $groupfolder_return_data .= utf8_decode(build_csv_line($groupfolder_data)) . '<br>';
+    else
+      $groupfolder_return_data[] = $groupfolder_data;
+  }
+  return $groupfolder_return_data;
 }
 
 /**

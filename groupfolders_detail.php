@@ -14,8 +14,8 @@
     if($filename_download == null)
       $filename_download = "nextcloud-groupfolderlist_" . date("Y-m-d_Hi") . ".csv";
 
-    // Create and populate CSV file with selected group data and set filename variable
-    //TODO $filename = build_csv_file(build_group_data('array','utf8'),'group,loginID,displayname');
+    // Create and populate CSV file with groupfolder data and set filename variable
+    $filename = build_csv_file(build_groupfolder_data('array','utf8'),null);
 
     download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
     exit();
