@@ -8,7 +8,7 @@
 
   $export_type = $_SESSION['export_type'];
 
-  echo '<html lang="' . $_SESSION['language'] . '">'
+  echo '<html lang="' . $_SESSION['language'] . '">';
 
 ?>
 

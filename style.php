@@ -102,9 +102,17 @@ table {
   border-collapse: collapse;
 }
 
-#not-link {
+.no_show_link {
   text-decoration: none;
   color: black;
+}
+
+.align_r {
+  text-align: right;
+}
+
+.align_c {
+  text-align: center;
 }
 
 #list table, #list td, #list th {

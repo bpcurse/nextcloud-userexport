@@ -1,26 +1,37 @@
-<?php
-  include 'config.php';
-  require 'l10n/' . $_SESSION['language'] . '.php';
-?>
-
 <div id="navigation">
   <ul>
     <li<?php if ($active_page == "index")
       echo ' id="currentpage"'; ?>><a href="index.php"><?php echo L10N_SERVER ?></a>
     </li>
-    <li<?php if ($active_page == "users")
-      echo ' id="currentpage"'; ?>><a href="users.php"><?php echo L10N_USERS ?></a>
-    </li>
-    <li<?php if ($active_page == "groups")
-      echo ' id="currentpage"'; ?>><a href="groups.php"><?php echo L10N_GROUPS ?></a>
-    </li>
-    <li<?php if ($active_page == "groupfolders")
-      echo ' id="currentpage"'; ?>><a href="groupfolders.php"><?php echo L10N_GROUPFOLDERS ?></a>
-    </li>
-    <li<?php if ($active_page == "email")
-      echo ' id="currentpage"'; ?>><a href="email.php"><?php echo L10N_EMAIL ?></a></li>
+  <?php
+    if ($_SESSION['authenticated']) {
+      echo '<li';
+        if ($active_page == "users") echo ' id="currentpage"';
+      echo '><a href="users.php">' . L10N_USERS . '</a>
+      </li>';
+      echo '<li';
+        if ($active_page == "groups") echo ' id="currentpage"';
+      echo '><a href="groups.php">' . L10N_GROUPS . '</a>
+      </li>';
+      echo '<li';
+        if ($active_page == "groupfolders") echo ' id="currentpage"';
+      echo '><a href="groupfolders.php">' . L10N_GROUPFOLDERS . '</a>
+      </li>';
+      echo '<li';
+        if ($active_page == "email") echo ' id="currentpage"';
+      echo '><a href="email.php">' . L10N_EMAIL . '</a>
+      </li>';
+      echo '<li';
+        if ($active_page == "statistics") echo ' id="currentpage"';
+      echo '><a href="statistics.php">' . L10N_STATISTICS . '</a>
+      </li>';
+      echo '<li><a href="index.php?logout=true">' . L10N_LOGOUT . '</a>
+      </li>';
+    }
+  ?>
     <li style="float:right;"><a style="font-size: 14px;"
       href="https://github.com/bpcurse/nextcloud-userexport">
-      Nextcloud Userexport v1.1.0 beta</a>
+      Nextcloud Userexport v1.1.0-alpha</a>
+    </li>
   </ul>
 </div>

@@ -61,5 +61,8 @@
   define('L10N_NAME', 'Name');
   define('L10N_ACL', 'ACL');
   define('L10N_ADMIN', 'Admin');
+  define('L10N_STATISTICS', 'Statistics');
+  define('L10N_PERCENTAGE_USED', '% used');
+  define('L10N_LOGOUT', 'Logout');
 
 // EOF

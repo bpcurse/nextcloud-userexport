@@ -6,7 +6,7 @@
   include_once 'config.php';
   require_once 'l10n/' . $_SESSION['language'] . '.php';
 
-  echo '<html lang="' . $_SESSION['language'] . '">'
+  echo '<html lang="' . $_SESSION['language'] . '">';
 
 ?>
 

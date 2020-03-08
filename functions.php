@@ -4,7 +4,7 @@
   * Set cURL options
   *
   * @param $ch          cURL handle
-  * @param $target      'users', 'groups' or 'groupfolders' API
+  * @param $target      'users', 'groups', 'groupfolders' or 'capabilities'
   * @param $user_id     User ID of the target user
   * OPTIONAL            DEFAULT: null
   *
@@ -19,6 +19,9 @@ function set_curl_options($ch, $target, $id = null) {
       break;
     case 'groupfolders':
       $path = '/index.php/apps/groupfolders/folders';
+      break;
+    case 'capabilities':
+      $path = '/ocs/v1.php/cloud/capabilities';
       break;
   }
 
@@ -309,8 +312,27 @@ function fetch_raw_groupfolders_data() {
   // Fetch raw userlist and store user_ids in $users
   $_SESSION['raw_groupfolders_data'] = json_decode(curl_exec($ch), true);
 
+  $_SESSION['groupfolders_active'] = ($_SESSION['raw_groupfolders_data']);
+  echo $_SESSION['groupfolders_active'];
+
+  // Drop cURL handle
+  curl_close($ch);
+}
+
+/**
+  * Download groupfolder data
+  *
+  */
+function fetch_server_capabilities() {
+  // Initialize cURL handle to fetch user id list and set options
+  $ch = curl_init();
+  set_curl_options($ch, 'capabilities');
+
+  // Fetch raw userlist and store user_ids in $users
+  $_SESSION['raw_server_capabilities'] = json_decode(curl_exec($ch), true);
+
   // Check for errors in cURL request
-  // check_curl_response($ch, $groupfolders_raw);
+  check_curl_response($ch, $_SESSION['raw_server_capabilities']);
 
   // Drop cURL handle
   curl_close($ch);
@@ -403,7 +425,7 @@ function select_data_single_user(
         case 'groups':
           $selected_data[] = empty($item_data) ? '-'
             : ($format != 'utf8'
-              ? utf8_decode(build_csv_line($item_data, ', '))
+              ? utf8_decode(build_csv_line($item_data, false, ', '))
               : build_csv_line($item_data));
           break;
         case 'locale':
@@ -462,11 +484,11 @@ function calculate_quota() {
       : 0;
     $_SESSION['quota_total_assigned_infin'] = ($quota_assigned == -3);
   }
-
-  foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
-    $_SESSION['quota_groupfolders_used'] += $groupfolder['size'];
-    $_SESSION['quota_groupfolders_assigned'] += $groupfolder['quota'];
-  }
+  if ($_SESSION['groupfolders_active'])
+    foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
+      $_SESSION['quota_groupfolders_used'] += $groupfolder['size'];
+      $_SESSION['quota_groupfolders_assigned'] += $groupfolder['quota'];
+    }
 }
 
 /**
@@ -494,27 +516,44 @@ function print_status_success() {
   * Status printed on each page, showing the active server and user/group count
   *
   */
-function print_status_overview() {
+function print_status_overview($scope = 'quick') {
   $infinite = $_SESSION['quota_total_assigned_infin']
     ? ' (includes &infin; values!)'
     : '';
+  if ($scope == 'quick') {
+    echo '<hr>
+    <a class="no_show_link" href="' . $_SESSION['target_url']
+    . '" target="_blank">' . removehttpx($_SESSION['target_url']) . '</a> ('
+    . $_SESSION['user_count'] . ' ' . L10N_USERS . ' | '
+    . $_SESSION['group_count'] . ' ' . L10N_GROUPS . ')<hr>';
 
-  echo '<hr><table><tr><td colspan=4>
-    <a id="not-link" href="' . $_SESSION['target_url'] . '" target="_blank">'
-    . removehttpx($_SESSION['target_url']) . '</a></td></tr>
-    <tr style="height: 6px;"><td colspan=3></td></tr><tr><td>' . L10N_TOTAL
-    . '</td><td>' . $_SESSION['user_count'] . ' ' . L10N_USERS . '</td><td>| '
-    . $_SESSION['group_count'] . ' ' . L10N_GROUPS . '</td><td>| '
-    . $_SESSION['groupfolders_count'] . ' ' . L10N_GROUPFOLDERS
-    . '</td></tr><tr><td>Quota:</td><td>'
-    . format_size($_SESSION['quota_total_used']) . ' used</td><td>| '
-    . format_size($_SESSION['quota_total_free']) . ' free</td><td>| '
-    . format_size($_SESSION['quota_total_assigned']) . $infinite
-    . ' assigned</td></tr><tr><td>Groupfolders:</td><td>'
-    . format_size($_SESSION['quota_groupfolders_used']) . ' used</td><td>| '
-    . format_size($_SESSION['quota_groupfolders_assigned']) . ' assigned</td></tr>
+  } else {
+    fetch_server_capabilities();
+    $_SESSION['server_version_string'] =
+      $_SESSION['raw_server_capabilities']['ocs']['data']['version']['string'];
+    echo '<hr>
+      <a class="no_show_link" href="' . $_SESSION['target_url']
+      . '" target="_blank">' . removehttpx($_SESSION['target_url']) . '</a>
+      <hr>
+    <table>
+      <tr><td class="align_r">' . $_SESSION['user_count'] . '</td><td>'
+        . L10N_USERS . '</td></tr>
+      <tr><td class="align_r">' . $_SESSION['group_count'] . '</td><td>'
+        . L10N_GROUPS . '</td></tr>
+      <tr><td class="align_r">' . $_SESSION['groupfolders_count'] . '</td><td>'
+        . L10N_GROUPFOLDERS . '</td></tr>
+    </table>
+    <hr>
+    <table><tr><td>Quota:</td><td>'
+      . format_size($_SESSION['quota_total_used']) . ' used</td><td>| '
+      . format_size($_SESSION['quota_total_free']) . ' free</td><td>| '
+      . format_size($_SESSION['quota_total_assigned']) . $infinite
+      . ' assigned</td></tr><tr><td>Groupfolders:</td><td>'
+      . format_size($_SESSION['quota_groupfolders_used']) . ' used</td><td>| '
+      . format_size($_SESSION['quota_groupfolders_assigned']) . ' assigned</td></tr>
     </table>
     <hr>';
+  }
 }
 
 /**
@@ -724,7 +763,7 @@ function build_table_group_data() {
   $table_group_data_headers = '<table id="list"><tr>';
   $table_group_data_headers .=
      '<th onclick="sortTable()">' . L10N_GROUP . '</th>
-      <th onclick="sortTable()" style="text-align: center;">' . L10N_NUMBER_SIGN
+      <th onclick="sortTable()" style="text-align: center;">' . L10N_USERS
         .'</th>
       <th onclick="sortTable()">' . L10N_USER_ID . '</th>
       <th onclick="sortTable()">' . L10N_DISPLAYNAME . '</th>
@@ -735,15 +774,20 @@ function build_table_group_data() {
     $members = select_group_members($grouplist[$row]);
 
     // Check if group has no users associated, else list them as CSV
-    $user_ids = $members === null
-      ? '-'
-      : build_csv_line(array_column($members, 0),', ');
+    if ($members === null) {
+      $user_ids = '-';
+      $members_count = 0;
+    } else {
+      $user_ids = build_csv_line(array_column($members, 0), false, ', ');
+      $members_count = count($members);
+    }
+
     $user_displaynames = $members === null
       ? '-'
-      : build_csv_line(array_column($members, 1),', ');
+      : build_csv_line(array_column($members, 1), false, ', ');
 
     $table_group_data .= '<tr><td>' . utf8_decode($grouplist[$row])
-      . '</td><td style="text-align: right;">' . count($members) . '</td><td>'
+      . '</td><td style="text-align: right;">' . $members_count . '</td><td>'
       . $user_ids . '</td><td>' . $user_displaynames . '</td></tr>';
   }
   $table_group_data .= '</table>';
@@ -751,9 +795,9 @@ function build_table_group_data() {
 }
 
 /**
-* Build group table showing all associated userIDs and displaynames
+* Build groupfolder table
 *
-* @return $table_group_data_headers concatenated with $table_group_data
+* @return $table_groupfolder_data_headers concatenated with $table_groupfolder_data
 *
 */
 function build_table_groupfolder_data() {
@@ -766,15 +810,16 @@ function build_table_groupfolder_data() {
      '<th onclick="sortTable()">' . L10N_ID . '</th>
       <th onclick="sortTable()">' . L10N_NAME . '</th>
       <th onclick="sortTable()">' . L10N_GROUPS . '</th>
-      <th ' . $align_right . ' onclick="sortTable()">' . L10N_QUOTA_USED . '</th>
-      <th ' . $align_right . ' onclick="sortTable()">' . L10N_QUOTA_LIMIT . '</th>
-      <th ' . $align_center . ' onclick="sortTable()">' . L10N_ACL . '</th>
+      <th class="align_r" onclick="sortTable()">' . L10N_QUOTA_USED . '</th>
+      <th class="align_c" onclick="sortTable()">' . L10N_PERCENTAGE_USED . '</th>
+      <th class="align_r" onclick="sortTable()">' . L10N_QUOTA_LIMIT . '</th>
+      <th class="align_c" onclick="sortTable()">' . L10N_ACL . '</th>
       <th onclick="sortTable()">' . L10N_ADMIN . '</th>
       </tr>';
 
   // Iterate through collected user data by row and column, build HTML table
   foreach ($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
-    $groups = utf8_decode(build_csv_line($groupfolder['groups'], true));
+    $groups = utf8_decode(build_csv_line($groupfolder['groups'], true, ', '));
 
     $manager = null;
     foreach ($groupfolder['manage'] as $item)
@@ -784,12 +829,15 @@ function build_table_groupfolder_data() {
       ? '<span style="color: green">&#10004;</span>'
       : null;
 
+    $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100);
+
     $table_groupfolder_data .= '<tr><td>' . utf8_decode($groupfolder['id'])
       . '</td><td>' . utf8_decode($groupfolder['mount_point'])
       . '</td><td>' . $groups
-      . '</td><td ' . $align_right . '>' . format_size($groupfolder['size'])
-      . '</td><td ' . $align_right . '>' . format_size($groupfolder['quota'])
-      . '</td><td ' . $align_center . '>' . $acl
+      . '</td><td class="align_r">' . format_size($groupfolder['size'])
+      . '</td><td class="align_r">' . $percent_used
+      . '</td><td class="align_r">' . format_size($groupfolder['quota'])
+      . '</td><td class="align_c">' . $acl
       . '</td><td>' . $manager
       . '</td></tr>' ;
   }
@@ -848,7 +896,7 @@ function build_mailto_list($user_data = null, $message_mode = 'bcc') {
   */
 function build_csv_user_data($data, $delimiter = ',') {
   // Add headers to $csv_user_data variable
-  $csv_user_data .= build_csv_line(null, $delimiter) . '<br>';
+  $csv_user_data .= build_csv_line(null, false, $delimiter) . '<br>';
 
   // Iterate through collected user data by row and column, build CSV output
   for ($row = 0; $row < sizeof($data); $row++) {
@@ -894,10 +942,10 @@ function build_group_data($array = null, $format = null) {
     // Check if group has no users associated, else list them as CSV
     $user_ids = $members === null
       ? '-'
-      : build_csv_line(array_column($members, 0),', ');
+      : build_csv_line(array_column($members, 0), false, ', ');
     $user_displaynames = $members === null
       ? '-'
-      : build_csv_line(array_column($members, 1),', ');
+      : build_csv_line(array_column($members, 1), false, ', ');
 
     if ($array == 'array')
       $group_data[$row+1] = [$grouplist[$row], $user_ids, $user_displaynames];

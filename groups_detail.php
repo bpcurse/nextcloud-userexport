@@ -21,7 +21,7 @@
     exit();
   }
 
-  echo '<html lang="' . $_SESSION['language'] . '">'
+  echo '<html lang="' . $_SESSION['language'] . '">';
 
 ?>
 

@@ -20,7 +20,7 @@ define('TEMP_FOLDER', 'export_temp');
   * DEFAULT 'en';
   *
   */
-// $language = 'en';
+$language = 'de';
 
 /**
   * Alter UI design
