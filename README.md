@@ -14,6 +14,7 @@ https://github.com/nextcloud/groupfolders#api
 
 ## Update
 - If you overwrite an existing installation, remove the old files from the folder before you upload. Else you might be left with unnecessary files (although it's not an issue).
+Remember to backup `config.php` if you have set non-default values.
 
 ## General usage
 - Enter the URL of the Nextcloud target instance incl. https://
