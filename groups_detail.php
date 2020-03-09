@@ -15,7 +15,8 @@
       $filename_download = "nextcloud-grouplist_" . date("Y-m-d_Hi") . ".csv";
 
     // Create and populate CSV file with selected group data and set filename variable
-    $filename = build_csv_file(build_group_data('array','utf8'),'group,loginID,displayname');
+    $filename = build_csv_file(build_group_data('array','utf8',','),
+      'group,members,loginID,displayname');
 
     download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
     exit();
@@ -68,7 +69,7 @@
     if ($export_type == 'table')
       echo build_table_group_data();
     else
-      echo build_group_data();
+      echo build_group_data(null, null, ',');
 
     ?>
   </body>

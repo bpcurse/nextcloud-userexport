@@ -49,10 +49,10 @@ function set_data_options() {
     'id' => L10N_USER_ID, 'displayname' => L10N_DISPLAYNAME,
     'email' => L10N_EMAIL, 'lastLogin' => L10N_LAST_LOGIN,
     'backend' => L10N_BACKEND, 'enabled' => L10N_ENABLED,
-    'quota' => L10N_QUOTA_LIMIT, 'used' => L10N_QUOTA_USED,
-    'free' => L10N_QUOTA_FREE, 'groups' => L10N_GROUPS,
-    'subadmin' => L10N_SUBADMIN, 'language' => L10N_LANGUAGE,
-    'locale' => L10N_LOCALE];
+    'quota' => L10N_QUOTA, 'used' => L10N_QUOTA_USED,
+    'percentage_used' => L10N_PERCENTAGE_USED, 'free' => L10N_QUOTA_FREE,
+    'groups' => L10N_GROUPS, 'subadmin' => L10N_SUBADMIN,
+    'language' => L10N_LANGUAGE, 'locale' => L10N_LOCALE];
 }
 
 /**
@@ -297,6 +297,7 @@ function fetch_raw_user_data() {
   $timestamp_script_end = microtime(true);
   $_SESSION['time_total'] = number_format(round(
                 $timestamp_script_end - TIMESTAMP_SCRIPT_START, 1),1);
+  $_SESSION['timestamp_data'] = date(DATE_ATOM);
   return $raw_user_data;
 }
 
@@ -340,7 +341,7 @@ function fetch_server_capabilities() {
 /**
 * Iterate through userlist and call select_data_single_user each time
 *
-* @param  $export_choices   Array containing a list of data columns to be taken into account
+* @param  $data_choices   Array containing a list of data columns to be taken into account
 *         OPTIONAL          DEFAULT: null
 * @param  $format           decode UTF8?
 *         OPTIONAL          DEFAULT: null (decode UTF8)
@@ -348,12 +349,15 @@ function fetch_server_capabilities() {
 * @return $selected_user_data
 *         ARRAY
 */
-function select_data_all_users($export_choices = null, $format = null) {
-  $export_choices = $export_choices ?? $_SESSION['data_choices'];
+function select_data_all_users($data_choices = null, $format = null,
+  $csv_delimiter = ', ') {
+
+  $data_choices = $data_choices ?? $_SESSION['data_choices'];
   foreach ($_SESSION['userlist'] as $key => $user_id)
     // Call select_data function to filter/format request data
     $selected_user_data[] = select_data_single_user(
-      $_SESSION['raw_user_data'][$key], $user_id, $export_choices, $format);
+      $_SESSION['raw_user_data'][$key], $user_id, $data_choices, $format,
+        $csv_delimiter);
 
   return $selected_user_data;
 }
@@ -364,7 +368,7 @@ function select_data_all_users($export_choices = null, $format = null) {
   *
   * @param  $data           Single user record data array
   * @param  $user_id        ID of the user to be processed
-  * @param  $export_choices Array containing a list of data columns to be taken into account
+  * @param  $data_choices Array containing a list of data columns to be taken into account
   * @param  $format         If not 'utf8', UTF8 will be decoded for browser display
   *         OPTIONAL        DEFAULT: null
   *
@@ -372,19 +376,26 @@ function select_data_all_users($export_choices = null, $format = null) {
   *         ARRAY
   */
 function select_data_single_user(
-  $data, $user_id, $export_choices, $format = null) {
+  $data, $user_id, $data_choices, $format = null, $csv_delimiter = ', ') {
+
   // If data is not returned due to missing permissions (group admins) set 'N/A' instead
   if ($data['ocs']['meta']['statuscode'] == 997) {
     $selected_data[] = $user_id;
-    for ($i = 1; $i < count($export_choices); $i++)
+    for ($i = 1; $i < count($data_choices); $i++)
       $selected_data[] = 'N/A';
   }
 
   // Prepare data for CSV file export if $format = 'utf8'
   else {
     // Iterate through chosen data sets
-    foreach($export_choices as $key => $item) {
-      $item_data = $data['ocs']['data'][$item];
+    foreach($data_choices as $key => $item) {
+      $quota = $data['ocs']['data']['quota']['quota'];
+      $used = $data['ocs']['data']['quota']['used'];
+
+      $item_data = $item == 'percentage_used'
+        ? (in_array($quota, [-3, 0]) ? '-' : round(($used / $quota * 100), 2))
+        : $data['ocs']['data'][$item];
+
       // Filter/format different data sets
       switch ($item) {
         case 'id':
@@ -424,7 +435,7 @@ function select_data_single_user(
         case 'groups':
           $selected_data[] = empty($item_data) ? '-'
             : ($format != 'utf8'
-              ? utf8_decode(build_csv_line($item_data, false, ', '))
+              ? utf8_decode(build_csv_line($item_data, false, $csv_delimiter))
               : build_csv_line($item_data));
           break;
         case 'locale':
@@ -506,7 +517,7 @@ function print_status_success() {
     . '<br>' . L10N_DOWNLOADED . ' ' . count($_SESSION['raw_user_data']) . ' '
     . L10N_USERS_AND . ' ' . count($_SESSION['grouplist']) . ' '
     . L10N_GROUPS_IN . ' ' . $_SESSION['time_total'] . ' ' . L10N_SECONDS
-    . '<br>Timestamp: ' . date(DATE_ATOM) .
+    . '<br>Timestamp: ' . $_SESSION['timestamp_data'] .
     '<hr><span style="color: darkgreen;">'
     . L10N_ACCESS_TO_ALL_MENU_OPTIONS . '</span>';
 }
@@ -517,14 +528,13 @@ function print_status_success() {
   */
 function print_status_overview($scope = 'quick') {
   $infinite = $_SESSION['quota_total_assigned_infin']
-    ? ' (includes &infin; values!)'
+    ? ' (+ &infin;)'
     : '';
   if ($scope == 'quick') {
     echo '<hr>
     <a class="no_show_link" href="' . $_SESSION['target_url']
-    . '" target="_blank">' . removehttpx($_SESSION['target_url']) . '</a> ('
-    . $_SESSION['user_count'] . ' ' . L10N_USERS . ' | '
-    . $_SESSION['group_count'] . ' ' . L10N_GROUPS . ')<hr>';
+    . '" target="_blank">' . removehttpx($_SESSION['target_url']) . '</a>
+    <hr>';
 
   } else {
     fetch_server_capabilities();
@@ -533,25 +543,42 @@ function print_status_overview($scope = 'quick') {
     echo '<hr>
       <a class="no_show_link" href="' . $_SESSION['target_url']
       . '" target="_blank">' . removehttpx($_SESSION['target_url']) . '</a>
-      <hr>
-    <table>
-      <tr><td class="align_r">' . $_SESSION['user_count'] . '</td><td>'
-        . L10N_USERS . '</td></tr>
-      <tr><td class="align_r">' . $_SESSION['group_count'] . '</td><td>'
-        . L10N_GROUPS . '</td></tr>
-      <tr><td class="align_r">' . $_SESSION['groupfolders_count'] . '</td><td>'
-        . L10N_GROUPFOLDERS . '</td></tr>
+      <br><br>' . L10N_NEXTCLOUD . ' ' . $_SESSION['server_version_string']
+      . '<hr>
+    <table class="status">
+      <tr><td>' . L10N_USERS . '</td><td style="text-align: right;">'
+        . $_SESSION['user_count'] . '</td></tr>
+      <tr><td>' . L10N_GROUPS . '</td><td>'
+        . $_SESSION['group_count'] . '</td></tr>';
+    if ($_SESSION['groupfolders_active'])
+      echo '<tr><td>' . L10N_GROUPFOLDERS . '</td><td>'
+        . $_SESSION['groupfolders_count'] . '</td></tr>';
+    echo '
     </table>
     <hr>
-    <table><tr><td>Quota:</td><td>'
-      . format_size($_SESSION['quota_total_used']) . ' used</td><td>| '
-      . format_size($_SESSION['quota_total_free']) . ' free</td><td>| '
-      . format_size($_SESSION['quota_total_assigned']) . $infinite
-      . ' assigned</td></tr><tr><td>Groupfolders:</td><td>'
-      . format_size($_SESSION['quota_groupfolders_used']) . ' used</td><td>| '
-      . format_size($_SESSION['quota_groupfolders_assigned']) . ' assigned</td></tr>
-    </table>
-    <hr>';
+    <table class="status">
+      <tr>
+        <td colspan=2><b>' . L10N_USERS . '</b>
+        </td></tr>
+        <tr><td>' . L10N_QUOTA_USED . '</td><td>'
+          . format_size($_SESSION['quota_total_used']) . '
+        </td></tr>
+        <tr><td>' . L10N_QUOTA . '</td><td>'
+          . format_size($_SESSION['quota_total_assigned'])
+          . '</td><td>' . $infinite . '
+        </td></tr>
+        <tr><td>' . L10N_QUOTA_FREE . '</td><td>'
+          . format_size($_SESSION['quota_total_free']) .
+        '</td></tr>';
+      if ($_SESSION['groupfolders_active'])
+        echo '<tr style="height: 10px"><td></td></tr>
+          <tr><td colspan=2><b>' . L10N_GROUPFOLDERS . '</b></td></tr>
+        <tr><td>' . L10N_QUOTA_USED . '</td><td>'
+          . format_size($_SESSION['quota_groupfolders_used']) . '</td></tr>
+        <tr><td>' . L10N_QUOTA . '</td><td>'
+          . format_size($_SESSION['quota_groupfolders_assigned']). '</td></tr>';
+      echo '</table><hr>'
+        . L10N_DATA_RETRIEVED . ' ' . $_SESSION['timestamp_data'];
   }
 }
 
@@ -590,7 +617,7 @@ function show_button_mailto($message_mode = 'bcc', $user_data = null,
   * @param $list            Data array containing user data
   * OPTIONAL                DEFAULT: global $selected_user_data_utf8
   * @param $headers         CSV line containing the column headers, set null if none
-  * OPTIONAL                DEFAULT: List from $export_choices variable
+  * OPTIONAL                DEFAULT: List from $data_choices variable
   *
   * @return $csv_filename   Filename of the newly created file
   *
@@ -696,20 +723,25 @@ function build_table_user_data($user_data) {
   $data_choices = $_SESSION['data_choices'];
 
   // Define HTML table and set header cell content
-  $table_user_data_headers = '<table id="list"><tr>';
+  $table_user_data_headers = '<table class="list"><tr>';
 
-  foreach($data_choices as $choice) {
-    if (in_array($choice, ['quota','used','free']))
-      $sort = null;
-    else
-      $sort = ' onclick="sortTable()"';
+  foreach($data_choices as $key => $choice) {
+    $sort = (in_array($choice, ['quota', 'used', 'free']))
+      ? null
+      : ' onclick="sortTable()"';
+
+    $align = (in_array($choice,
+      ['quota', 'used', 'free', 'lastLogin', 'percentage_used']))
+      ? 'text-align: center;'
+      : null;
 
     foreach($_SESSION['data_options'] as $option => $title) {
       if ($choice == $option)
         $choice = $title;
     }
 
-    $table_user_data_headers .= '<th' . $sort . '>' . $choice . '</th>';
+    $table_user_data_headers .= '<th' . $sort . ' style="' . $align . '">'
+      . $choice . '</th>';
   }
   $table_user_data_headers .= '</tr>';
 
@@ -717,7 +749,8 @@ function build_table_user_data($user_data) {
   $keypos_right_align[] = array_search('quota', $data_choices);
   $keypos_right_align[] = array_search('used', $data_choices);
   $keypos_right_align[] = array_search('free', $data_choices);
-
+  $keypos_right_align[] = array_search('percentage_used', $data_choices);
+  
   // Search for and return position of 'enabled' and 'lastLogin' in $data_choices
   $keypos_center_align[] = array_search('enabled', $data_choices);
   $keypos_center_align[] = array_search('lastLogin', $data_choices);
@@ -726,20 +759,17 @@ function build_table_user_data($user_data) {
   for ($row = 0; $row < sizeof($user_data); $row++) {
     $table_user_data .= '<tr>';
     for ($col = 0; $col < sizeof($user_data[$row]); $col++) {
-      $color_text = 'color: unset';
       $selected_data = $user_data[$row][$col];
 
-      if ($selected_data == 'N/A')
-        $color_text = 'color: grey;';
+      $color_text = ($selected_data === 'N/A')
+        ? 'color: grey;'
+        : 'color: unset;';
 
-      if ($selected_data == "&infin;")
-        $align = 'text-align: center; font-size: large;';
-      elseif (in_array($col, array_filter($keypos_right_align)))
-        $align = 'text-align: right; white-space: nowrap;';
-      elseif (in_array($col, array_filter($keypos_center_align)))
-        $align = 'text-align: center;';
-      else
-        $align = null;
+      $align = (in_array($col, $keypos_right_align, true))
+        ? 'text-align: right; white-space: nowrap;'
+        : (in_array($col, $keypos_center_align, true)
+          ? 'text-align: center;'
+          : null);
 
       $table_user_data .= '<td style="' . $align . $color_text . '">'
         . $selected_data . '</td>';
@@ -760,7 +790,7 @@ function build_table_group_data() {
   $grouplist = $_SESSION['grouplist'];
 
   // Define HTML table and set header cell content
-  $table_group_data_headers = '<table id="list"><tr>';
+  $table_group_data_headers = '<table class="list"><tr>';
   $table_group_data_headers .=
      '<th onclick="sortTable()">' . L10N_GROUP . '</th>
       <th onclick="sortTable()" style="text-align: center;">' . L10N_USERS
@@ -805,14 +835,14 @@ function build_table_groupfolder_data() {
   $align_right = 'style="text-align: right;"';
   $align_center = 'style="text-align: center;"';
 
-  $table_groupfolder_data_headers = '<table id="list"><tr>';
+  $table_groupfolder_data_headers = '<table class="list"><tr>';
   $table_groupfolder_data_headers .=
      '<th onclick="sortTable()">' . L10N_ID . '</th>
       <th onclick="sortTable()">' . L10N_NAME . '</th>
       <th onclick="sortTable()">' . L10N_GROUPS . '</th>
       <th class="align_r" onclick="sortTable()">' . L10N_QUOTA_USED . '</th>
       <th class="align_c" onclick="sortTable()">' . L10N_PERCENTAGE_USED . '</th>
-      <th class="align_r" onclick="sortTable()">' . L10N_QUOTA_LIMIT . '</th>
+      <th class="align_r" onclick="sortTable()">' . L10N_QUOTA . '</th>
       <th class="align_c" onclick="sortTable()">' . L10N_ACL . '</th>
       <th onclick="sortTable()">' . L10N_ADMIN . '</th>
       </tr>';
@@ -829,7 +859,7 @@ function build_table_groupfolder_data() {
       ? '<span style="color: green">&#10004;</span>'
       : null;
 
-    $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100);
+    $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100,2);
 
     $table_groupfolder_data .= '<tr><td>' . utf8_decode($groupfolder['id'])
       . '</td><td>' . utf8_decode($groupfolder['mount_point'])
@@ -928,7 +958,7 @@ function build_csv_user_data($data, $delimiter = ',') {
   * @return $group_data Array or CSV formatted string containing the group associated user data
   *
   */
-function build_group_data($array = null, $format = null) {
+function build_group_data($array = null, $format = null, $delimiter = ', ') {
   $grouplist = $_SESSION['grouplist'];
 
   // Add headers to $group_data variable
@@ -942,16 +972,16 @@ function build_group_data($array = null, $format = null) {
     // Check if group has no users associated, else list them as CSV
     $user_ids = $members === null
       ? '-'
-      : build_csv_line(array_column($members, 0), false, ', ');
+      : build_csv_line(array_column($members, 0), false, $delimiter);
     $user_displaynames = $members === null
       ? '-'
-      : build_csv_line(array_column($members, 1), false, ', ');
+      : build_csv_line(array_column($members, 1), false, $delimiter);
 
     if ($array == 'array')
       $group_data[$row+1] = [$grouplist[$row], $user_ids, $user_displaynames];
     else
-      $group_data .= utf8_decode($grouplist[$row]) . ',"' . $user_ids . '","'
-        . $user_displaynames . '"<br>';
+      $group_data .= utf8_decode($grouplist[$row]) . $delimiter . '"'
+        . $user_ids . '"' . $delimiter . '"' . $user_displaynames . '"<br>';
   }
   return $group_data;
 }
@@ -961,21 +991,19 @@ function build_group_data($array = null, $format = null) {
   *
   * @param  $array      Return an array or CSV
   *         OPTIONAL    DEFAULT = 'null'
-  * @param  $format     Whether to return utf8 formatted data ('utf8') or not
-  *         OPTIONAL    DEFAULT = 'null'
   *
-  * @return $group_data Array or CSV formatted string containing the group associated user data
+  * @return $groupfolder_return_data Array or CSV formatted string containing groupfolder data
   *
   */
 function build_groupfolder_data($array = null) {
   if (!$array)
     // Add headers to $group_data variable
     $groupfolder_return_data .= L10N_ID . ',' . L10N_NAME . ',' . L10N_GROUPS . ','
-      . L10N_QUOTA_USED . ',' . L10N_PERCENTAGE_USED . ',' . L10N_QUOTA_LIMIT
+      . L10N_QUOTA_USED . ',' . L10N_PERCENTAGE_USED . ',' . L10N_QUOTA
       . ',' . L10N_ACL . ',' . L10N_ADMIN . '<br>';
   else
     $groupfolder_return_data[] = [L10N_ID,L10N_NAME,L10N_GROUPS,L10N_QUOTA_USED,
-      L10N_PERCENTAGE_USED,L10N_QUOTA_LIMIT,L10N_ACL,L10N_ADMIN];
+      L10N_PERCENTAGE_USED,L10N_QUOTA,L10N_ACL,L10N_ADMIN];
 
   // Iterate through collected groupfolder data, build CSV output or array
   foreach ($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
@@ -1046,7 +1074,7 @@ function format_size($size) {
   if ($size == 0)
     return "0 MB";
   elseif ($size == -3)
-    return '&infin;';
+    return '&infin; MB';
 
   $s = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
   $e = floor(log($size, 1024));

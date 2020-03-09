@@ -5,6 +5,8 @@
       * Set default colors
       *
       */
+    $body_background_color = 'white';
+
     $navigation_background_color = '#4c6489';
     $navigation_text_color = 'white';
 
@@ -34,6 +36,10 @@
 
 * {
   font-family: Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: <?php echo $body_background_color ?>;
 }
 
 #navigation ul {
@@ -115,11 +121,11 @@ table {
   text-align: center;
 }
 
-#list table, #list td, #list th {
+.list table, .list td, .list th {
   border: 1px solid #ddd;
 }
 
-#list th {
+.list th {
   text-align: left;
   background-color: <?php echo $table_header_background_color ?>;
   color: <?php echo $table_header_text_color ?>;
@@ -127,10 +133,18 @@ table {
   cursor: pointer;
 }
 
-#list td {
+.list td {
   padding: 4px 4px 0px;
 }
 
-#list tr:nth-child(even) {
+.list tr:nth-child(even) {
   background-color: #f2f2f2;
+}
+
+.status th, .status td {
+  padding: 4px 4px 0px;
+}
+
+.status td:nth-child(2) {
+  text-align: right;
 }

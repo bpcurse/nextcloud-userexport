@@ -46,7 +46,7 @@
         switch ($option) {
           case 'email':
           case 'enabled':
-          case 'free':
+          case 'percentage_used':
           case 'subadmin':
           case 'locale':
             echo "<td><input type='checkbox' class='checkbox' name='" . $option
@@ -55,7 +55,7 @@
             break;
           case 'lastLogin':
           case 'quota':
-          case 'groups':
+          case 'free':
           case 'language':
             echo "<tr><td><input type='checkbox' class='checkbox' name='" . $option
               . "' value='true' " . $checked . ">" . $title . "</td>";
@@ -67,7 +67,7 @@
       }
 
       echo '<tr><td colspan=3 style="height: 10px;"></td></tr>
-            <tr><td style="background-color: whitesmoke;">
+            <tr><td style="border: 1px solid #ddd;">
               <input type="checkbox" onClick="toggle(this)" /> '
                 . L10N_TOGGLE_ALL . '
             </td></tr>

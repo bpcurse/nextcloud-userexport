@@ -10,7 +10,7 @@
   define('L10N_CONNECT_AND_FETCH', 'Verbinden und Daten vom Server abrufen');
   define('L10N_WAIT', 'Dies kann eine Weile dauern...');
   define('L10N_ERROR_CONNECTION_NEEDED', 'Bitte zuerst mit einem Nextcloud Server <a href="index.php">verbinden</a>!');
-  define('L10N_SELECT_USER_DATA', 'Folgende Spalten mit einbeziehen:');
+  define('L10N_SELECT_USER_DATA', 'Folgende Spalten miteinbeziehen:');
   define('L10N_TABLE', 'Tabelle');
   define('L10N_CSV', 'CSV');
   define('L10N_DISPLAY', 'Anzeigen');
@@ -40,7 +40,7 @@
   define('L10N_LAST_LOGIN', 'Letzte Anmeldung');
   define('L10N_BACKEND', 'Backend');
   define('L10N_ENABLED', 'Aktiviert');
-  define('L10N_QUOTA_LIMIT', 'Kontingent');
+  define('L10N_QUOTA', 'Kontingent');
   define('L10N_QUOTA_USED', 'Genutzt');
   define('L10N_QUOTA_FREE', 'Verf&uuml;gbar');
   define('L10N_SUBADMIN', 'Subadmin');
@@ -64,5 +64,8 @@
   define('L10N_STATISTICS', 'Statistik');
   define('L10N_PERCENTAGE_USED', 'Genutzt %');
   define('L10N_LOGOUT', 'Abmelden');
+  define('L10N_NEXTCLOUD', 'Nextcloud');
+  define('L10N_VERSION', 'Version');
+  define('L10N_DATA_RETRIEVED', 'Daten abgerufen'); // Effective / as of {time/date}
 
 // EOF

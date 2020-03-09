@@ -28,21 +28,16 @@
       echo '<li';
         if ($active_page == "statistics") echo ' id="currentpage"';
       echo '><a href="statistics.php">' . L10N_STATISTICS . '</a>
+      </li>
+      <li><a style="color: red;"
+          href="index.php?logout=true">' . L10N_LOGOUT . '</a>
       </li>';
     }
   ?>
 
-    <li style="float:right;"><a style="font-size: 13px;"
-      href="https://github.com/bpcurse/nextcloud-userexport">
-      Nextcloud Userexport v1.1.0-alpha-2</a>
-    </li>
-
-  <?php
-    if ($_SESSION['authenticated']) {
-      echo '<li style="float:right;"><a style="color: red;"
-        href="index.php?logout=true">' . L10N_LOGOUT . '</a>
-      </li>';
-    }
-  ?>
+  <li style="float:right;"><a style="font-size: 13px;"
+    href="https://github.com/bpcurse/nextcloud-userexport">
+    Nextcloud Userexport v1.1.0</a>
+  </li>
   </ul>
 </div>

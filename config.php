@@ -1,5 +1,8 @@
 <?php
 
+/**
+  * Authentication settings
+  */
 // Default target URL
 // $target_url = 'https://example.com';
 
@@ -9,6 +12,9 @@
 // Default password (NOT RECOMMENDED)
 // $user_pass = 'goodpassword';
 
+/**
+  * Folder settings
+  */
 // Folder to temporarily store csv files
 define('TEMP_FOLDER', 'export_temp');
 
@@ -20,7 +26,7 @@ define('TEMP_FOLDER', 'export_temp');
   * DEFAULT 'en';
   *
   */
-$language = 'de';
+// $language = 'en';
 
 /**
   * Alter UI design
@@ -28,6 +34,10 @@ $language = 'de';
   * Use html color codes or
   *
   */
+/** HTML Body (Main) Background **/
+
+// $body_background_color = '';
+
 /** Navigation (Menu) **/
 
 // $navigation_background_color = '';

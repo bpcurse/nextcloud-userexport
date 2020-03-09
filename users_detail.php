@@ -73,7 +73,7 @@
     if ($export_type == 'table')
       echo build_table_user_data(select_data_all_users());
     else
-      echo build_csv_user_data(select_data_all_users());
+      echo build_csv_user_data(select_data_all_users(null, null, ','));
 
     ?>
   </body>

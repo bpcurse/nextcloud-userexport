@@ -40,7 +40,7 @@
   define('L10N_LAST_LOGIN', 'Last login');
   define('L10N_BACKEND', 'Backend');
   define('L10N_ENABLED', 'Enabled');
-  define('L10N_QUOTA_LIMIT', 'Quota limit');
+  define('L10N_QUOTA', 'Quota');
   define('L10N_QUOTA_USED', 'Quota used');
   define('L10N_QUOTA_FREE', 'Quota free');
   define('L10N_SUBADMIN', 'Subadmin');
@@ -64,5 +64,8 @@
   define('L10N_STATISTICS', 'Statistics');
   define('L10N_PERCENTAGE_USED', '% used');
   define('L10N_LOGOUT', 'Logout');
+  define('L10N_NEXTCLOUD', 'Nextcloud');
+  define('L10N_VERSION', 'Version');
+  define('L10N_DATA_RETRIEVED', 'Data retrieved');
 
 // EOF
