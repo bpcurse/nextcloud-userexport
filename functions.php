@@ -312,8 +312,9 @@ function fetch_raw_groupfolders_data() {
 
   // Fetch raw userlist and store user_ids in $users
   $_SESSION['raw_groupfolders_data'] = json_decode(curl_exec($ch), true);
-  if ($_SESSION['raw_groupfolders_data'])
-    $_SESSION['groupfolders_active'] = true;
+
+  // Set session variable telling if groupfolders is active on connected server
+  $_SESSION['groupfolders_active'] = isset($_SESSION['raw_groupfolders_data']);
 
   // Drop cURL handle
   curl_close($ch);
@@ -750,7 +751,7 @@ function build_table_user_data($user_data) {
   $keypos_right_align[] = array_search('used', $data_choices);
   $keypos_right_align[] = array_search('free', $data_choices);
   $keypos_right_align[] = array_search('percentage_used', $data_choices);
-  
+
   // Search for and return position of 'enabled' and 'lastLogin' in $data_choices
   $keypos_center_align[] = array_search('enabled', $data_choices);
   $keypos_center_align[] = array_search('lastLogin', $data_choices);
