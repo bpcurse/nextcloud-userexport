@@ -1,14 +1,19 @@
 # Nextcloud userexport
-PHP script to export user and group lists using Nextcloud's user metadata OCS API and cURL.
+PHP script to export users, groups and groupfolders using Nextcloud's OCS APIs 'user metadata', 'capabilities' and 'groupfolders' via cURL.
 
 ## How it works
-The script uses cURL to make calls to Nextcloud's user metadata OCS API and displays the results either through an HTML table or a CSV list that can be easily copied to calc/excel. You can download a CSV formatted file as well.
+The script uses cURL to make calls to Nextcloud's OCS APIs and displays the results either through an HTML table or a CSV list that can be easily copied to calc/excel. You can download a CSV formatted file as well.
 
-https://docs.nextcloud.com/server/17/developer_manual/client_apis/OCS/ocs-api-overview.html#user-metadata
+https://docs.nextcloud.com/server/18/developer_manual/client_apis/OCS/ocs-api-overview.html#user-metadata
+https://docs.nextcloud.com/server/18/developer_manual/client_apis/OCS/ocs-api-overview.html#capabilities-api
+https://github.com/nextcloud/groupfolders#api
 
 ## Installation
 - Upload all files to a directory on your webserver and open `index.php` in a browser. You can point a subdomain like `https://export.cloud.example.com` at it.
-- **Make sure it is only accessible via https://** as you will be providing nextcloud admin credentials to it.
+- **Make sure it is only accessible via https://** as you will be providing Nextcloud admin credentials to it.
+
+## Update
+- If you overwrite an existing installation, remove the old files from the folder before you upload. Else you might be left with unnecessary files (although it's not an issue).
 
 ## General usage
 - Enter the URL of the Nextcloud target instance incl. https://
@@ -33,21 +38,36 @@ Approximately 10-15s/100users.
 
 A progress indicator isn't implemented yet, but it's on the list.
 
-## "Users" view:
+## Menu items in top nav bar
+
+### 'Users'
 - Choose which user metadata should be displayed or downloaded by selecting checkboxes
 - Change display type (if necessary) and click on display **OR**
 - Download data as CSV file by clicking the download button
 
-## "Groups" view:
+### 'Groups'
 - Change display type (if necessary) and click on display **OR**
 - Download data as CSV file by clicking the download button
 
-## "Email" view: 
+### 'Groupfolders'
+(only visible if groupfolders app is active and at least one groupfolder is in use)
+- Change display type (if necessary) and click on display **OR**
+- Download data as CSV file by clicking the download button
+
+All tables can be sorted by clicking on the column headers (although not by size).
+
+### 'Email' 
 - Simple mass mailing to all users on the list is provided by clicking a button (Javascript needs to be enabled).
 
 This will open your email application with a mailto: string containing all email addresses as bcc. You can change to 'cc' or 'to' by using the GET parameter `msg_mode` (see chapter "Parameters").
 
 Enhanced functionality regarding emails is planned.
+
+### 'Statistics'
+- Simple overview of user/group count and quotas
+
+### 'Logout'
+- This will unset (clear) php session data
 
 ## Parameters
 You can use the following GET parameters with this script:
@@ -81,18 +101,30 @@ https://userexport.mydomain.org/?url=https://cloud.example.com&user=myusername&m
 If you do not supply one of the parameters you can fill in the corresponding fields afterwards in the form (e.g. password).
 Prefilled form fields can also be edited by user input.
 
-## Nextcloud integration
-You can integrate it by using the external sites app and show it only to your admin group.
-Prefill URL and user name by using GET parameters and a nextcloud placeholder like this:
+## Configuration
+Several options can be set in config.php. The options are described in comments.
+- Authentication
+- Folders
+- UI language
+- UI colors
 
+## Localization
+This software can be translated by adding a language file to the `l10n` directory. To translate, duplicate an existing {ISO lang code}.php file, preferably en.php, rename it to the new language code and start translating by editing the lines inside.
+An overview of ISO language codes can be found in the `l10n` directory, too.
+
+At present, included languages are English (default) and German. Set the language option inside config.php to select a language.
+
+## Nextcloud integration
+You can integrate it by using the external sites app.
+- Show it only to your admin group.
+- Set UI colors to match your theming.
+- Prefill URL and user name by using GET parameters and a nextcloud placeholder
 `https://export.cloud.mydomain.com/?url=https://cloud.example.com&user={uid}`
 
 ## Known Issues
-It seems that Nextcloud 18 under some circumstances doesn't correctly respond to an API call when using a wrong username/password.
-If you have a typo in your user credentials `Error: The API response was empty` will be displayed in this case.
+Sorting tables by sizes (quota) is not possible, yet. (The sort function cannot handle human readable formats like `50 GB`)
 
 ## Development
-I will try to maintain and enhance this script as long as Nextcloud does not provide (better) GUI based user and group export functions.
 Any hints to enhancements or security issues are highly welcome.
 If you would like to contribute, please open an issue or a pull request.
 
@@ -102,7 +134,7 @@ You can still use the simpler v0.4.1, if you prefer.
 Inspired by comments to this github issue:
 https://github.com/nextcloud/server/issues/14715
 
-## Screenshots
+## Screenshots (still v1.0.0, TODO)
 **Login page**
 ![nextcloud-userexport_v1 0 0_login_page](https://user-images.githubusercontent.com/29312856/75972989-bcb0c300-5ed4-11ea-9024-401e0f13d87c.png)
 
