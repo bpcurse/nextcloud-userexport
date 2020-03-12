@@ -1,5 +1,5 @@
 # Nextcloud userexport
-PHP script to export users, groups and groupfolders using Nextcloud's OCS APIs 'user metadata', 'capabilities' and 'groupfolders' via cURL.
+PHP script to export users, groups and groupfolders using Nextcloud's OCS APIs `user metadata`, `capabilities` and `groupfolders` via cURL.
 
 ## How it works
 The script uses cURL to make calls to Nextcloud's OCS APIs and displays the results either through an HTML table or a CSV list that can be easily copied to calc/excel. You can download a CSV formatted file as well.
@@ -41,33 +41,33 @@ A progress indicator isn't implemented yet, but it's on the list.
 
 ## Menu items in top nav bar
 
-### 'Users'
+### `Users`
 - Choose which user metadata should be displayed or downloaded by selecting checkboxes
 - Change display type (if necessary) and click on display **OR**
 - Download data as CSV file by clicking the download button
 
-### 'Groups'
+### `Groups`
 - Change display type (if necessary) and click on display **OR**
 - Download data as CSV file by clicking the download button
 
-### 'Groupfolders'
+### `Groupfolders`
 (only visible if groupfolders app is active and at least one groupfolder is in use)
 - Change display type (if necessary) and click on display **OR**
 - Download data as CSV file by clicking the download button
 
 All tables can be sorted by clicking on the column headers (although not by size).
 
-### 'Email' 
+### `Email`
 - Simple mass mailing to all users on the list is provided by clicking a button (Javascript needs to be enabled).
 
 This will open your email application with a mailto: string containing all email addresses as bcc. You can change to 'cc' or 'to' by using the GET parameter `msg_mode` (see chapter "Parameters").
 
 Enhanced functionality regarding emails is planned.
 
-### 'Statistics'
-- Simple overview of user/group count and quotas
+### `Statistics`
+- Simple overview of user/group count and quotas.
 
-### 'Logout'
+### `Logout`
 - This will unset (clear) php session data
 
 ## Parameters
@@ -128,6 +128,8 @@ Sorting tables by sizes (quota) is not possible, yet. (The sort function cannot 
 ## Development
 Any hints to enhancements or security issues are highly welcome.
 If you would like to contribute, please open an issue or a pull request.
+
+Minor version updates and bugfixes (x.x.1) are usually not released separately. If you want to use the latest version please download/clone from master.
 
 You can still use the simpler v0.4.1, if you prefer.
 
