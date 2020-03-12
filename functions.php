@@ -394,7 +394,9 @@ function select_data_single_user(
       $used = $data['ocs']['data']['quota']['used'];
 
       $item_data = $item == 'percentage_used'
-        ? (in_array($quota, [-3, 0]) ? '-' : round(($used / $quota * 100), 2))
+        ? (in_array($quota, [-3, 0, 'none'])
+          ? 'N/A'
+          : round(($used / $quota * 100), 2))
         : $data['ocs']['data'][$item];
 
       // Filter/format different data sets
@@ -419,17 +421,22 @@ function select_data_single_user(
           break;
         // Make the display of 'enabled' bool pretty in the browser
         case 'enabled':
-        $selected_data[] = $format == 'utf8' ? $item_data
-          : ($item_data == true
+          $selected_data[] = $format == 'utf8' ? $item_data
+            : ($item_data == true
             ? '<span style="color: green">&#10004;</span>'
             : '<span style="color: red">&#10008;</span>');
-          break;
+            break;
         case 'quota':
         case 'used':
         case 'free':
+          $item_data = $data['ocs']['data']['quota'][$item];
           $selected_data[] = $format != 'utf8'
-            ? format_size($data['ocs']['data']['quota'][$item])
-            : $data['ocs']['data']['quota'][$item];
+            ? (in_array($item_data, [-3, 'none'], true)
+              ? '&infin;'
+              : format_size($item_data))
+            : (in_array($item_data, [-3, 'none'], true)
+              ? '∞'
+              : $item_data);
           break;
         // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
         case 'subadmin':
@@ -1072,10 +1079,10 @@ function build_csv_line($array = null, $return_key = false, $delimiter = ',') {
   *
   */
 function format_size($size) {
-  if ($size == 0)
+  if ($size === 0)
     return "0 MB";
-  elseif ($size == -3)
-    return '&infin; MB';
+  if ($size === null)
+    return '-';
 
   $s = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
   $e = floor(log($size, 1024));
