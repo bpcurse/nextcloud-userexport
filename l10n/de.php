@@ -16,7 +16,7 @@
   define('L10N_DISPLAY', 'Anzeigen');
   define('L10N_DOWNLOAD_CSV', 'Herunterladen (CSV)');
   define('L10N_FORMAT_AS', 'Formatieren als:');
-  define('L10N_HTTP_IS_BLOCKED', 'Die Nutzung von ungesichertem HTTP und anderen Protokollen ist aus Sicherheitsgr&uuml;nden blockiert.');
+  define('L10N_HTTP_IS_BLOCKED', 'Die Nutzung von ungesichertem HTTP ist aus Sicherheitsgr&uuml;nden blockiert.');
   define('L10N_HTTPS_RECOMMENDATION', 'Bitte stattdessen HTTPS benutzen.');
   define('L10N_HTTPS_OVERRIDE_HINT', 'Die Zugangsdaten k&ouml;nnen - sofern n&ouml;tig - <u><b>unverschl&uuml;sselt</b></u> gesendet werden, indem ein \'!\' vor \'http\' eingef&uuml;gt wird.');
   define('L10N_EG', 'z.B. ');
