@@ -4,11 +4,11 @@
   $active_page = 'users';
   require_once 'functions.php';
   include_once 'config.php';
-  require_once 'l10n/' . $_SESSION['language'] . '.php';
+  require_once 'l10n/'.$_SESSION['language'].'.php';
 
   $export_type = $_SESSION['export_type'];
 
-  echo '<html lang="' . $_SESSION['language'] . '">';
+  echo "<html lang='{$_SESSION['language']}'>";
 
 ?>
 
@@ -28,18 +28,18 @@
   <body>
     <?php
 
-      include ("navigation.php");
-      if (!$_SESSION['authenticated'])
-        exit('<br>' . L10N_CONNECTION_NEEDED);
+      include 'navigation.php';
+      if(!$_SESSION['authenticated'])
+        exit('<br>'.L10N_CONNECTION_NEEDED);
 
       print_status_overview();
 
-      echo '<br><u>' . L10N_SELECT_USER_DATA . '</u><br><br>
+      echo '<br><u>'.L10N_SELECT_USER_DATA.'</u><br><br>
         <form method="post" action="users_detail.php">
         <table id="options">
         <tr>';
 
-      foreach ($_SESSION['data_options'] as $option => $title) {
+      foreach($_SESSION['data_options'] as $option => $title) {
         $checked = in_array($option, $_SESSION['data_choices'])
           ? "checked='checked'"
           : null;
@@ -49,27 +49,23 @@
           case 'percentage_used':
           case 'subadmin':
           case 'locale':
-            echo "<td><input type='checkbox' class='checkbox' name='" . $option
-              . "' value='true' " . $checked . ">" . $title
-              . "</td></tr>";
+            echo "<td><input type='checkbox' class='checkbox' name='$option' value='true' $checked>$title</td></tr>";
             break;
           case 'lastLogin':
           case 'quota':
           case 'free':
           case 'language':
-            echo "<tr><td><input type='checkbox' class='checkbox' name='" . $option
-              . "' value='true' " . $checked . ">" . $title . "</td>";
+            echo "<tr><td><input type='checkbox' class='checkbox' name='$option' value='true' $checked>$title</td>";
             break;
           default:
-            echo "<td><input type='checkbox' class='checkbox' name='" . $option
-              . "' value='true' " . $checked . ">" . $title . "</td>";
+            echo "<td><input type='checkbox' class='checkbox' name='$option' value='true' $checked>$title</td>";
         }
       }
 
       echo '<tr><td colspan=3 style="height: 10px;"></td></tr>
             <tr><td style="border: 1px solid #ddd;">
               <input type="checkbox" onClick="toggle(this)" /> '
-                . L10N_TOGGLE_ALL . '
+                .L10N_TOGGLE_ALL. '
             </td></tr>
           </table>';
 

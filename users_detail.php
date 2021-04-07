@@ -4,19 +4,19 @@
   $active_page = 'users';
   require_once 'functions.php';
   include_once 'config.php';
-  require_once 'l10n/' . $_SESSION['language'] . '.php';
+  require_once 'l10n/'.$_SESSION['language'].'.php';
 
   // Filter POST array and save keys with value 'true' as constant
   $_SESSION['data_choices'] = array_keys($_POST,'true');
-  if (!$_SESSION['data_choices'])
+  if(!$_SESSION['data_choices'])
     exit(L10N_ERROR . L10N_SELECT_AT_LEAST_ONE_COLUMN . L10N_RETURN_TO_FORM);
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
 
-  if ($display_or_download == 'download') {
+  if($display_or_download == 'download') {
     // Set filename or create one depending on GET parameters
     if($filename_download == null)
-      $filename_download = 'nextcloud-userlist_' . date("Y-m-d_Hi") . '.csv';
+      $filename_download = "nextcloud-userlist_".date('Y-m-d_Hi').".csv";
 
     // Create and populate CSV file with selected user data and set filename variable
     $filename = build_csv_file(select_data_all_users($_SESSION['data_choices'], 'utf8'));
@@ -25,7 +25,7 @@
     exit();
   }
 
-  echo '<html lang="' . $_SESSION['language'] . '">';
+  echo "<html lang='{$_SESSION['language']}'>";
 
 ?>
 
@@ -60,8 +60,8 @@
   <body>
     <?php
 
-    include ("navigation.php");
-    if (!$_SESSION['authenticated']) {
+    include 'navigation.php';
+    if(!$_SESSION['authenticated']) {
       exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
     }
 
@@ -70,7 +70,7 @@
     /**
       * Display results page either as HTML table or comma separated values (CSV)
       */
-    if ($export_type == 'table')
+    if($export_type == 'table')
       echo build_table_user_data(select_data_all_users());
     else
       echo build_csv_user_data(select_data_all_users(null, null, ','));

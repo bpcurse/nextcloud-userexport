@@ -7,12 +7,12 @@
 
   // Set UI language to config value or to english, if it is not configured
   $_SESSION['language'] = $language ?? 'en';
-  require_once 'l10n/' . $_SESSION['language'] . '.php';
+  require_once 'l10n/'.$_SESSION['language'].'.php';
 
   /**
   * Get parameters if any, set defaults
   */
-  if ($_GET['logout']) {
+  if($_GET['logout']) {
     session_unset();
     include 'config.php';
   }
@@ -27,7 +27,7 @@
   $_SESSION['message_mode'] = $_GET['msg_mode'] ?? 'bcc';
   set_data_options();
 
-  if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+  if($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Set SESSION variables to POST values
     if (isset($_POST['target_url'])) {
       $_SESSION['user_name'] = $_POST['user_name'];
@@ -50,7 +50,8 @@
       $_SESSION['group_count'] = count($_SESSION['grouplist']);
       $_SESSION['groupfolders_count'] =
         $_SESSION['groupfolders_active'] == true
-        ? count($_SESSION['raw_groupfolders_data']['ocs']['data']) : null;
+        ? count($_SESSION['raw_groupfolders_data']['ocs']['data'])
+        : null;
     }
 
     // Fetch all user details (this can take a long time)
@@ -59,7 +60,7 @@
     calculate_quota();
   }
 
-  echo '<html lang="' . $_SESSION['language'] . '">';
+  echo "<html lang='{$_SESSION['language']}'>";
 
 ?>
 
@@ -71,7 +72,7 @@
   <body>
     <?php
       include 'navigation.php';
-      if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+      if($_SERVER['REQUEST_METHOD'] == 'POST') {
         print_status_success();
         exit();
       }

@@ -4,15 +4,15 @@
   $active_page = 'groups';
   require_once 'functions.php';
   include_once 'config.php';
-  require_once 'l10n/' . $_SESSION['language'] . '.php';
+  require_once 'l10n/'.$_SESSION['language'].'.php';
 
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
 
-  if ($display_or_download == "download") {
+  if($display_or_download == "download") {
     // Set filename or create one depending on GET parameters
     if($filename_download == null)
-      $filename_download = "nextcloud-grouplist_" . date("Y-m-d_Hi") . ".csv";
+      $filename_download = "nextcloud-grouplist_".date('Y-m-d_Hi').".csv";
 
     // Create and populate CSV file with selected group data and set filename variable
     $filename = build_csv_file(build_group_data('array','utf8',','),
@@ -22,7 +22,7 @@
     exit();
   }
 
-  echo '<html lang="' . $_SESSION['language'] . '">';
+  echo "<html lang='{$_SESSION['language']}'>";
 
 ?>
 
@@ -57,8 +57,8 @@
   <body>
     <?php
 
-    include ("navigation.php");
-    if (!$_SESSION['authenticated'])
+    include 'navigation.php';
+    if(!$_SESSION['authenticated'])
       exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
 
     print_status_overview();
@@ -66,7 +66,7 @@
     /**
       * Display results page either as HTML table or comma separated values (CSV)
       */
-    if ($export_type == 'table')
+    if($export_type == 'table')
       echo build_table_group_data();
     else
       echo build_group_data(null, null, ',');
