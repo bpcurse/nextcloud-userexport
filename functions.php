@@ -61,7 +61,8 @@ function set_data_options() {
   * Depending on the first five chars of the supplied URL:
   * - In case 'https' -> return unchanged URL
   * - In case '!http' -> remove '!' and return trimmed URL
-  * - In case 'http:' or anything else -> exit with insecure connection warning
+  * - In case 'http:' -> exit with insecure connection warning
+  * - In case 'none of the above' -> prepend input with https:// and return it
   *
   * @param  $input_url    URL to be processed
   *
@@ -69,25 +70,37 @@ function set_data_options() {
   *
   */
 function check_https($input_url) {
+
   // Save the first five chars of the URL to a new variable '$trim_url'
   $trimmed_url = substr($input_url,0,5);
 
-  // Check if plain HTTP is used without override command and exit if not
+  switch($trimmed_url) {
 
-  if ($trimmed_url != 'https' && $trimmed_url != '!http')
-    exit('<font color="red" face="Helvetica"><hr>
-        <b>' . L10N_HTTP_IS_BLOCKED . '</b>
-        <br>' . L10N_HTTPS_RECOMMENDATION . '
-      <font color="black"><hr>
-        <br>' . L10N_HTTPS_OVERRIDE_HINT . '
-        <br>' . L10N_EG . '!http://cloud.example.com
-       </font>');
+    // Leave URL untouched if https:// protocol is already set
+    case 'https':
+      $output_url = $input_url;
+      break;
 
-  // Remove '!' if HTTPS check override is selected by use of '!http'
-  $output_url = $trimmed_url == '!http'
-    ? ltrim($input_url,'!')
-    : $input_url;
+    // Check if plain HTTP is used without override command and exit if not
+    case 'http:':
+      exit('<font color="red" face="Helvetica"><hr>
+          <b>' . L10N_HTTP_IS_BLOCKED . '</b>
+          <br>' . L10N_HTTPS_RECOMMENDATION . '
+        <font color="black"><hr>
+          <br>' . L10N_HTTPS_OVERRIDE_HINT . '
+          <br>' . L10N_EG . '!http://cloud.example.com
+        </font>');
+      break;
 
+    // Remove '!' if HTTPS check override is selected by use of '!http'
+    case '!http':
+      $output_url = ltrim($input_url,'!');
+      break;
+
+    default:
+      $output_url = "https://".$input_url;
+      break;
+  }
   return $output_url;
 }
 

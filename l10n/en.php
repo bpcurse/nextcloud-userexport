@@ -16,7 +16,7 @@
   define('L10N_DISPLAY', 'Display');
   define('L10N_DOWNLOAD_CSV', 'Download (CSV)');
   define('L10N_FORMAT_AS', 'Format as:');
-  define('L10N_HTTP_IS_BLOCKED', 'The use of plain HTTP and other protocols is blocked for security reasons.');
+  define('L10N_HTTP_IS_BLOCKED', 'The use of plain HTTP is blocked for security reasons.');
   define('L10N_HTTPS_RECOMMENDATION', 'Please use HTTPS instead.');
   define('L10N_HTTPS_OVERRIDE_HINT', 'You can send your admin credentials <u><b>unencrypted</b></u> - if you need to - by inserting \'!\' before \'http\'.');
   define('L10N_EG', 'e.g. ');
