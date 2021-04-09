@@ -104,6 +104,11 @@ body {
   width: 300px;
 }
 
+input[type="radio"] {
+  margin-top: -1px;
+  vertical-align: middle;
+}
+
 table {
   border-collapse: collapse;
 }

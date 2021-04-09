@@ -473,6 +473,43 @@ function select_data_single_user(
 }
 
 /**
+* TODO
+*/
+function select_data_all_users_filter($filter_by, $condition1, $condition2 = null) {
+
+  foreach ($_SESSION['userlist'] as $key => $user_id) {
+
+    $item_data = $_SESSION['raw_user_data'][$key]['ocs']['data'][$filter_by];
+
+    switch ($filter_by) {
+
+      case 'quota':
+      case 'used':
+      case 'free':
+        if($item_data['quota'] == $condition1)
+          $selected_user_ids[] = $user_id;
+        break;
+
+      case 'lastLogin':
+        $lastLogin = substr($item_data, 0, 10);
+        if($lastLogin >= strtotime($condition1) && $lastLogin <= strtotime($condition2))
+          $selected_user_ids[] = $user_id;
+        break;
+
+      case 'groups':
+        if(in_array($condition1, $item_data))
+          $selected_user_ids[] = $user_id;
+
+      default:
+        if($item_data == $condition1)
+          $selected_user_ids[] = $user_id;
+    }
+  }
+
+  return $selected_user_ids;
+}
+
+/**
 * Find all users belonging to a given group an return an array containing userID and displayname
 *
 * @param  $group    The name of the group to search for
@@ -615,11 +652,11 @@ function print_status_overview($scope = 'quick') {
   * @param  $message_mode How to send emails (to, cc, bcc)
   *         OPTIONAL      DEFAULT: 'bcc'
   */
-function show_button_mailto($message_mode = 'bcc', $user_data = null,
-  $button_text = L10N_SEND_EMAIL_TO_ALL_USERS) {
+function show_button_mailto($message_mode = 'bcc', $user_ids = null,
+    $button_text = L10N_SEND_EMAIL_TO_ALL_USERS) {
 
   // Build and store email list formatted as 'mailto:'
-  $mailto_list = build_mailto_list($user_data, $message_mode);
+  $mailto_list = build_mailto_list($message_mode, $user_ids);
 
   // Show mass mail button (only if email addresses were provided)
   if($mailto_list != false)
@@ -906,30 +943,46 @@ function build_table_groupfolder_data() {
   * @return $mailto_list  Exported emails as mailto: string for mass mailing
   *
   */
-function build_mailto_list($user_data = null, $message_mode = 'bcc') {
-  $user_data = $user_data ?? $_SESSION['raw_user_data'];
+function build_mailto_list($message_mode = 'bcc', $user_ids = null) {
 
-  // Begin if 'email' key is present
-  if($user_data[0]['ocs']['data']['email']) {
-    // Initiate construction of mailto string, setting 'to:', 'cc:' or 'bcc:'
-    $mailto_list = "mailto:?$message_mode=";
-    // Iterate through collected user data and add email addresses
-    for($row = 0; $row < sizeof($user_data); $row++) {
-      $user_email = $user_data[$row]['ocs']['data']['email'];
+  $user_data = $_SESSION['raw_user_data'];
+
+  // Initiate construction of mailto string, setting 'to:', 'cc:' or 'bcc:'
+  $mailto_list = "mailto:?$message_mode=";
+
+  if(!$user_ids) {
+
+    // Iterate through user data and add email addresses
+    foreach($user_data as $key => $item) {
+      $user_email = $item['ocs']['data']['email'];
       if ($user_email == 'N/A')
         continue;
-      if ($row == 0)
+      if ($key == 0)
         $mailto_list .= $user_email;
       else
         $mailto_list .= ',' . $user_email;
     }
-    // Set email subject
-    $mailto_list .= "&subject=".L10N_SUBJECT_ALL_USER_MAIL;
-    return $mailto_list;
-  } else {
-    // Return false if mailto list has not been constructed due to missing email data
-    return false;
+
   }
+  else {
+    foreach($user_data as $key => $item) {
+      if(in_array($item['ocs']['data']['id'], $user_ids)) {
+        $user_email = $item['ocs']['data']['email'];
+        if ($user_email == 'N/A')
+          continue;
+        if ($key == 0)
+          $mailto_list .= $user_email;
+        else
+          $mailto_list .= ',' . $user_email;
+      }
+    }
+  }
+
+  // Set email subject
+  $mailto_list .= "&subject=".L10N_SUBJECT_ALL_USER_MAIL;
+
+  return $mailto_list;
+
 }
 
 /**
