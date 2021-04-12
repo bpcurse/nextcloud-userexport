@@ -4,8 +4,8 @@ PHP script to export users, groups and groupfolders using Nextcloud's OCS APIs `
 ## How it works
 The script uses cURL to make calls to Nextcloud's OCS APIs and displays the results either through an HTML table or a CSV list that can be easily copied to calc/excel. You can download a CSV formatted file as well.
 
-https://docs.nextcloud.com/server/18/developer_manual/client_apis/OCS/ocs-api-overview.html#user-metadata
-https://docs.nextcloud.com/server/18/developer_manual/client_apis/OCS/ocs-api-overview.html#capabilities-api
+https://docs.nextcloud.com/server/latest/developer_manual/client_apis/OCS/ocs-api-overview.html#user-metadata
+https://docs.nextcloud.com/server/latest/developer_manual/client_apis/OCS/ocs-api-overview.html#capabilities-api
 https://github.com/nextcloud/groupfolders#api
 
 ## Installation
@@ -17,55 +17,56 @@ https://github.com/nextcloud/groupfolders#api
 Remember to backup `config.php` if you have set non-default values.
 
 ## General usage
-- Enter the URL of the Nextcloud target instance incl. https://
-- Enter a username that has admin (or group admin) rights
+- Enter the URL of the Nextcloud target instance (https:// will be prepended automatically, if no protocol is specified)
+- Enter a username (userID) that has admin (or group admin) rights
 - Enter the corresponding password
-- Click on "connect" and wait
+- Click on "connect" and wait (there is no progress indicator yet)
 
-After the script has successfully downloaded user and group data you can access other options from the top navigation bar.
+After the script has successfully downloaded user, group (and groupfolder) data you can access other options from the top navigation bar.
 
 ## Security
 - Do not use `http://` unless you have a very good reason to do so.
-
 The script will block outgoing plain HTTP connections and warn you unless you override this security measure with `!http://...`
 
-- Group admins (as long as they do not belong themselves to the `admin` group) will not receive information on users that are members of `admin` group, even if they are members of the group the group admin manages.
+- Group admins (as long as they do not belong themselves to the `admin` group) will not receive information on users that are members of `admin` group, even if they are members of the group the group admin manages. This is a restriction of Nextcloud itself.
 
 ## Performance
 API calls via cURL are slow. **Querying several hundred user accounts can take some minutes**. Be patient :)
 
-CURL parallel requests have been implemented in v0.2.0 and provide a relevant speed boost, but that's about as fast as it gets.
+CURL parallel requests have been implemented since v0.2.0 and provide a relevant speed boost, but that's about as fast as it gets.
 Approximately 10-15s/100users.
 
-A progress indicator isn't implemented yet, but it's on the list.
+A progress indicator is on the wish list.
 
 ## Menu items in top nav bar
 
 ### `Users`
 - Choose which user metadata should be displayed or downloaded by selecting checkboxes
 - Change display type (if necessary) and click on display **OR**
-- Download data as CSV file by clicking the download button
+- Change the column headers option (if necessary) and download data as CSV file by clicking the download button
 
 ### `Groups`
 - Change display type (if necessary) and click on display **OR**
-- Download data as CSV file by clicking the download button
+- Change the column headers option (if necessary) and download data as CSV file by clicking the download button
 
 ### `Groupfolders`
 (only visible if groupfolders app is active and at least one groupfolder is in use)
 - Change display type (if necessary) and click on display **OR**
-- Download data as CSV file by clicking the download button
+- Change the column headers option (if necessary) and download data as CSV file by clicking the download button
 
 All tables can be sorted by clicking on the column headers (although not by size).
 
 ### `Email`
-- Simple mass mailing to all users on the list is provided by clicking a button (Javascript needs to be enabled).
+- Select send mode ('bcc', 'cc' or 'to')
+- Select all users or a specific group from the dropdown list
+- Set filters
+  - last login between two dates (including the selected days)
+  - quota usage over a certain amount of Gigabytes (selectable in 0.5 GB steps)
 
-This will open your email application with a mailto: string containing all email addresses as bcc. You can change to 'cc' or 'to' by using the GET parameter `msg_mode` (see chapter "Parameters").
-
-Enhanced functionality regarding emails is planned.
+Clicking 'create list' will open your email application with a 'mailto:' string containing all (filtered) email addresses.
 
 ### `Statistics`
-- Simple overview of user/group count and quotas.
+- Simple overview of user/group/(groupfolder) count and quotas.
 
 ### `Logout`
 - This will unset (clear) php session data
@@ -117,9 +118,9 @@ At present, included languages are English (default) and German. Set the languag
 
 ## Nextcloud integration
 You can integrate it by using the external sites app.
-- Show it only to your admin group.
-- Set UI colors to match your theming.
-- Prefill URL and user name by using GET parameters and a nextcloud placeholder
+- Show it only to your admin group
+- Set UI colors to match your theming
+- Prefill URL and username by using GET parameters and a nextcloud placeholder
 `https://export.cloud.mydomain.com/?url=https://cloud.example.com&user={uid}`
 
 ## Known Issues
@@ -129,7 +130,7 @@ Sorting tables by sizes (quota) is not possible, yet. (The sort function cannot 
 Any hints to enhancements or security issues are highly welcome.
 If you would like to contribute, please open an issue or a pull request.
 
-Minor version updates and bugfixes (x.x.1) are usually not released separately. If you want to use the latest version please download/clone from master.
+Minor version updates and bugfixes (x.x.1) are not always released separately. If you want to use the latest version please download/clone from master.
 
 You can still use the simpler v0.4.1, if you prefer.
 
