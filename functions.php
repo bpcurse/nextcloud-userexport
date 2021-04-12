@@ -407,7 +407,7 @@ function select_data_single_user(
       $item_data = $item == 'percentage_used'
         ? (in_array($quota, [-3, 0, 'none'])
           ? 'N/A'
-          : round(($used / $quota * 100), 2))
+          : round(($used / $quota * 100), 1))
         : $data['ocs']['data'][$item];
 
       // Filter/format different data sets
@@ -717,7 +717,7 @@ function build_csv_file($list, $headers = 'default') {
   chmod(TEMP_FOLDER.'/'.$csv_filename, 0640);
 
   // Write selected headers as first line to file
-  if(!$headers === null)
+  if($headers != 'no_headers')
     fwrite($csv_file, $headers."\n");
 
   // Iterate through provided data array and append each line to the file
@@ -932,7 +932,7 @@ function build_table_groupfolder_data() {
       <td>".utf8_decode($groupfolder['mount_point'])."</td>
       <td>$groups</td>
       <td class='align_r'>".format_size($groupfolder['size'])."</td>
-      <td class='align_r'>$percent_used</td>
+      <td class='align_r'>".round($percent_used, 1)."</td>
       <td class='align_r'>".format_size($groupfolder['quota'])."</td>
       <td class='align_c'>$acl</td>
       <td>$manager</td></tr>";
@@ -1105,9 +1105,6 @@ function build_groupfolder_data($array = null) {
     $groupfolder_return_data .= L10N_ID.','.L10N_NAME.','.L10N_GROUPS.','
       .L10N_QUOTA_USED.','.L10N_PERCENTAGE_USED.','.L10N_QUOTA.','.L10N_ACL.','
       .L10N_ADMIN.'<br>';
-  else
-    $groupfolder_return_data[] = [L10N_ID,L10N_NAME,L10N_GROUPS,L10N_QUOTA_USED,
-      L10N_PERCENTAGE_USED,L10N_QUOTA,L10N_ACL,L10N_ADMIN];
 
   // Iterate through collected groupfolder data, build CSV output or array
   foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
@@ -1124,7 +1121,7 @@ function build_groupfolder_data($array = null) {
     else
       $acl = $groupfolder['acl'];
 
-    $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100);
+    $percent_used = round(($groupfolder['size'] / $groupfolder['quota'] * 100),1);
 
     $groupfolder_data = [$groupfolder['id'],$groupfolder['mount_point'],
       $groups,format_size($groupfolder['size']),$percent_used,

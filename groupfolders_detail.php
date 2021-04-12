@@ -14,8 +14,14 @@
     if($filename_download == null)
       $filename_download = "nextcloud-groupfolderlist_" . date("Y-m-d_Hi") . ".csv";
 
+    // Set default column headers or no column headers depending on selection
+    $headers = $_POST['csv_headers'] == 'default'
+      ? L10N_ID.','.L10N_NAME.','.L10N_GROUPS.','.L10N_QUOTA_USED.','
+        .L10N_PERCENTAGE_USED.','.L10N_QUOTA.','.L10N_ACL.','.L10N_ADMIN
+      : 'no_headers';
+
     // Create and populate CSV file with groupfolder data and set filename variable
-    $filename = build_csv_file(build_groupfolder_data('array','utf8'),null);
+    $filename = build_csv_file(build_groupfolder_data('array'),$headers);
 
     download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
     exit();
