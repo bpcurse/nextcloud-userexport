@@ -67,5 +67,13 @@
   define('L10N_NEXTCLOUD', 'Nextcloud');
   define('L10N_VERSION', 'Version');
   define('L10N_DATA_RETRIEVED', 'Daten abgerufen'); // Effective / as of {time/date}
+  define('L10N_SEND_AS','Senden als:');
+  define('L10N_SEND_TO','Senden an:');
+  define('L10N_ALL_USERS','Alle Benutzer');
+  define('L10N_LIMIT_TO','Beschränken auf:');
+  define('L10N_SELECT_GROUP','Gruppe auswählen');
+  define('L10N_USERS_W_LL_BETWEEN','Benutzer mit letzter Anmeldung zwischen');
+  define('L10N_AND','und');
+  define('L10N_USERS_W_QUOTA_OVER','Benutzer mit Speichernutzung über');
 
 // EOF
