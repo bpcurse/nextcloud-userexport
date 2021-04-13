@@ -361,15 +361,18 @@ function fetch_server_capabilities() {
 * @return $selected_user_data
 *         ARRAY
 */
-function select_data_all_users($data_choices = null, $format = null,
+function select_data_all_users($data_choices = null, $userlist = null, $format = null,
   $csv_delimiter = ', ') {
 
   $data_choices = $data_choices ?? $_SESSION['data_choices'];
-  foreach ($_SESSION['userlist'] as $key => $user_id)
+  $userlist = $userlist ?? $_SESSION['userlist'];
+
+  foreach($userlist as $key => $user_id) {
     // Call select_data function to filter/format request data
     $selected_user_data[] = select_data_single_user(
       $_SESSION['raw_user_data'][$key], $user_id, $data_choices, $format,
         $csv_delimiter);
+  }
 
   return $selected_user_data;
 }
@@ -470,14 +473,14 @@ function select_data_single_user(
 */
 function select_data_all_users_filter($filter_by, $condition1, $condition2 = null) {
 
-  foreach ($_SESSION['userlist'] as $key => $user_id) {
+  foreach($_SESSION['userlist'] as $key => $user_id) {
 
     if($filter_by == 'quota' || $filter_by == 'used' || $filter_by == 'free')
       $item_data = $_SESSION['raw_user_data'][$key]['ocs']['data']['quota'][$filter_by];
     else
       $item_data = $_SESSION['raw_user_data'][$key]['ocs']['data'][$filter_by];
 
-    switch ($filter_by) {
+    switch($filter_by) {
 
       case 'quota':
       case 'used':
@@ -512,8 +515,37 @@ function select_data_all_users_filter($filter_by, $condition1, $condition2 = nul
 
   if(!$selected_user_ids)
     $selected_user_ids = [''];
+
   return $selected_user_ids;
   }
+
+function filter_users() {
+
+  if($_SESSION['filters_set']) {
+
+    $uids_g = in_array('filter_group_choice', $_SESSION['filters_set'])
+      ? select_data_all_users_filter('groups', $_SESSION['filter_group'])
+      : $_SESSION['userlist'];
+
+    $uids_l = in_array('filter_lastLogin_choice', $_SESSION['filters_set'])
+      ? select_data_all_users_filter('lastLogin', $_SESSION['filter_ll_since'],
+          $_SESSION['filter_ll_before'])
+      : $_SESSION['userlist'];
+
+    $uids_q = in_array('filter_quota_choice', $_SESSION['filters_set'])
+      ? select_data_all_users_filter('used', $_SESSION['filter_quota'])
+      : $_SESSION['userlist'];
+
+    $user_ids = array_intersect($_SESSION['userlist'], $uids_g, $uids_l, $uids_q);
+
+  }
+
+  if(!$user_ids)
+    exit('No users found matching filter settings');
+
+  return $user_ids;
+
+}
 
 /**
 * Find all users belonging to a given group an return an array containing userID and displayname
@@ -645,33 +677,6 @@ function print_status_overview($scope = 'quick') {
 }
 
 /**
-  * Show control button to send emails
-  *
-  * Provides a button for basic mass mailing via 'mailto:' string
-  *
-  * @param  $user_data    User data array in raw format ([key][ocs][data][email])
-  *         OPTIONAL      DEFAULT: null (full user list will be used)
-  * @param  $button_text  Text to display on the button
-  *         OPTIONAL      DEFAULT: 'send email to all users'
-  * @param  $message_mode How to send emails (to, cc, bcc)
-  *         OPTIONAL      DEFAULT: 'bcc'
-  */
-function show_button_mailto($message_mode = 'bcc', $user_ids = null,
-    $button_text = L10N_SEND_EMAIL_TO_ALL_USERS) {
-
-  // Build and store email list formatted as 'mailto:'
-  $mailto_list = build_mailto_list($message_mode, $user_ids);
-
-  // Show mass mail button (only if email addresses were provided)
-  if($mailto_list != false)
-    echo "
-      <form>
-        <button id='button-email'
-          onclick=\"window.location.href='$mailto_list'\">$button_text</button>
-      </form>";
-}
-
-/**
   * Build CSV file
   *
   * Creates a file containing provided array data as comma separated values
@@ -783,6 +788,30 @@ function delete_folder_content($folder) {
   */
 function build_table_user_data($user_data) {
   $data_choices = $_SESSION['data_choices'];
+
+  if($_SESSION['filters_set']) {
+    echo "<br><span style='color: red;'>Display filtered by ";
+
+    foreach($_SESSION['filters_set'] as $filter)
+      switch($filter) {
+        case 'filter_group_choice':
+          echo "group {$_SESSION['filter_group']}";
+          $preceding = true;
+          break;
+        case 'filter_lastLogin_choice':
+          if($preceding)
+            echo " <b>and</b> ";
+          echo "last login between {$_SESSION['filter_ll_since']} and {$_SESSION['filter_ll_before']} (incl. last day)";
+          $preceding = true;
+          break;
+        case 'filter_quota_choice':
+          if($preceding)
+            echo " <b>and</b> ";
+          echo "quota usage over {$_SESSION['filter_quota']} GB";
+          break;
+      }
+    echo "<br><br></span>";
+  }
 
   // Define HTML table and set header cell content
   $table_user_data_headers = '<table class="list"><tr>';
@@ -933,30 +962,6 @@ function build_table_groupfolder_data() {
   $table_groupfolder_data .= "</table>";
 
   return $table_groupfolder_data_headers . $table_groupfolder_data;
-}
-
-function filter_email() {
-
-  $uids_g = $_POST['recipients'] == 'group'
-    ? select_data_all_users_filter('groups', $_POST['group_selected'])
-    : $_SESSION['userlist'];
-
-  $uids_l = $_POST['select_limit_login']
-    ? select_data_all_users_filter('lastLogin', $_POST['lastlogin_since'],
-        $_POST['lastlogin_before'])
-    : $_SESSION['userlist'];
-
-  $uids_q = $_POST['select_limit_quota']
-    ? $user_ids_quota = select_data_all_users_filter('used',$_POST['quota_used'])
-    : $_SESSION['userlist'];
-
-  $user_ids = array_intersect($_SESSION['userlist'], $uids_g, $uids_l, $uids_q);
-
-  if(!$user_ids)
-    exit('No users found matching these filter settings');
-
-  header("Location: ".build_mailto_list($_SESSION['message_mode'], $user_ids));
-
 }
 
 /**
