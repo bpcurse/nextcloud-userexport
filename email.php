@@ -51,29 +51,24 @@
       echo "</td></tr>
             <tr><td style='padding-bottom: 1em;'><u>".L10N_SEND_TO."</u></td>
                 <td style='padding: 0.3em; padding-bottom: 1em;'><input type='radio' name='recipients' value='all_users' checked>
-                  <label for='recipients'>".L10N_ALL_USERS."</label></td>
-            </tr>
-            <tr><td>".L10N_LIMIT_TO."</td>
-                <td style='padding: 0.3em;'><input type='checkbox' name='select_limit_group' value='true'>
+                  <label for='recipients'>".L10N_ALL_USERS."</label>
+                  <input type='radio' name='recipients' value='group'>
                   <label for='group'>".L10N_GROUP."</label>
                   <select name='group_selected' id=group_selected>
                     <option value='' selected>-- ".L10N_SELECT_GROUP." --</option>";
-
-              foreach($_SESSION['grouplist'] as $item)
-                echo "<option value='$item'>$item</option>";
-
-            echo "</select></td></tr>";
-
-      echo "<tr><td></td>
-                <td style='padding: 0.3em;'><input type='checkbox' name='select_limit_login' value='true'>
-                  <label for='login'>".L10N_USERS_W_LL_BETWEEN." </label>
+                    foreach($_SESSION['grouplist'] as $item)
+                      echo "<option value='$item'>$item</option>";
+      echo "</select></td></tr>
+            <tr><td><u>".L10N_LIMIT_TO."<u></td>
+                  <td style='padding: 0.3em;'><input type='checkbox' name='select_limit_login' value='true'>
+                  <label for='login'>".L10N_LAST_LOGIN_BETWEEN." </label>
                   <input type=date name='lastlogin_since'>
                   ".L10N_AND."
                   <input type=date name='lastlogin_before' value='".date('Y-m-d')."'></td>
             </tr>
             <tr><td></td>
                 <td style='padding: 0.3em;'><input type='checkbox' name='select_limit_quota' value='true'>
-                  <label for='quota_used'>".L10N_USERS_W_QUOTA_OVER." </label>
+                  <label for='quota_used'>".L10N_QUOTA_USAGE_OVER." </label>
                   <input style='width: 6em;' type=number min=0.5 step=0.5 name='quota_used' value=25> GB
             </tr>
             </table>";

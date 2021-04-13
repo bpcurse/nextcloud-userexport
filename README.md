@@ -59,7 +59,7 @@ All tables can be sorted by clicking on the column headers (although not by size
 ### `Email`
 - Select send mode ('bcc', 'cc' or 'to')
 - Select all users or a specific group from the dropdown list
-- Set filters
+- Set filters (can be combined)
   - last login between two dates (including the selected days)
   - quota usage over a certain amount of Gigabytes (selectable in 0.5 GB steps)
 

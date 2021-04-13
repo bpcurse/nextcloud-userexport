@@ -105,6 +105,11 @@ body {
 }
 
 input[type="radio"] {
+  margin-top: -2px;
+  vertical-align: middle;
+}
+
+input[type="checkbox"] {
   margin-top: -1px;
   vertical-align: middle;
 }
