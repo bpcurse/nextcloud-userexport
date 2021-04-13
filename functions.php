@@ -412,12 +412,7 @@ function select_data_single_user(
 
       // Filter/format different data sets
       switch($item) {
-        case 'id':
-        case 'displayname':
-          $selected_data[] = $format != 'utf8'
-            // Apply utf8_decode on ID and displayname
-            ? utf8_decode($item_data) : $item_data;
-          break;
+
         // Convert email data set to lowercase
         case 'email':
           $selected_data[] = $item_data == null ? '-' : strtolower($item_data);
@@ -443,12 +438,10 @@ function select_data_single_user(
         case 'used':
         case 'free':
           $item_data = $data['ocs']['data']['quota'][$item];
-          $selected_data[] = $format != 'utf8'
-            ? (in_array($item_data, [-3, 'none'], true)
-              ? '&infin;'
-              : format_size($item_data))
-            : (in_array($item_data, [-3, 'none'], true)
-              ? '∞'
+          $selected_data[] = in_array($item_data, [-3, 'none'], true)
+            ? '∞'
+            : ($format != 'utf8'
+              ? format_size($item_data)
               : $item_data);
           break;
         // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
@@ -456,7 +449,7 @@ function select_data_single_user(
         case 'groups':
           $selected_data[] = empty($item_data) ? '-'
             : ($format != 'utf8'
-              ? utf8_decode(build_csv_line($item_data, false, $csv_delimiter))
+              ? build_csv_line($item_data, false, $csv_delimiter)
               : build_csv_line($item_data));
           break;
         case 'locale':
@@ -536,9 +529,7 @@ function select_group_members($group, $format = null) {
     // Call select_data function to filter/format request data
     $data = $_SESSION['raw_user_data'][$key];
     if(in_array($group, $data['ocs']['data']['groups']))
-      $group_members[] = $format == 'utf8'
-        ? [$user_id, $data['ocs']['data']['displayname']]
-        : array_map('utf8_decode', [$user_id, $data['ocs']['data']['displayname']]);
+      $group_members[] = [$user_id, $data['ocs']['data']['displayname']];
   }
   return $group_members;
 }
@@ -883,7 +874,7 @@ function build_table_group_data() {
       ? '-'
       : build_csv_line(array_column($members, 1), false, ', ');
 
-    $table_group_data .= "<tr><td>".utf8_decode($grouplist[$row])."</td>
+    $table_group_data .= "<tr><td>".$grouplist[$row]."</td>
       <td style='text-align: right;'>$members_count</td>
       <td>$user_ids</td><td>$user_displaynames</td></tr>";
   }
@@ -916,7 +907,7 @@ function build_table_groupfolder_data() {
 
   // Iterate through collected user data by row and column, build HTML table
   foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
-    $groups = utf8_decode(build_csv_line($groupfolder['groups'], true, ', '));
+    $groups = build_csv_line($groupfolder['groups'], true, ', ');
 
     $manager = null;
     foreach($groupfolder['manage'] as $item)
@@ -929,7 +920,7 @@ function build_table_groupfolder_data() {
     $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100,2);
 
     $table_groupfolder_data .= "<tr><td>".utf8_decode($groupfolder['id'])."</td>
-      <td>".utf8_decode($groupfolder['mount_point'])."</td>
+      <td>".$groupfolder['mount_point']."</td>
       <td>$groups</td>
       <td class='align_r'>".format_size($groupfolder['size'])."</td>
       <td class='align_r'>".round($percent_used, 1)."</td>
@@ -1084,7 +1075,7 @@ function build_group_data($array = null, $format = null, $delimiter = ', ') {
     if($array == 'array')
       $group_data[$row+1] = [$grouplist[$row], $user_ids, $user_displaynames];
     else
-      $group_data .= utf8_decode($grouplist[$row]).$delimiter.'"'.$user_ids.'"'
+      $group_data .= $grouplist[$row].$delimiter.'"'.$user_ids.'"'
         .$delimiter.'"'.$user_displaynames.'"<br>';
   }
   return $group_data;
@@ -1128,7 +1119,7 @@ function build_groupfolder_data($array = null) {
       format_size($groupfolder['quota']),$acl,$manager];
 
     if(!$array)
-      $groupfolder_return_data .= utf8_decode(build_csv_line($groupfolder_data))."<br>";
+      $groupfolder_return_data .= build_csv_line($groupfolder_data)."<br>";
     else
       $groupfolder_return_data[] = $groupfolder_data;
   }

@@ -18,6 +18,7 @@
 
   <head>
     <link rel="stylesheet" type="text/css" href="style.php">
+    <meta charset="UTF-8">
     <title>Nextcloud Userexport</title>
   </head>
 
