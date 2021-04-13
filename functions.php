@@ -412,12 +412,7 @@ function select_data_single_user(
 
       // Filter/format different data sets
       switch($item) {
-        case 'id':
-        case 'displayname':
-          $selected_data[] = $format != 'utf8'
-            // Apply utf8_decode on ID and displayname
-            ? utf8_decode($item_data) : $item_data;
-          break;
+
         // Convert email data set to lowercase
         case 'email':
           $selected_data[] = $item_data == null ? '-' : strtolower($item_data);
@@ -443,12 +438,10 @@ function select_data_single_user(
         case 'used':
         case 'free':
           $item_data = $data['ocs']['data']['quota'][$item];
-          $selected_data[] = $format != 'utf8'
-            ? (in_array($item_data, [-3, 'none'], true)
-              ? '&infin;'
-              : format_size($item_data))
-            : (in_array($item_data, [-3, 'none'], true)
-              ? '∞'
+          $selected_data[] = in_array($item_data, [-3, 'none'], true)
+            ? '∞'
+            : ($format != 'utf8'
+              ? format_size($item_data)
               : $item_data);
           break;
         // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
@@ -456,7 +449,7 @@ function select_data_single_user(
         case 'groups':
           $selected_data[] = empty($item_data) ? '-'
             : ($format != 'utf8'
-              ? utf8_decode(build_csv_line($item_data, false, $csv_delimiter))
+              ? build_csv_line($item_data, false, $csv_delimiter)
               : build_csv_line($item_data));
           break;
         case 'locale':
@@ -470,6 +463,54 @@ function select_data_single_user(
     }
   }
   return $selected_data;
+}
+
+/**
+* TODO
+*/
+function select_data_all_users_filter($filter_by, $condition1, $condition2 = null) {
+
+  foreach ($_SESSION['userlist'] as $key => $user_id) {
+
+    if($filter_by == 'quota' || $filter_by == 'used' || $filter_by == 'free')
+      $item_data = $_SESSION['raw_user_data'][$key]['ocs']['data']['quota'][$filter_by];
+    else
+      $item_data = $_SESSION['raw_user_data'][$key]['ocs']['data'][$filter_by];
+
+    switch ($filter_by) {
+
+      case 'quota':
+      case 'used':
+      case 'free':
+        if($item_data > $condition1 * 1000000000)
+          $selected_user_ids[] = $user_id;
+        break;
+
+      case 'lastLogin':
+        $lastLogin = substr($item_data, 0, 10);
+
+        if(!$condition1)
+          $condition1 = "1970-01-01";
+
+        if(!$condition2)
+          $condition2 = date('Y-m-d');
+
+        if($lastLogin >= strtotime($condition1) && $lastLogin <= strtotime($condition2.' +1 day'))
+          $selected_user_ids[] = $user_id;
+        break;
+
+      case 'groups':
+      case 'subadmin':
+        if(in_array($condition1, $item_data))
+          $selected_user_ids[] = $user_id;
+
+      default:
+        if($item_data == $condition1)
+          $selected_user_ids[] = $user_id;
+    }
+  }
+
+  return $selected_user_ids;
 }
 
 /**
@@ -488,9 +529,7 @@ function select_group_members($group, $format = null) {
     // Call select_data function to filter/format request data
     $data = $_SESSION['raw_user_data'][$key];
     if(in_array($group, $data['ocs']['data']['groups']))
-      $group_members[] = $format == 'utf8'
-        ? [$user_id, $data['ocs']['data']['displayname']]
-        : array_map('utf8_decode', [$user_id, $data['ocs']['data']['displayname']]);
+      $group_members[] = [$user_id, $data['ocs']['data']['displayname']];
   }
   return $group_members;
 }
@@ -615,20 +654,19 @@ function print_status_overview($scope = 'quick') {
   * @param  $message_mode How to send emails (to, cc, bcc)
   *         OPTIONAL      DEFAULT: 'bcc'
   */
-function show_button_mailto($message_mode = 'bcc', $user_data = null,
-  $button_text = L10N_SEND_EMAIL_TO_ALL_USERS) {
+function show_button_mailto($message_mode = 'bcc', $user_ids = null,
+    $button_text = L10N_SEND_EMAIL_TO_ALL_USERS) {
 
   // Build and store email list formatted as 'mailto:'
-  $mailto_list = build_mailto_list($user_data, $message_mode);
+  $mailto_list = build_mailto_list($message_mode, $user_ids);
 
   // Show mass mail button (only if email addresses were provided)
   if($mailto_list != false)
-    echo '
+    echo "
       <form>
-        <input id="button-email" type="button"
-          onclick="window.location.href = \''.$mailto_list.
-          '\'" value="'.$button_text.'"/>
-      </form>';
+        <button id='button-email'
+          onclick=\"window.location.href='$mailto_list'\">$button_text</button>
+      </form>";
 }
 
 /**
@@ -836,7 +874,7 @@ function build_table_group_data() {
       ? '-'
       : build_csv_line(array_column($members, 1), false, ', ');
 
-    $table_group_data .= "<tr><td>".utf8_decode($grouplist[$row])."</td>
+    $table_group_data .= "<tr><td>".$grouplist[$row]."</td>
       <td style='text-align: right;'>$members_count</td>
       <td>$user_ids</td><td>$user_displaynames</td></tr>";
   }
@@ -869,7 +907,7 @@ function build_table_groupfolder_data() {
 
   // Iterate through collected user data by row and column, build HTML table
   foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
-    $groups = utf8_decode(build_csv_line($groupfolder['groups'], true, ', '));
+    $groups = build_csv_line($groupfolder['groups'], true, ', ');
 
     $manager = null;
     foreach($groupfolder['manage'] as $item)
@@ -882,7 +920,7 @@ function build_table_groupfolder_data() {
     $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100,2);
 
     $table_groupfolder_data .= "<tr><td>".utf8_decode($groupfolder['id'])."</td>
-      <td>".utf8_decode($groupfolder['mount_point'])."</td>
+      <td>".$groupfolder['mount_point']."</td>
       <td>$groups</td>
       <td class='align_r'>".format_size($groupfolder['size'])."</td>
       <td class='align_r'>$percent_used</td>
@@ -893,6 +931,30 @@ function build_table_groupfolder_data() {
   $table_groupfolder_data .= "</table>";
 
   return $table_groupfolder_data_headers . $table_groupfolder_data;
+}
+
+function filter_email() {
+
+  $uids_g = $_POST['select_limit_group']
+    ? select_data_all_users_filter('groups', $_POST['group_selected'])
+    : $_SESSION['userlist'];
+
+  $uids_l = $_POST['select_limit_login']
+    ? select_data_all_users_filter('lastLogin', $_POST['lastlogin_since'],
+        $_POST['lastlogin_before'])
+    : $_SESSION['userlist'];
+
+  $uids_q = $_POST['select_limit_quota']
+    ? $user_ids_quota = select_data_all_users_filter('used',$_POST['quota_used'])
+    : $_SESSION['userlist'];
+
+  $user_ids = array_intersect($_SESSION['userlist'], $uids_g, $uids_l, $uids_q);
+
+  if(!$user_ids)
+    exit('No users found matching these filter settings');
+
+  header("Location: ".build_mailto_list($_SESSION['message_mode'], $user_ids));
+
 }
 
 /**
@@ -906,30 +968,43 @@ function build_table_groupfolder_data() {
   * @return $mailto_list  Exported emails as mailto: string for mass mailing
   *
   */
-function build_mailto_list($user_data = null, $message_mode = 'bcc') {
-  $user_data = $user_data ?? $_SESSION['raw_user_data'];
+function build_mailto_list($message_mode = 'bcc', $user_ids = null) {
 
-  // Begin if 'email' key is present
-  if($user_data[0]['ocs']['data']['email']) {
-    // Initiate construction of mailto string, setting 'to:', 'cc:' or 'bcc:'
-    $mailto_list = "mailto:?$message_mode=";
-    // Iterate through collected user data and add email addresses
-    for($row = 0; $row < sizeof($user_data); $row++) {
-      $user_email = $user_data[$row]['ocs']['data']['email'];
+  $user_data = $_SESSION['raw_user_data'];
+
+  // Initiate construction of mailto string, setting 'to:', 'cc:' or 'bcc:'
+  $mailto_list = "mailto:?$message_mode=";
+
+  if(!$user_ids) {
+
+    // Iterate through user data and add email addresses
+    foreach($user_data as $key => $item) {
+      $user_email = $item['ocs']['data']['email'];
       if ($user_email == 'N/A')
         continue;
-      if ($row == 0)
+      if ($key == 0)
         $mailto_list .= $user_email;
       else
         $mailto_list .= ',' . $user_email;
     }
-    // Set email subject
-    $mailto_list .= "&subject=".L10N_SUBJECT_ALL_USER_MAIL;
-    return $mailto_list;
-  } else {
-    // Return false if mailto list has not been constructed due to missing email data
-    return false;
+
   }
+  else {
+    foreach($user_data as $key => $item) {
+      if(in_array($item['ocs']['data']['id'], $user_ids)) {
+        $user_email = $item['ocs']['data']['email'];
+        if ($user_email == 'N/A')
+          continue;
+        if ($key == 0)
+          $mailto_list .= $user_email;
+        else
+          $mailto_list .= ',' . $user_email;
+      }
+    }
+  }
+
+  return $mailto_list;
+
 }
 
 /**
@@ -1000,7 +1075,7 @@ function build_group_data($array = null, $format = null, $delimiter = ', ') {
     if($array == 'array')
       $group_data[$row+1] = [$grouplist[$row], $user_ids, $user_displaynames];
     else
-      $group_data .= utf8_decode($grouplist[$row]).$delimiter.'"'.$user_ids.'"'
+      $group_data .= $grouplist[$row].$delimiter.'"'.$user_ids.'"'
         .$delimiter.'"'.$user_displaynames.'"<br>';
   }
   return $group_data;
@@ -1047,7 +1122,7 @@ function build_groupfolder_data($array = null) {
       format_size($groupfolder['quota']),$acl,$manager];
 
     if(!$array)
-      $groupfolder_return_data .= utf8_decode(build_csv_line($groupfolder_data))."<br>";
+      $groupfolder_return_data .= build_csv_line($groupfolder_data)."<br>";
     else
       $groupfolder_return_data[] = $groupfolder_data;
   }
