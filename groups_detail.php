@@ -10,15 +10,21 @@
   $display_or_download = $_POST['submit'];
 
   if($display_or_download == "download") {
+
     // Set filename or create one depending on GET parameters
     if($filename_download == null)
       $filename_download = "nextcloud-grouplist_".date('Y-m-d_Hi').".csv";
 
-    // Create and populate CSV file with selected group data and set filename variable
-    $filename = build_csv_file(build_group_data('array','utf8',','),
-      'group,members,loginID,displayname');
+    // Set default column headers or no column headers depending on selection
+    $headers = $_POST['csv_headers'] == 'default'
+      ? 'group,loginID,displayname'
+      : 'no_headers';
 
-    download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
+    // Create and populate CSV file with selected group data and set filename variable
+    $file = build_csv_file(build_group_data('array', 'utf8', ','), $headers);
+
+    // Start download using supplied or generated filename
+    download_file($file, $mime_type, $filename_download, TEMP_FOLDER);
     exit();
   }
 

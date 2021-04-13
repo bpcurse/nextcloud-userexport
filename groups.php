@@ -35,6 +35,14 @@
     <br><br>
     <button id="button-display" type='submit' name='submit'
       value='display'><?php echo L10N_DISPLAY ?></button>
+    <br><br><br>
+    <u><?php echo L10N_COLUMN_HEADERS ?></u>
+    <input type='radio' name='csv_headers' value='default'
+      <?php if ($csv_headers == 'true' || $csv_headers === null)
+        echo 'checked=\"checked\"'; ?>> <?php echo L10N_YES ?>
+    <input type='radio' name='csv_headers' value='no_headers'
+      <?php if ($csv_headers == 'false')
+        echo 'checked=\"checked\"'; ?>> <?php echo L10N_NO ?>
     <br><br>
     <button id="button-download" type='submit' name='submit'
       value='download'><?php echo L10N_DOWNLOAD_CSV ?></button>

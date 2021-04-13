@@ -74,3 +74,6 @@
   define('L10N_USERS_W_LL_BETWEEN','Benutzer mit letzter Anmeldung zwischen');
   define('L10N_AND','und');
   define('L10N_USERS_W_QUOTA_OVER','Benutzer mit Speichernutzung über');
+  define('L10N_YES','Ja');
+  define('L10N_NO','Nein');
+  define('L10N_COLUMN_HEADERS','Spaltenüberschriften');
