@@ -78,5 +78,4 @@
   define('L10N_YES','Yes');
   define('L10N_NO','No');
   define('L10N_COLUMN_HEADERS','Column headers');
-
-// EOF
+  define('L10N_CREATE_LIST','Create list');

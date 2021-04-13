@@ -74,7 +74,7 @@
             </table>";
 
       echo "<br><input id='button-email' type='submit' name='submit'
-              value='Create list'>
+              value='".L10N_CREATE_LIST."'>
             </form>";
 
     ?>
