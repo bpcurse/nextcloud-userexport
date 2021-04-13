@@ -510,8 +510,10 @@ function select_data_all_users_filter($filter_by, $condition1, $condition2 = nul
     }
   }
 
+  if(!$selected_user_ids)
+    $selected_user_ids = [''];
   return $selected_user_ids;
-}
+  }
 
 /**
 * Find all users belonging to a given group an return an array containing userID and displayname
@@ -935,7 +937,7 @@ function build_table_groupfolder_data() {
 
 function filter_email() {
 
-  $uids_g = $_POST['select_limit_group']
+  $uids_g = $_POST['recipients'] == 'group'
     ? select_data_all_users_filter('groups', $_POST['group_selected'])
     : $_SESSION['userlist'];
 

@@ -72,9 +72,9 @@
   define('L10N_ALL_USERS','All users');
   define('L10N_LIMIT_TO','Limit to:');
   define('L10N_SELECT_GROUP','select group');
-  define('L10N_USERS_W_LL_BETWEEN','Users with last login between');
+  define('L10N_LAST_LOGIN_BETWEEN','Last login between');
   define('L10N_AND','and');
-  define('L10N_USERS_W_QUOTA_OVER','Users with with quota usage over');
+  define('L10N_QUOTA_USAGE_OVER','Quota usage over');
   define('L10N_YES','Yes');
   define('L10N_NO','No');
   define('L10N_COLUMN_HEADERS','Column headers');

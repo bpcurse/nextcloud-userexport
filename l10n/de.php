@@ -71,9 +71,9 @@
   define('L10N_ALL_USERS','Alle Benutzer');
   define('L10N_LIMIT_TO','Beschränken auf:');
   define('L10N_SELECT_GROUP','Gruppe auswählen');
-  define('L10N_USERS_W_LL_BETWEEN','Benutzer mit letzter Anmeldung zwischen');
+  define('L10N_LAST_LOGIN_BETWEEN','Letzte Anmeldung zwischen');
   define('L10N_AND','und');
-  define('L10N_USERS_W_QUOTA_OVER','Benutzer mit Speichernutzung über');
+  define('L10N_QUOTA_USAGE_OVER','Speichernutzung über');
   define('L10N_YES','Ja');
   define('L10N_NO','Nein');
   define('L10N_COLUMN_HEADERS','Spaltenüberschriften');
