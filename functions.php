@@ -83,6 +83,7 @@ function check_https($input_url) {
 
     // Check if plain HTTP is used without override command and exit if not
     case 'http:':
+      header('Content-Type: text/html; charset=utf-8');
       exit('<font color="red" face="Helvetica"><hr>
           <b>' . L10N_HTTP_IS_BLOCKED . '</b>
           <br>' . L10N_HTTPS_RECOMMENDATION . '
@@ -133,6 +134,7 @@ function check_curl_response($ch, $data) {
     // Iterate through common cURL error codes, exit and return custom error messages or default message
     switch (curl_errno($ch)) {
       case 6:
+        header('Content-Type: text/html; charset=utf-8');
         exit('
           <font color="red">
             <hr>
@@ -142,6 +144,7 @@ function check_curl_response($ch, $data) {
             <hr>'.L10N_ERROR_CURL_CONNECTION.'
           </font>');
       case 51:
+        header('Content-Type: text/html; charset=utf-8');
         exit('
           <font color="red">
             <hr>
@@ -152,6 +155,7 @@ function check_curl_response($ch, $data) {
             '.L10N_ERROR_URL.'
           </font>');
       default:
+        header('Content-Type: text/html; charset=utf-8');
         exit('
           <font color="red">
             <hr>
@@ -163,6 +167,7 @@ function check_curl_response($ch, $data) {
   }
 
   if ($data === null) {
+    header('Content-Type: text/html; charset=utf-8');
     exit('
       <font color="red">
         <hr>
@@ -180,6 +185,7 @@ function check_curl_response($ch, $data) {
       // 100 or 200 mean OK -> break switch case and continue normal script execution
       break;
     case 404:
+      header('Content-Type: text/html; charset=utf-8');
       exit('
         <font color="red">
           <hr>
@@ -189,6 +195,7 @@ function check_curl_response($ch, $data) {
         </font>');
       break;
     case 997:
+      header('Content-Type: text/html; charset=utf-8');
       exit('
         <font color="red">
           <hr><b>'.L10N_ERROR . L10N_AUTHENTICATION.' ('.L10N_STATUSCODE.$status.')</b>
@@ -197,6 +204,7 @@ function check_curl_response($ch, $data) {
           <hr>'.L10N_HINT_ADMIN_OR_GROUP_ADMIN.'
         </font>');
     default:
+      header('Content-Type: text/html; charset=utf-8');
       exit('
         <font color="red">
           <hr>
@@ -962,6 +970,32 @@ function build_table_groupfolder_data() {
   $table_groupfolder_data .= "</table>";
 
   return $table_groupfolder_data_headers . $table_groupfolder_data;
+}
+
+function filter_email() {
+
+  $uids_g = $_POST['recipients'] == 'group'
+    ? select_data_all_users_filter('groups', $_POST['group_selected'])
+    : $_SESSION['userlist'];
+
+  $uids_l = $_POST['select_limit_login']
+    ? select_data_all_users_filter('lastLogin', $_POST['lastlogin_since'],
+        $_POST['lastlogin_before'])
+    : $_SESSION['userlist'];
+
+  $uids_q = $_POST['select_limit_quota']
+    ? $user_ids_quota = select_data_all_users_filter('used',$_POST['quota_used'])
+    : $_SESSION['userlist'];
+
+  $user_ids = array_intersect($_SESSION['userlist'], $uids_g, $uids_l, $uids_q);
+
+  if(!$user_ids) {
+    header('Content-Type: text/html; charset=utf-8');
+    exit('No users found matching these filter settings');
+  }
+
+  header("Location: ".build_mailto_list($_SESSION['message_mode'], $user_ids));
+
 }
 
 /**

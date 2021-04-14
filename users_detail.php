@@ -8,13 +8,18 @@
 
   // Filter POST array and save keys with value 'true' as constant
   $_SESSION['data_choices'] = array_keys($_POST,'true');
-  if(!$_SESSION['data_choices'])
+
+  if(!$_SESSION['data_choices']) {
+    header('Content-Type: text/html; charset=utf-8');
     exit(L10N_ERROR . L10N_SELECT_AT_LEAST_ONE_COLUMN . L10N_RETURN_TO_FORM);
+  }
+    
   $_SESSION['filters_set'] = array_keys($_POST, 'set_filter');
   $_SESSION['filter_group'] = $_POST['filter_group'] ?? null;
   $_SESSION['filter_ll_since'] = $_POST['filter_ll_since'] ?? null;
   $_SESSION['filter_ll_before'] = $_POST['filter_ll_before'] ?? null;
   $_SESSION['filter_quota'] = $_POST['filter_quota'] ?? null;
+
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
 
@@ -73,8 +78,10 @@
     <?php
 
     include 'navigation.php';
+    
     if(!$_SESSION['authenticated']) {
-      exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
+      header('Content-Type: text/html; charset=utf-8');
+      exit('<br>'.L10N_CONNECTION_NEEDED);
     }
 
     print_status_overview();

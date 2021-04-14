@@ -5,16 +5,25 @@
   require_once 'functions.php';
   include_once 'config.php';
 
-  // Set UI language to config value or to english, if it is not configured
-  $_SESSION['language'] = $language ?? 'en';
-  require_once 'l10n/'.$_SESSION['language'].'.php';
-
   /**
   * Get parameters if any, set defaults
   */
   if($_GET['logout']) {
-    session_unset();
-    include 'config.php';
+
+    unset($_SESSION['data_choices']);
+    unset($_SESSION['userlist']);
+    unset($_SESSION['grouplist']);
+    unset($_SESSION['raw_user_data']);
+    unset($_SESSION['raw_groupfolders_data']);
+    unset($_SESSION['user_name']);
+    unset($_SESSION['user_pass']);
+    unset($_SESSION['target_url']);
+
+    session_destroy();
+    session_write_close();
+    setcookie(session_name(),'',0,'/');
+    
+    header('Location: index.php');
   }
 
   $target_url = filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL)
@@ -23,6 +32,14 @@
     ?? $user_name;
   $user_pass = $_GET['pass']
     ?? $user_pass;
+
+  // Set UI language to config value or to english, if it is not configured
+  $_SESSION['language'] = $language ?? 'en';
+  require_once 'l10n/'.$_SESSION['language'].'.php';
+  $target_url = $_GET['url']
+    ?? filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL);
+  $user_name = $_GET['user'];
+  $user_pass = $_GET['pass'];
 
   $_SESSION['data_choices'] = isset($_GET["select"])
     ? explode(",", $_GET["select"])
@@ -54,7 +71,7 @@
       $_SESSION['user_count'] = count($_SESSION['userlist']);
       $_SESSION['group_count'] = count($_SESSION['grouplist']);
       $_SESSION['groupfolders_count'] =
-        $_SESSION['groupfolders_active'] == true
+          $_SESSION['groupfolders_active'] == true
         ? count($_SESSION['raw_groupfolders_data']['ocs']['data'])
         : null;
     }

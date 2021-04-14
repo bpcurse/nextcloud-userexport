@@ -9,7 +9,7 @@
 // Default username
 // $user_name = 'someuser';
 
-// Default password (NOT RECOMMENDED)
+// Default password (NOT RECOMMENDED - DANGEROUS)
 // $user_pass = 'goodpassword';
 
 /**
@@ -45,6 +45,9 @@ define('TEMP_FOLDER', 'export_temp');
 
 // $navigation_current_background_color = '';
 // $navigation_current_text_color = '';
+
+// $navigation_hover_background_color = '';
+// $navigation_hover_text_color = '';
 
 /** Buttons **/
 

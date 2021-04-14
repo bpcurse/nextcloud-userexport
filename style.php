@@ -11,6 +11,7 @@
     $navigation_text_color = 'white';
 
     $navigation_hover_background_color = '#8097b9';
+    $navigation_hover_text_color = 'white';
 
     $navigation_current_background_color = '#d56e2d';
     $navigation_current_text_color = 'white';
@@ -74,6 +75,7 @@ body {
 
 #navigation li a:hover {
   background-color: <?php echo $navigation_hover_background_color ?>;
+  color: <?php echo $navigation_hover_text_color ?>;
 }
 
 #button-connect {
