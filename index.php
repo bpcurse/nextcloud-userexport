@@ -26,6 +26,13 @@
     header('Location: index.php');
   }
 
+  $target_url = filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL)
+    ?? $target_url;
+  $user_name = $_GET['user']
+    ?? $user_name;
+  $user_pass = $_GET['pass']
+    ?? $user_pass;
+
   // Set UI language to config value or to english, if it is not configured
   $_SESSION['language'] = $language ?? 'en';
   require_once 'l10n/'.$_SESSION['language'].'.php';
@@ -33,6 +40,7 @@
     ?? filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL);
   $user_name = $_GET['user'];
   $user_pass = $_GET['pass'];
+
   $_SESSION['data_choices'] = isset($_GET["select"])
     ? explode(",", $_GET["select"])
     : ['id', 'displayname', 'email', 'lastLogin'];

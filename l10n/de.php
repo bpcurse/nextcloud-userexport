@@ -77,3 +77,4 @@
   define('L10N_YES','Ja');
   define('L10N_NO','Nein');
   define('L10N_COLUMN_HEADERS','Spaltenüberschriften');
+  define('L10N_CREATE_LIST','Liste erstellen');

@@ -13,9 +13,19 @@
     header('Content-Type: text/html; charset=utf-8');
     exit(L10N_ERROR . L10N_SELECT_AT_LEAST_ONE_COLUMN . L10N_RETURN_TO_FORM);
   }
+    
+  $_SESSION['filters_set'] = array_keys($_POST, 'set_filter');
+  $_SESSION['filter_group'] = $_POST['filter_group'] ?? null;
+  $_SESSION['filter_ll_since'] = $_POST['filter_ll_since'] ?? null;
+  $_SESSION['filter_ll_before'] = $_POST['filter_ll_before'] ?? null;
+  $_SESSION['filter_quota'] = $_POST['filter_quota'] ?? null;
 
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];
+
+  $userlist = $_SESSION['filters_set']
+    ? filter_users()
+    : $_SESSION['userlist'];
 
   if($display_or_download == 'download') {
 
@@ -25,7 +35,7 @@
 
     // Create and populate CSV file with selected user data and set filename variable
     $filename = build_csv_file(select_data_all_users(
-        $_SESSION['data_choices'], 'utf8'), $_POST['csv_headers']);
+        $_SESSION['data_choices'], $userlist, 'utf8'), $_POST['csv_headers']);
 
     download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
     exit();
@@ -80,9 +90,9 @@
       * Display results page either as HTML table or comma separated values (CSV)
       */
     if($export_type == 'table')
-      echo build_table_user_data(select_data_all_users());
+      echo build_table_user_data(select_data_all_users(null, $userlist));
     else
-      echo build_csv_user_data(select_data_all_users(null, null, ','));
+      echo build_csv_user_data(select_data_all_users(null, $userlist, null, ','));
 
     ?>
   </body>
