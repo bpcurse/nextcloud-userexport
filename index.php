@@ -16,15 +16,20 @@
     session_unset();
     include 'config.php';
   }
-  $target_url = $_GET['url']
-    ?? filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL);
-  $user_name = $_GET['user'];
-  $user_pass = $_GET['pass'];
+
+  $target_url = filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL)
+    ?? $target_url;
+  $user_name = $_GET['user']
+    ?? $user_name;
+  $user_pass = $_GET['pass']
+    ?? $user_pass;
+
   $_SESSION['data_choices'] = isset($_GET["select"])
     ? explode(",", $_GET["select"])
     : ['id', 'displayname', 'email', 'lastLogin'];
   $_SESSION['export_type'] = $_GET['type'] ?? 'table';
   $_SESSION['message_mode'] = $_GET['msg_mode'] ?? 'bcc';
+
   set_data_options();
 
   if($_SERVER['REQUEST_METHOD'] == 'POST') {
