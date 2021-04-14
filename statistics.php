@@ -1,9 +1,11 @@
 <?php
 
-  session_start();
   $active_page = 'statistics';
   require_once 'functions.php';
   include_once 'config.php';
+
+  session_secure_start();
+
   require_once 'l10n/'.$_SESSION['language'].'.php';
 
   echo "<html lang='{$_SESSION['language']}'>"

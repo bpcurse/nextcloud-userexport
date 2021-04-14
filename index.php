@@ -1,9 +1,10 @@
 <?php
 
-  session_start();
   $active_page = "index";
   require_once 'functions.php';
   include_once 'config.php';
+
+  session_secure_start();
 
   /**
   * Get parameters if any, set defaults
@@ -22,8 +23,9 @@
     session_destroy();
     session_write_close();
     setcookie(session_name(),'',0,'/');
-    
+
     header('Location: index.php');
+
   }
 
   $target_url = filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL)
@@ -82,6 +84,7 @@
     calculate_quota();
   }
 
+  set_security_headers();
   echo "<html lang='{$_SESSION['language']}'>";
 
 ?>

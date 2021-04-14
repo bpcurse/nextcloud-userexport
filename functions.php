@@ -418,7 +418,7 @@ function select_data_single_user(
       $item_data = $item == 'percentage_used'
         ? (in_array($quota, [-3, 0, 'none'])
           ? 'N/A'
-          : round(($used / $quota * 100), 1))
+          : round($used / $quota * 100, 1))
         : $data['ocs']['data'][$item];
 
       // Filter/format different data sets
@@ -859,11 +859,11 @@ function build_table_user_data($user_data) {
     for($col = 0; $col < sizeof($user_data[$row]); $col++) {
       $selected_data = $user_data[$row][$col];
 
-      $color_text = ($selected_data === 'N/A')
+      $color_text = $selected_data === 'N/A'
         ? ' color: grey;'
         : ' color: unset;';
 
-      $align = (in_array($col, $keypos_right_align, true))
+      $align = in_array($col, $keypos_right_align, true)
         ? 'text-align: right; white-space: nowrap;'
         : (in_array($col, $keypos_center_align, true)
           ? 'text-align: center;'
@@ -946,23 +946,28 @@ function build_table_groupfolder_data() {
 
   // Iterate through collected user data by row and column, build HTML table
   foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
+
     $groups = build_csv_line($groupfolder['groups'], true, ', ');
 
-    $manager = null;
-    foreach($groupfolder['manage'] as $item)
-      $manager = $item['id'];
+    $manager = build_csv_line($groupfolder['manage'], false, ', ', 'id', 'type');
 
-    $acl = ($groupfolder['acl'])
+    $acl = $groupfolder['acl']
       ? '<span style="color: green">&#10004;</span>'
       : null;
 
-    $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100,2);
+    $percent_used = $groupfolder['quota'] == -3
+      ? 'N/A'
+      : round($groupfolder['size'] / $groupfolder['quota'] * 100, 1);
+
+    $color_text = $percent_used === "N/A"
+      ? "style='color: grey;'"
+      : "";
 
     $table_groupfolder_data .= "<tr><td>".utf8_decode($groupfolder['id'])."</td>
-      <td>".$groupfolder['mount_point']."</td>
+      <td>{$groupfolder['mount_point']}</td>
       <td>$groups</td>
       <td class='align_r'>".format_size($groupfolder['size'])."</td>
-      <td class='align_r'>".round($percent_used, 1)."</td>
+      <td class='align_r'$color_text>$percent_used</td>
       <td class='align_r'>".format_size($groupfolder['quota'])."</td>
       <td class='align_c'>$acl</td>
       <td>$manager</td></tr>";
@@ -1142,9 +1147,7 @@ function build_groupfolder_data($array = null) {
   foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
     $groups = build_csv_line($groupfolder['groups'], true, ', ');
 
-    $manager = null;
-    foreach($groupfolder['manage'] as $item)
-      $manager = $item['id'];
+    $manager = build_csv_line($groupfolder['manage'], false, ', ', 'id', 'type');
 
     if(!$array)
       $acl = ($groupfolder['acl'])
@@ -1153,7 +1156,7 @@ function build_groupfolder_data($array = null) {
     else
       $acl = $groupfolder['acl'];
 
-    $percent_used = round(($groupfolder['size'] / $groupfolder['quota'] * 100),1);
+    $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100, 1);
 
     $groupfolder_data = [$groupfolder['id'],$groupfolder['mount_point'],
       $groups,format_size($groupfolder['size']),$percent_used,
@@ -1180,12 +1183,21 @@ function build_groupfolder_data($array = null) {
   * @return $csv_line   CSV formatted string
   *
   */
-function build_csv_line($array = null, $return_key = false, $delimiter = ',') {
+function build_csv_line($array = null, $return_key = false, $delimiter = ',',
+    $subarray_id = null, $subarray_type = null) {
+
   $array = $array ?? $_SESSION['data_choices'];
 
   $i = 0;
   foreach($array as $key => $item) {
-    if ($return_key)
+
+    if($subarray_id)
+      $item = $subarray_type
+        ? "{$item[$subarray_id]} ({$item[$subarray_type]})"
+        : $item[$subarray_id];
+
+
+    if($return_key)
       $csv_line .= ($i === 0)
         ? $key
         : $delimiter.$key;
@@ -1194,8 +1206,10 @@ function build_csv_line($array = null, $return_key = false, $delimiter = ',') {
         ? $item
         : $delimiter.$item;
     $i++;
+
   }
   return $csv_line;
+
 }
 
 /**
@@ -1208,10 +1222,12 @@ function build_csv_line($array = null, $return_key = false, $delimiter = ',') {
   *
   */
 function format_size($size) {
-  if ($size === 0)
+  if($size === 0)
     return "0 MB";
-  if ($size === null)
+  if($size === null)
     return '-';
+  if($size == -3)
+    return '∞ GB';
 
   $s = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
   $e = floor(log($size, 1024));
@@ -1249,4 +1265,23 @@ function random_str(
     for ($i = 0; $i < $length; ++$i)
       $pieces []= $keyspace[random_int(0, $max)];
     return implode('', $pieces);
+}
+
+function set_security_headers() {
+
+  include 'config.php';
+
+  header("X-Content-Type-Options: nosniff");
+  header("Content-Security-Policy: frame-ancestors 'self' $frame_ancestors");
+  header("X-Robots-Tag: none");
+  header("Referrer-Policy: same-origin");
+
+}
+
+function session_secure_start() {
+
+  session_set_cookie_params(
+      '3600', '/', $_SERVER['SERVER_NAME'], isset($_SERVER["HTTPS"]), true);
+  session_start();
+
 }

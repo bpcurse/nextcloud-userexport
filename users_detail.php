@@ -1,9 +1,11 @@
 <?php
 
-  session_start();
   $active_page = 'users';
   require_once 'functions.php';
   include_once 'config.php';
+
+  session_secure_start();
+
   require_once 'l10n/'.$_SESSION['language'].'.php';
 
   // Filter POST array and save keys with value 'true' as constant
@@ -13,7 +15,7 @@
     header('Content-Type: text/html; charset=utf-8');
     exit(L10N_ERROR . L10N_SELECT_AT_LEAST_ONE_COLUMN . L10N_RETURN_TO_FORM);
   }
-    
+
   $_SESSION['filters_set'] = array_keys($_POST, 'set_filter');
   $_SESSION['filter_group'] = $_POST['filter_group'] ?? null;
   $_SESSION['filter_ll_since'] = $_POST['filter_ll_since'] ?? null;
@@ -78,7 +80,7 @@
     <?php
 
     include 'navigation.php';
-    
+
     if(!$_SESSION['authenticated']) {
       header('Content-Type: text/html; charset=utf-8');
       exit('<br>'.L10N_CONNECTION_NEEDED);
