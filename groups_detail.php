@@ -65,8 +65,11 @@
     <?php
 
     include 'navigation.php';
-    if(!$_SESSION['authenticated'])
-      exit('<br>Please first connect to a server at the <a href="index.php">server</a> page!');
+
+    if(!$_SESSION['authenticated']) {
+      header('Content-Type: text/html; charset=utf-8');
+      exit('<br>'.L10N_CONNECTION_NEEDED);
+    }
 
     print_status_overview();
 

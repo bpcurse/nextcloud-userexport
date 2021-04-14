@@ -6,8 +6,10 @@
   include_once 'config.php';
   require_once 'l10n/'.$_SESSION['language'].'.php';
 
-  if(!$_SESSION['authenticated'])
+  if(!$_SESSION['authenticated']) {
+    header('Content-Type: text/html; charset=utf-8');
     exit('<br>'.L10N_CONNECTION_NEEDED);
+  }
 
   if($_POST['submit']) {
     $_SESSION['message_mode'] = $_POST['message_mode'] ?? $_SESSION['message_mode'];

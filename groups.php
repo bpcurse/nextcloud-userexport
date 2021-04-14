@@ -20,8 +20,11 @@
     <?php
 
       include 'navigation.php';
-      if(!$_SESSION['authenticated'])
+
+      if(!$_SESSION['authenticated']) {
+        header('Content-Type: text/html; charset=utf-8');
         exit('<br>'.L10N_CONNECTION_NEEDED);
+      }
 
       print_status_overview();
 
