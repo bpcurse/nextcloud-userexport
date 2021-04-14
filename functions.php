@@ -1250,3 +1250,20 @@ function random_str(
       $pieces []= $keyspace[random_int(0, $max)];
     return implode('', $pieces);
 }
+
+function set_security_headers() {
+
+  include 'config.php';
+
+  header("X-Content-Type-Options: nosniff");
+  header("Content-Security-Policy: frame-ancestors 'self' $frame_ancestors");
+  header("X-Robots-Tag: none");
+  header("Referrer-Policy: same-origin");
+
+}
+
+function session_secure_start() {
+  session_set_cookie_params(
+      '3600', '/', $_SERVER['SERVER_NAME'], isset($_SERVER["HTTPS"]), true);
+  session_start();
+}

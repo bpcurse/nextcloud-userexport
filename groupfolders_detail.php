@@ -1,9 +1,11 @@
 <?php
 
-  session_start();
   $active_page = 'groupfolders';
   require_once 'functions.php';
   include_once 'config.php';
+
+  session_secure_start();
+
   require_once 'l10n/'.$_SESSION['language'].'.php';
 
   $export_type = $_POST['export_type'];
