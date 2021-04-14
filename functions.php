@@ -418,7 +418,7 @@ function select_data_single_user(
       $item_data = $item == 'percentage_used'
         ? (in_array($quota, [-3, 0, 'none'])
           ? 'N/A'
-          : round(($used / $quota * 100), 1))
+          : round($used / $quota * 100, 1))
         : $data['ocs']['data'][$item];
 
       // Filter/format different data sets
@@ -859,11 +859,11 @@ function build_table_user_data($user_data) {
     for($col = 0; $col < sizeof($user_data[$row]); $col++) {
       $selected_data = $user_data[$row][$col];
 
-      $color_text = ($selected_data === 'N/A')
+      $color_text = $selected_data === 'N/A'
         ? ' color: grey;'
         : ' color: unset;';
 
-      $align = (in_array($col, $keypos_right_align, true))
+      $align = in_array($col, $keypos_right_align, true)
         ? 'text-align: right; white-space: nowrap;'
         : (in_array($col, $keypos_center_align, true)
           ? 'text-align: center;'
@@ -956,13 +956,19 @@ function build_table_groupfolder_data() {
       ? '<span style="color: green">&#10004;</span>'
       : null;
 
-    $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100,2);
+    $percent_used = $groupfolder['quota'] == -3
+      ? 'N/A'
+      : round($groupfolder['size'] / $groupfolder['quota'] * 100, 1);
+
+    $color_text = $percent_used === "N/A"
+      ? "style='color: grey;'"
+      : "";
 
     $table_groupfolder_data .= "<tr><td>".utf8_decode($groupfolder['id'])."</td>
-      <td>".$groupfolder['mount_point']."</td>
+      <td>{$groupfolder['mount_point']}</td>
       <td>$groups</td>
       <td class='align_r'>".format_size($groupfolder['size'])."</td>
-      <td class='align_r'>".round($percent_used, 1)."</td>
+      <td class='align_r'$color_text>$percent_used</td>
       <td class='align_r'>".format_size($groupfolder['quota'])."</td>
       <td class='align_c'>$acl</td>
       <td>$manager</td></tr>";
@@ -1153,7 +1159,7 @@ function build_groupfolder_data($array = null) {
     else
       $acl = $groupfolder['acl'];
 
-    $percent_used = round(($groupfolder['size'] / $groupfolder['quota'] * 100),1);
+    $percent_used = round($groupfolder['size'] / $groupfolder['quota'] * 100, 1);
 
     $groupfolder_data = [$groupfolder['id'],$groupfolder['mount_point'],
       $groups,format_size($groupfolder['size']),$percent_used,
@@ -1208,10 +1214,12 @@ function build_csv_line($array = null, $return_key = false, $delimiter = ',') {
   *
   */
 function format_size($size) {
-  if ($size === 0)
+  if($size === 0)
     return "0 MB";
-  if ($size === null)
+  if($size === null)
     return '-';
+  if($size == -3)
+    return '∞ GB';
 
   $s = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
   $e = floor(log($size, 1024));
