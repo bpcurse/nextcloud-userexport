@@ -946,13 +946,12 @@ function build_table_groupfolder_data() {
 
   // Iterate through collected user data by row and column, build HTML table
   foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
+
     $groups = build_csv_line($groupfolder['groups'], true, ', ');
 
-    $manager = null;
-    foreach($groupfolder['manage'] as $item)
-      $manager = $item['id'];
+    $manager = build_csv_line($groupfolder['manage'], false, ', ', 'id', 'type');
 
-    $acl = ($groupfolder['acl'])
+    $acl = $groupfolder['acl']
       ? '<span style="color: green">&#10004;</span>'
       : null;
 
@@ -1148,9 +1147,7 @@ function build_groupfolder_data($array = null) {
   foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
     $groups = build_csv_line($groupfolder['groups'], true, ', ');
 
-    $manager = null;
-    foreach($groupfolder['manage'] as $item)
-      $manager = $item['id'];
+    $manager = build_csv_line($groupfolder['manage'], false, ', ', 'id', 'type');
 
     if(!$array)
       $acl = ($groupfolder['acl'])
@@ -1186,12 +1183,21 @@ function build_groupfolder_data($array = null) {
   * @return $csv_line   CSV formatted string
   *
   */
-function build_csv_line($array = null, $return_key = false, $delimiter = ',') {
+function build_csv_line($array = null, $return_key = false, $delimiter = ',',
+    $subarray_id = null, $subarray_type = null) {
+
   $array = $array ?? $_SESSION['data_choices'];
 
   $i = 0;
   foreach($array as $key => $item) {
-    if ($return_key)
+
+    if($subarray_id)
+      $item = $subarray_type
+        ? "{$item[$subarray_id]} ({$item[$subarray_type]})"
+        : $item[$subarray_id];
+
+
+    if($return_key)
       $csv_line .= ($i === 0)
         ? $key
         : $delimiter.$key;
@@ -1200,8 +1206,10 @@ function build_csv_line($array = null, $return_key = false, $delimiter = ',') {
         ? $item
         : $delimiter.$item;
     $i++;
+
   }
   return $csv_line;
+
 }
 
 /**
@@ -1271,7 +1279,9 @@ function set_security_headers() {
 }
 
 function session_secure_start() {
+
   session_set_cookie_params(
       '3600', '/', $_SERVER['SERVER_NAME'], isset($_SERVER["HTTPS"]), true);
   session_start();
+
 }
