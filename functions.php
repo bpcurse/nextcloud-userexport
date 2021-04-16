@@ -798,7 +798,7 @@ function build_table_user_data($user_data) {
   $data_choices = $_SESSION['data_choices'];
 
   if($_SESSION['filters_set']) {
-    echo "<br><span style='color: red;'>Display filtered by ";
+    echo "<br><span style='color: red;'>Displaying ".count($user_data)." users filtered by ";
 
     foreach($_SESSION['filters_set'] as $filter)
       switch($filter) {
