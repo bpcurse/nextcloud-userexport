@@ -8,7 +8,7 @@
   define('L10N_USERNAME', 'Username');
   define('L10N_PASSWORD', 'Password');
   define('L10N_CONNECT_AND_FETCH', 'Connect and fetch data from server');
-  define('L10N_WAIT', 'This may take a while...');
+  define('L10N_WAIT', 'Fetching data - Please wait...');
   define('L10N_CONNECTION_NEEDED', 'Please <a href="index.php">connect</a> to a Nextcloud server first!');
   define('L10N_SELECT_USER_DATA', 'Include the following columns:');
   define('L10N_TABLE', 'Table');

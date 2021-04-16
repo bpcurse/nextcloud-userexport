@@ -93,6 +93,13 @@
     <link rel="stylesheet" type="text/css" href="style.php">
     <meta charset="UTF-8">
     <title>Nextcloud Userexport</title>
+
+    <script>
+      function showStartInfo() {
+        document.getElementById("submitted").innerHTML = "<br><?php echo L10N_WAIT ?>";
+      }
+    </script>
+
   </head>
 
   <body>
@@ -104,7 +111,7 @@
       }
     ?>
     <div style="width: 305px;">
-    <form method='post' id='auth_form'>
+    <form method='post' id='auth-form' onsubmit='showStartInfo()'>
       <br>
       <u><?php echo L10N_SERVER_AND_LOGIN_DATA ?></u>
       <br><br>
@@ -129,7 +136,7 @@
       <br>
       <input id='button-connect' value='<?php echo L10N_CONNECT_AND_FETCH ?>'
           type='submit' name='submit'>
-      <div style="text-align: center; font-size: small; color: grey;"><?php echo L10N_WAIT ?></div>
+      <div id='submitted' style="text-align: center; color: grey;"></div>
     </form>
     </div>
   </body>
