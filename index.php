@@ -9,24 +9,8 @@
   /**
   * Get parameters if any, set defaults
   */
-  if($_GET['logout']) {
-
-    unset($_SESSION['data_choices']);
-    unset($_SESSION['userlist']);
-    unset($_SESSION['grouplist']);
-    unset($_SESSION['raw_user_data']);
-    unset($_SESSION['raw_groupfolders_data']);
-    unset($_SESSION['user_name']);
-    unset($_SESSION['user_pass']);
-    unset($_SESSION['target_url']);
-
-    session_destroy();
-    session_write_close();
-    setcookie(session_name(),'',0,'/');
-
-    header('Location: index.php');
-
-  }
+  if($_GET['logout'])
+    logout();
 
   $target_url = filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL)
     ?? $target_url;
