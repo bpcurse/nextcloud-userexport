@@ -61,7 +61,7 @@
       $_SESSION['user_pass'] = $_POST['user_pass'];
 
       // Save the script's start timestamp to measure execution time
-      define('TIMESTAMP_SCRIPT_START', microtime(true));
+      $_SESSION['timestamp_script_start'] = microtime(true);
 
       /**
       * Check if plain HTTP is used without override command and exit if not

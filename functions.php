@@ -219,6 +219,10 @@ function check_curl_response($ch, $data) {
   *
   */
 function fetch_userlist() {
+
+  // Log start timestamp
+  $timestamp_start = microtime(true);
+
   // Initialize cURL handle to fetch user ID list and set options
   $ch = curl_init();
   set_curl_options($ch, 'users');
@@ -238,7 +242,12 @@ function fetch_userlist() {
     // Set the session variable 'authenticated' to true to access other pages
     $_SESSION['authenticated'] = true;
   }
+
   $_SESSION['userlist'] = $users;
+
+  // Calculate time for function execution and save as $_SESSION variable
+  $_SESSION['time_fetch_userlist'] = round(microtime(true) - $timestamp_start,1);
+
 }
 
 /**
@@ -248,6 +257,10 @@ function fetch_userlist() {
   *
   */
 function fetch_grouplist() {
+
+  // Log start timestamp
+  $timestamp_start = microtime(true);
+
   // Initialize cURL handle to fetch user id list and set options
   $ch = curl_init();
   set_curl_options($ch, 'groups');
@@ -265,6 +278,10 @@ function fetch_grouplist() {
   $groups = $groups_raw['ocs']['data']['groups'] ?? null;
 
   $_SESSION['grouplist'] = $groups;
+
+  // Calculate time for function execution and save as $_SESSION variable
+  $_SESSION['time_fetch_grouplist'] = round(microtime(true) - $timestamp_start,1);
+
 }
 
 /**
@@ -274,6 +291,10 @@ function fetch_grouplist() {
   *
   */
 function fetch_raw_user_data() {
+
+  // Log start timestamp
+  $timestamp_start = microtime(true);
+
   // Initialize cURL multi handle for parallel requests
   $mh = curl_multi_init();
 
@@ -312,11 +333,16 @@ function fetch_raw_user_data() {
   // Drop cURL multi handle
   curl_multi_close($mh);
 
+  // Calculate time for function execution and save as $_SESSION variable
+  $_SESSION['time_fetch_userdata'] = round(microtime(true) - $timestamp_start,1);
+
   // Calculate total script runtime
-  $timestamp_script_end = microtime(true);
   $_SESSION['time_total'] = number_format(round(
-                $timestamp_script_end - TIMESTAMP_SCRIPT_START, 1),1);
+                microtime(true) - $_SESSION['timestamp_script_start'], 1),1);
+
+  // Save timestamp when data transfer was finished to $_SESSION variable
   $_SESSION['timestamp_data'] = date(DATE_ATOM);
+
   return $raw_user_data;
 }
 
@@ -325,6 +351,10 @@ function fetch_raw_user_data() {
   *
   */
 function fetch_raw_groupfolders_data() {
+
+  // Log start timestamp
+  $timestamp_start = microtime(true);
+
   // Initialize cURL handle to fetch user id list and set options
   $ch = curl_init();
   set_curl_options($ch, 'groupfolders');
@@ -337,6 +367,10 @@ function fetch_raw_groupfolders_data() {
 
   // Drop cURL handle
   curl_close($ch);
+
+  // Calculate time for function execution and save as $_SESSION variable
+  $_SESSION['time_fetch_groupfolders'] = round(microtime(true) - $timestamp_start,1);
+
 }
 
 /**
@@ -637,59 +671,109 @@ function print_status_success() {
   * Status printed on each page, showing the active server and user/group count
   *
   */
-function print_status_overview($scope = 'quick') {
+function print_status_overview($scope = "quick") {
+
   $infinite = $_SESSION['quota_total_assigned_infin']
-    ? ' (+ &infin;)'
-    : '';
-  if($scope == 'quick') {
-    echo '<hr>
-    <a class="no_show_link" href="'.$_SESSION['target_url']
-    .'" target="_blank">'.removehttpx($_SESSION['target_url']).'</a>
-    <hr>';
+    ? " (+ &infin;)"
+    : "";
+
+  if($scope == "quick") {
+    echo "<hr>
+      <a class='no_show_link' href='{$_SESSION['target_url']}' target='_blank'>"
+      .removehttpx($_SESSION['target_url'])."</a>
+    <hr>";
 
   } else {
+
     fetch_server_capabilities();
+
     $_SESSION['server_version_string'] =
       $_SESSION['raw_server_capabilities']['ocs']['data']['version']['string'];
-    echo '<hr>
-      <a class="no_show_link" href="'.$_SESSION['target_url']
-      .'" target="_blank">'.removehttpx($_SESSION['target_url']).'</a>
-      <br><br>'.L10N_NEXTCLOUD.' '.$_SESSION['server_version_string']
-      .'<hr>
-    <table class="status">
-      <tr><td>'.L10N_USERS.'</td><td style="text-align: right;">'
-        .$_SESSION['user_count'].'</td></tr>
-      <tr><td>'.L10N_GROUPS.'</td><td>'
-        .$_SESSION['group_count'].'</td></tr>';
+
+    echo "<hr>
+      <a class='no_show_link' href='{$_SESSION['target_url']}' target='_blank'>"
+      .removehttpx($_SESSION['target_url'])."</a>
+       (".L10N_NEXTCLOUD." v{$_SESSION['server_version_string']})
+    <hr>
+    <table class='status'>
+      <tr>
+        <td colspan=2 style='min-width: 15em;'><b>Overall count</b></td>
+      </tr>
+      <tr>
+        <td>".L10N_USERS."</td>
+        <td class='align_r'>{$_SESSION['user_count']}</td>
+      </tr>
+      <tr>
+        <td>".L10N_GROUPS."</td>
+        <td>{$_SESSION['group_count']}</td>
+      </tr>";
+
     if($_SESSION['groupfolders_active'])
-      echo '<tr><td>'.L10N_GROUPFOLDERS.'</td><td>'
-        .$_SESSION['groupfolders_count'].'</td></tr>';
-    echo '
+      echo "<tr>
+        <td>".L10N_GROUPFOLDERS."</td>
+        <td>{$_SESSION['groupfolders_count']}</td>
+      </tr>";
+
+    echo "
     </table>
     <hr>
-    <table class="status">
+    <table class='status'>
       <tr>
-        <td colspan=2><b>'.L10N_USERS.'</b>
-        </td></tr>
-        <tr><td>'.L10N_QUOTA_USED.'</td><td>'
-          .format_size($_SESSION['quota_total_used']).'
-        </td></tr>
-        <tr><td>'.L10N_QUOTA.'</td><td>'
-          .format_size($_SESSION['quota_total_assigned'])
-          .'</td><td>'.$infinite.'
-        </td></tr>
-        <tr><td>'.L10N_QUOTA_FREE.'</td><td>'
-          .format_size($_SESSION['quota_total_free']).
-        '</td></tr>';
+        <td colspan=2 style='min-width: 15em;'><b>".L10N_USERS."</b></td>
+      </tr>
+      <tr>
+        <td>".L10N_QUOTA_USED."</td>
+        <td>".format_size($_SESSION['quota_total_used'])."</td>
+      </tr>
+      <tr>
+        <td>".L10N_QUOTA."</td>
+        <td>".format_size($_SESSION['quota_total_assigned'])."</td>
+        <td>$infinite</td>
+      </tr>
+      <tr>
+        <td>".L10N_QUOTA_FREE."</td>
+        <td>".format_size($_SESSION['quota_total_free'])."</td>
+      </tr>";
+
       if($_SESSION['groupfolders_active'])
-        echo '<tr style="height: 10px"><td></td></tr>
-          <tr><td colspan=2><b>'.L10N_GROUPFOLDERS.'</b></td></tr>
-        <tr><td>'.L10N_QUOTA_USED.'</td><td>'
-          .format_size($_SESSION['quota_groupfolders_used']).'</td></tr>
-        <tr><td>'.L10N_QUOTA.'</td><td>'
-          .format_size($_SESSION['quota_groupfolders_assigned']).'</td></tr>';
-      echo '</table><hr>'
-        .L10N_DATA_RETRIEVED.' '.$_SESSION['timestamp_data'];
+        echo "<tr style='height: 10px'>
+            <td></td>
+          </tr>
+          <tr>
+            <td colspan=2 style='min-width: 15em;'><b>".L10N_GROUPFOLDERS."</b></td>
+          </tr>
+          <tr>
+            <td>".L10N_QUOTA_USED."</td>
+            <td>".format_size($_SESSION['quota_groupfolders_used'])."</td>
+          </tr>
+          <tr>
+            <td>".L10N_QUOTA."</td>
+            <td>".format_size($_SESSION['quota_groupfolders_assigned'])."</td>
+          </tr>
+        </table>";
+
+    echo "<hr><table class='status'>
+          <tr>
+            <td colspan=2 style='min-width: 15em;'><b>Execution times</b></td>
+          </tr>
+          <tr>
+            <td>Fetch userlist</td>
+            <td>{$_SESSION['time_fetch_userlist']} s</td>
+          </tr>
+          <tr>
+            <td>Fetch grouplist</td>
+            <td>{$_SESSION['time_fetch_grouplist']} s</td>
+          </tr>
+          <tr>
+            <td>Fetch groupfolders</td>
+            <td>{$_SESSION['time_fetch_groupfolders']} s</td>
+          </tr>
+          <tr>
+            <td>Fetch userdata</td>
+            <td>{$_SESSION['time_fetch_userdata']} s</td>
+          </tr>
+          </table><hr>"
+          .L10N_DATA_RETRIEVED." {$_SESSION['timestamp_data']}";
   }
 }
 
