@@ -577,30 +577,39 @@ function select_group_members($group, $format = null) {
 }
 
 /**
-  * Calculate how much disk space is assigned, used and available (user and groupfolder quota)
+  * Calculate how much disk space is assigned, used and available in total
+  * (user and groupfolder quota)
   *
   */
 function calculate_quota() {
+
   $_SESSION['quota_total_assigned'] = 0;
   $_SESSION['quota_total_free'] = 0;
   $_SESSION['quota_total_used'] = 0;
 
+  // Loop through raw user data and add quota item values to $_SESSION variables
   foreach($_SESSION['raw_user_data'] as $user_data) {
+
     $_SESSION['quota_total_used'] += $user_data['ocs']['data']['quota']['used'];
     $_SESSION['quota_total_free'] +=
-      $user_data['ocs']['data']['quota']['free'];
+        $user_data['ocs']['data']['quota']['free'];
 
     $quota_assigned = $user_data['ocs']['data']['quota']['quota'];
+
     $_SESSION['quota_total_assigned'] += $quota_assigned > 0
-      ? $quota_assigned
-      : 0;
+        ? $quota_assigned
+        : 0;
+
     $_SESSION['quota_total_assigned_infin'] = ($quota_assigned == -3);
+
   }
+
   if($_SESSION['groupfolders_active'])
     foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
       $_SESSION['quota_groupfolders_used'] += $groupfolder['size'];
       $_SESSION['quota_groupfolders_assigned'] += $groupfolder['quota'];
     }
+
 }
 
 /**
@@ -1296,6 +1305,11 @@ function logout() {
   unset($_SESSION['user_name']);
   unset($_SESSION['user_pass']);
   unset($_SESSION['target_url']);
+  unset($_SESSION['quota_total_assigned']);
+  unset($_SESSION['quota_total_free']);
+  unset($_SESSION['quota_total_used']);
+  unset($_SESSION['quota_groupfolders_used']);
+  unset($_SESSION['quota_groupfolders_assigned']);
 
   session_destroy();
   session_write_close();

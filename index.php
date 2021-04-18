@@ -1,17 +1,20 @@
 <?php
 
+  // Set active navigation item
   $active_page = "index";
+
   require_once 'functions.php';
   include_once 'config.php';
 
   session_secure_start();
 
-  /**
-  * Get parameters if any, set defaults
-  */
+  // Perform logout steps if selected through GET parameter (click on 'Logout' in navigation)
   if($_GET['logout'])
     logout();
 
+  /**
+    * Get parameters if any, else set defaults
+    */
   $target_url = filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL)
     ?? $target_url;
   $user_name = $_GET['user']
@@ -19,56 +22,86 @@
   $user_pass = $_GET['pass']
     ?? $user_pass;
 
-  // Set UI language to config value or to english, if it is not configured
+  // Set UI language to config value or to english (en), if it is not configured
   $_SESSION['language'] = $language ?? 'en';
+
+  // Include language file
   require_once 'l10n/'.$_SESSION['language'].'.php';
+
+  // Check if URL has been submitted (GET parameter 'url'), sanitize and set as variable
   $target_url = $_GET['url']
     ?? filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL);
+  // Set $username variable from GET parameter 'user'
   $user_name = $_GET['user'];
+  // Set $password variable from GET parameter 'user'
   $user_pass = $_GET['pass'];
 
+  /**
+    * Check if data choices have been submitted (GET parameter 'select'),
+    * if yes set $_SESSION variable to GET values, else set defaults
+    */
   $_SESSION['data_choices'] = isset($_GET["select"])
     ? explode(",", $_GET["select"])
     : ['id', 'displayname', 'email', 'lastLogin'];
+  // Check if export type has been set (GET parameter 'type'), else default to 'table'
   $_SESSION['export_type'] = $_GET['type'] ?? 'table';
+  // Check if message mode has been set (GET parameter 'msg_mode'), else default to 'bcc'
   $_SESSION['message_mode'] = $_GET['msg_mode'] ?? 'bcc';
 
+  // Populate session array 'data_options' with all data options that can be selected
   set_data_options();
 
   if($_SERVER['REQUEST_METHOD'] == 'POST') {
+
     // Set SESSION variables to POST values
     if (isset($_POST['target_url'])) {
+
+      // Transfer $_POST values to $_SESSION variables for further use
       $_SESSION['user_name'] = $_POST['user_name'];
       $_SESSION['user_pass'] = $_POST['user_pass'];
 
       // Save the script's start timestamp to measure execution time
       define('TIMESTAMP_SCRIPT_START', microtime(true));
 
-      // Check if plain HTTP is used without override command and exit if not
+      /**
+      * Check if plain HTTP is used without override command and exit if not
+      * add 'https://' if no protocol specified and set $_SESSION variable for further use
+      */
       $_SESSION['target_url'] = check_https($_POST['target_url']);
 
-      // Fast cURL API call fetching userlist (containing only user IDs) from target server
+      // cURL API call fetching userlist (containing only user IDs) from target server
       fetch_userlist();
-      // Fast cURL API call fetching grouplist (containing only group names) from target server
+      // cURL API call fetching grouplist (containing only group names) from target server
       fetch_grouplist();
+      // cURL API call fetching groupfolder data from target server
       fetch_raw_groupfolders_data();
 
-      // Count the list items and save them as session variable
+      // Count list items and save them as session variables
       $_SESSION['user_count'] = count($_SESSION['userlist']);
       $_SESSION['group_count'] = count($_SESSION['grouplist']);
+
+      /**
+      * Count list items and save them as session variable
+      * (if groupfolders app is active and at least one groupfolder exists)
+      */
       $_SESSION['groupfolders_count'] =
           $_SESSION['groupfolders_active'] == true
         ? count($_SESSION['raw_groupfolders_data']['ocs']['data'])
         : null;
+
     }
 
     // Fetch all user details (this can take a long time)
     $_SESSION['raw_user_data'] = fetch_raw_user_data();
 
+    // Calculate how much disk space is assigned, used and available in total
     calculate_quota();
+
   }
 
   set_security_headers();
+
+  // Tell the browser which language is used
   echo "<html lang='{$_SESSION['language']}'>";
 
 ?>
