@@ -115,11 +115,27 @@
       function showStartInfo() {
         document.getElementById("submitted").innerHTML = "<br><?php echo L10N_WAIT ?>";
       }
+
+      function setFocus() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('pass')) {
+          document.getElementById('button-connect').focus();
+        }
+        else if (urlParams.get('user')) {
+          document.getElementById('user_pass').focus();
+        }
+        else if (urlParams.get('url')) {
+          document.getElementById('user_name').focus();
+        }
+        else {
+          document.getElementById('url').focus();
+        }
+      }
     </script>
 
   </head>
 
-  <body>
+  <body onload='setFocus()'>
     <?php
       include 'navigation.php';
       if($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -144,7 +160,7 @@
           placeholder='<?php echo L10N_USERNAME ?>'
           value='<?php echo $user_name; ?>'>
         </td>
-        <td><input style="width: 100%;" id='user_password' type='password' name='user_pass' required
+        <td><input style="width: 100%;" id='user_pass' type='password' name='user_pass' required
           placeholder='<?php echo L10N_PASSWORD ?>'
           value='<?php echo $user_pass; ?>'>
         </td>
