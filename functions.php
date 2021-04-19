@@ -29,7 +29,8 @@ function set_curl_options($ch, $target, $id = null) {
 
   curl_setopt($ch, CURLOPT_URL, $_SESSION['target_url'] . $path . $id);
   curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+  curl_setopt($ch, CURLOPT_TCP_FASTOPEN, true);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
   curl_setopt($ch, CURLOPT_USERPWD, $_SESSION['user_name'] . ':'
     . $_SESSION['user_pass']);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
