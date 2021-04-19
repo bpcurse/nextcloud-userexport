@@ -13,14 +13,22 @@
 
   if(!$_SESSION['data_choices']) {
     header('Content-Type: text/html; charset=utf-8');
-    exit(L10N_ERROR . L10N_SELECT_AT_LEAST_ONE_COLUMN . L10N_RETURN_TO_FORM);
+    exit(L10N_ERROR . L10N_SELECT_AT_LEAST_ONE_COLUMN ." ". L10N_RETURN_TO_FORM);
   }
 
   $_SESSION['filters_set'] = array_keys($_POST, 'set_filter');
   $_SESSION['filter_group'] = $_POST['filter_group'] ?? null;
-  $_SESSION['filter_ll_since'] = $_POST['filter_ll_since'] ?? null;
-  $_SESSION['filter_ll_before'] = $_POST['filter_ll_before'] ?? null;
   $_SESSION['filter_quota'] = $_POST['filter_quota'] ?? null;
+  $_SESSION['type_quota'] = $_POST['type_quota'] ?? null;
+  $_SESSION['compare_quota'] = $_POST['compare_quota'] ?? null;
+
+  $_SESSION['filter_ll_since'] = $_POST['filter_ll_since'] != ""
+      ? $_POST['filter_ll_since']
+      : '1970-01-01';
+
+  $_SESSION['filter_ll_before'] = $_POST['filter_ll_before'] != ""
+      ? $_POST['filter_ll_before']
+      : date('Y-m-d');
 
   $export_type = $_POST['export_type'];
   $display_or_download = $_POST['submit'];

@@ -513,12 +513,15 @@ function select_data_single_user(
 /**
 * TODO
 */
-function select_data_all_users_filter($filter_by, $condition1, $condition2 = null) {
+function select_data_all_users_filter($filter_by, $conditions,
+    $filter_option = null) {
 
   foreach($_SESSION['userlist'] as $key => $user_id) {
 
-    if($filter_by == 'quota' || $filter_by == 'used' || $filter_by == 'free')
+    if($filter_by == 'quota' || $filter_by == 'used' || $filter_by == 'free') {
       $item_data = $_SESSION['raw_user_data'][$key]['ocs']['data']['quota'][$filter_by];
+      $limit_to_check = $conditions * 1073741824; // Gibibytes not Gigabytes (1024³)
+    }
     else
       $item_data = $_SESSION['raw_user_data'][$key]['ocs']['data'][$filter_by];
 
@@ -527,31 +530,43 @@ function select_data_all_users_filter($filter_by, $condition1, $condition2 = nul
       case 'quota':
       case 'used':
       case 'free':
-        if($item_data > $condition1 * 1000000000)
-          $selected_user_ids[] = $user_id;
+        require 'config.php';
+        switch ($filter_option) {
+          case 'gt':
+            //exit("$item_data $filter_by $limit_to_check $filter_option");
+            if($item_data > $limit_to_check)
+              $selected_user_ids[] = $user_id;
+            break;
+          case 'lt':
+            if($item_data < $limit_to_check)
+              $selected_user_ids[] = $user_id;
+            break;
+          case 'asymp':
+            if($item_data > $limit_to_check * (1 - $filter_tolerance)
+                && $item_data < $limit_to_check * (1 + $filter_tolerance))
+              $selected_user_ids[] = $user_id;
+            break;
+          case 'equals':
+            if($item_data == $limit_to_check)
+              $selected_user_ids[] = $user_id;
+            break;
+        }
         break;
 
       case 'lastLogin':
         $lastLogin = substr($item_data, 0, 10);
 
-        if(!$condition1)
-          $condition1 = "1970-01-01";
-
-        if(!$condition2)
-          $condition2 = date('Y-m-d');
-
-        if($lastLogin >= strtotime($condition1) && $lastLogin <= strtotime($condition2.' +1 day'))
+        if($lastLogin >= strtotime($conditions[0])
+            && $lastLogin <= strtotime($conditions[1].' +1 day'))
           $selected_user_ids[] = $user_id;
         break;
 
       case 'groups':
       case 'subadmin':
-        if(in_array($condition1, $item_data))
+        if(in_array($conditions, $item_data))
           $selected_user_ids[] = $user_id;
+        break;
 
-      default:
-        if($item_data == $condition1)
-          $selected_user_ids[] = $user_id;
     }
   }
 
@@ -565,17 +580,19 @@ function filter_users() {
 
   if($_SESSION['filters_set']) {
 
+    $filter_conditions_ll = [$_SESSION['filter_ll_since'], $_SESSION['filter_ll_before']];
+
     $uids_g = in_array('filter_group_choice', $_SESSION['filters_set'])
       ? select_data_all_users_filter('groups', $_SESSION['filter_group'])
       : $_SESSION['userlist'];
 
     $uids_l = in_array('filter_lastLogin_choice', $_SESSION['filters_set'])
-      ? select_data_all_users_filter('lastLogin', $_SESSION['filter_ll_since'],
-          $_SESSION['filter_ll_before'])
+      ? select_data_all_users_filter('lastLogin', $filter_conditions_ll)
       : $_SESSION['userlist'];
 
     $uids_q = in_array('filter_quota_choice', $_SESSION['filters_set'])
-      ? select_data_all_users_filter('used', $_SESSION['filter_quota'])
+      ? select_data_all_users_filter($_SESSION['type_quota'],
+          $_SESSION['filter_quota'], $_SESSION['compare_quota'])
       : $_SESSION['userlist'];
 
     $user_ids = array_intersect($_SESSION['userlist'], $uids_g, $uids_l, $uids_q);
@@ -891,27 +908,77 @@ function build_table_user_data($user_data) {
   $data_choices = $_SESSION['data_choices'];
 
   if($_SESSION['filters_set']) {
-    echo "<br><span style='color: red;'>Displaying ".count($user_data)." users filtered by ";
+    echo "Displaying ".count($user_data)." users filtered by
+          <table id='info_filters'>";
+
+    $quota = $_SESSION['filter_quota'];
 
     foreach($_SESSION['filters_set'] as $filter)
       switch($filter) {
         case 'filter_group_choice':
-          echo "group {$_SESSION['filter_group']}";
-          $preceding = true;
+
+          echo "<tr>
+                  <td class='pad_b'>&bull; ".L10N_GROUP.":</td>
+                  <td class='pad_b pad_l red'>{$_SESSION['filter_group']}</td>
+                </tr>";
           break;
+
         case 'filter_lastLogin_choice':
-          if($preceding)
-            echo " <b>and</b> ";
-          echo "last login between {$_SESSION['filter_ll_since']} and {$_SESSION['filter_ll_before']} (incl. last day)";
-          $preceding = true;
+
+          if($_SESSION['filter_ll_since'] == '1970-01-01') {
+            $since = '';
+            $delimiter = '<= ';
+          }
+          else {
+            $since = $_SESSION['filter_ll_since'];
+            $delimiter = ' <--> ';
+          }
+
+          $before = $_SESSION['filter_ll_before'] != date('Y-m-d')
+              ? $_SESSION['filter_ll_before']
+              : L10N_TODAY;
+
+          echo "<tr>
+                  <td class='pad_b'>&bull; ".L10N_LAST_LOGIN.":</td>
+                  <td class='pad_b pad_l red'>$since$delimiter$before</td>
+                </tr>";
           break;
+
         case 'filter_quota_choice':
-          if($preceding)
-            echo " <b>and</b> ";
-          echo "quota usage over {$_SESSION['filter_quota']} GB";
+
+          switch($_SESSION['compare_quota']) {
+
+            case 'gt':
+              $compare = '&gt;';
+              break;
+            case 'lt':
+              $compare = '&lt;';
+              break;
+            case 'asymp':
+              require 'config.php';
+              $compare = 'approximately';
+              $quota_limits = "(".$quota * (1 - $filter_tolerance)." - "
+                  .$quota * (1 + $filter_tolerance)." GiB)";
+              break;
+            case 'equals':
+              $compare = '&equals;';
+              break;
+
+          }
+
+          $type_quota = $_SESSION['type_quota'] != 'quota'
+              ? $_SESSION['type_quota']
+              : 'assigned';
+
+          echo "<tr>
+                  <td class='pad_b'>&bull; ".ucfirst($type_quota)." ".L10N_QUOTA.":</td>
+                  <td class='pad_b pad_l red'>
+                    $compare $quota GiB $quota_limits
+                  </td>
+                </tr>";
           break;
       }
-    echo "<br><br></span>";
+    echo "</table><hr>";
   }
 
   // Define HTML table and set header cell content
@@ -1400,5 +1467,27 @@ function logout() {
   setcookie(session_name(),'',0,'/');
 
   header('Location: index.php');
+
+}
+
+function check_and_set_filter($filter) {
+
+  if(!$_SESSION['filters_set'])
+    return;
+
+  switch($filter) {
+    case 'group':
+      $chosen_filter = 'filter_group_choice';
+      break;
+    case 'lastLogin':
+      $chosen_filter = 'filter_lastLogin_choice';
+      break;
+    case 'quota':
+      $chosen_filter = 'filter_quota_choice';
+      break;
+  }
+
+  if(in_array($chosen_filter, $_SESSION['filters_set']))
+    echo "checked";
 
 }
