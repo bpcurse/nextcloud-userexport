@@ -436,13 +436,13 @@ function select_data_all_users($data_choices = null, $userlist = null, $format =
 }
 
 /**
-  * Select elements from array "$data" and decode UTF8 or not
-  * depending on parameters
+  * Select elements from array "$data" and format for csv download
+  * or browser display depending on parameters
   *
   * @param  $data           Single user record data array
   * @param  $user_id        ID of the user to be processed
-  * @param  $data_choices Array containing a list of data columns to be taken into account
-  * @param  $format         If not 'utf8', UTF8 will be decoded for browser display
+  * @param  $data_choices   Array containing a list of data columns to be taken into account
+  * @param  $format         If not 'csv', data will be prepared for browser display
   *         OPTIONAL        DEFAULT: null
   *
   * @return $selected_data  Result of $data filtering
@@ -458,18 +458,19 @@ function select_data_single_user(
       $selected_data[] = 'N/A';
   }
 
-  // Prepare data for CSV file export if $format = 'utf8'
+  // Prepare data for CSV file export if $format = 'csv'
   else {
     // Iterate through chosen data sets
     foreach($data_choices as $key => $item) {
       $quota = $data['ocs']['data']['quota']['quota'];
       $used = $data['ocs']['data']['quota']['used'];
+      $backend = $data['ocs']['data']['backend'];
 
-      $item_data = $item == 'percentage_used'
-        ? (in_array($quota, [-3, 0, 'none'])
-          ? 'N/A'
-          : round($used / $quota * 100, 1))
-        : $data['ocs']['data'][$item];
+      $item_data = $item !== 'percentage_used'
+          ? $data['ocs']['data'][$item]
+          : ((in_array($quota, [-3, 0, 'none']) || $backend === 'Guests')
+              ? 'N/A'
+              : round($used / $quota * 100));
 
       // Filter/format different data sets
       switch($item) {
@@ -478,42 +479,61 @@ function select_data_single_user(
         case 'email':
           $selected_data[] = $item_data == null ? '-' : strtolower($item_data);
           break;
+
         case 'lastLogin':
           // If user has never logged in set $last_login to '-'
           $selected_data[] = $item_data == 0
-            ? ($format == 'utf8'
+            ? ($format == 'csv'
                 ? '-'
                 : '<span style="color: red;">&#10008;</span>')
             // Format unix timestamp to YYYY-MM-DD after trimming last 3 chars
             : date("Y-m-d", substr($item_data, 0, 10));
           break;
+
         // Make the display of 'enabled' bool pretty in the browser
         case 'enabled':
-          $selected_data[] = $format == 'utf8'
+          $selected_data[] = $format == 'csv'
             ? $item_data
             : ($item_data == true
               ? '<span style="color: green">&#10004;</span>'
               : '<span style="color: red">&#10008;</span>');
           break;
+
         case 'quota':
-        case 'used':
         case 'free':
+          if($backend === 'Guests') {
+            $selected_data[] = 'N/A';
+            break;
+          }
           $item_data = $data['ocs']['data']['quota'][$item];
           $selected_data[] = in_array($item_data, [-3, 'none'], true)
-            ? '∞'
-            : ($format != 'utf8'
-              ? format_size($item_data)
-              : $item_data);
+              ? '∞'
+              : ($format != 'csv'
+                  ? format_size($item_data, 'no_filter')
+                  : $item_data);
           break;
+
+        case 'used':
+          if($backend === 'Guests') {
+            $selected_data[] = 'N/A';
+            break;
+          }
+          $item_data = $data['ocs']['data']['quota'][$item];
+          $selected_data[] = $format != 'csv'
+              ? format_size($item_data)
+              : $item_data;
+          break;
+
         // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
         case 'subadmin':
         case 'groups':
           $selected_data[] = empty($item_data)
               ? '-'
-              : ($format != 'utf8'
+              : ($format != 'csv'
                   ? build_csv_line($item_data, false, $csv_delimiter)
                   : build_csv_line($item_data));
           break;
+
         case 'locale':
           // If user has not set a locale use '-'
           $selected_data[] = $item_data == '' ? '-' : $item_data;
@@ -627,7 +647,7 @@ function filter_users() {
 * Find all users belonging to a given group an return an array containing userID and displayname
 *
 * @param  $group    The name of the group to search for
-* @param  $format   If not 'utf8', UTF8 will be decoded for browser display
+* @param  $format   If not 'csv', data will be prepared for browser display
 *         OPTIONAL  DEFAULT: null
 *
 * @return $group_members
@@ -817,7 +837,6 @@ function print_status_overview($scope = "quick") {
   * Creates a file containing provided array data as comma separated values
   *
   * @param $list            Data array containing user data
-  * OPTIONAL                DEFAULT: global $selected_user_data_utf8
   * @param $headers         CSV line containing the column headers, set null if none
   * OPTIONAL                DEFAULT: List from $data_choices variable
   *
@@ -924,6 +943,8 @@ function delete_folder_content($folder) {
 function build_table_user_data($user_data) {
   $data_choices = $_SESSION['data_choices'];
 
+  require 'config.php';
+
   if($_SESSION['filters_set']) {
     echo count($user_data)." ".L10N_USERS." ".L10N_FILTERED_BY.
           "<table id='info_filters'>";
@@ -999,16 +1020,16 @@ function build_table_user_data($user_data) {
   }
 
   // Define HTML table and set header cell content
-  $table_user_data_headers = '<table class="list"><tr>';
+  $table_user_data_headers = "<table class='list'><tr>";
 
   foreach($data_choices as $key => $choice) {
     $sort = (in_array($choice, ['quota', 'used', 'free']))
       ? null
-      : ' onclick="sortTable()"';
+      : " onclick='sortTable()'";
 
     $align = (in_array($choice,
       ['quota', 'used', 'free', 'lastLogin', 'percentage_used']))
-      ? 'text-align: center;'
+      ? "text-align: center;"
       : null;
 
     foreach($_SESSION['data_options'] as $option => $title) {
@@ -1018,7 +1039,7 @@ function build_table_user_data($user_data) {
 
     $table_user_data_headers .= "<th$sort style='$align'>$choice</th>";
   }
-  $table_user_data_headers .= '</tr>';
+  $table_user_data_headers .= "</tr>";
 
   // Search for and return position of quota keys in $data_choices
   $keypos_right_align[] = array_search('quota', $data_choices);
@@ -1031,28 +1052,34 @@ function build_table_user_data($user_data) {
   // Search for and return position of 'enabled' and 'lastLogin' in $data_choices
   $keypos_center_align[] = array_search('enabled', $data_choices);
   $keypos_center_align[] = array_search('lastLogin', $data_choices);
+  $keypos_backend = array_search('backend', $data_choices);
 
   // Iterate through collected user data by row and column, build HTML table
   for($row = 0; $row < sizeof($user_data); $row++) {
-    $table_user_data .= '<tr>';
+    $table_user_data .= "<tr>";
     for($col = 0; $col < sizeof($user_data[$row]); $col++) {
       $selected_data = $user_data[$row][$col];
 
       if($col === $keypos_percentage_used)
-        if($selected_data < 1)
-          $selected_data = "< 1 %";
+        if($selected_data === "N/A")
+          $selected_data = "N/A";
+        else if($selected_data < $negligible_limit_percent)
+          $selected_data = "< ".$negligible_limit_percent." %";
         else
           $selected_data .= " %";
 
-      $color_text = ($selected_data === 'N/A' || $selected_data === '< 1 %')
-        ? ' color: grey;'
-        : ' color: unset;';
+      $color_text = ($selected_data === "N/A"
+          || $selected_data === "< ".$negligible_limit_percent." %"
+          || $selected_data === "< ".$negligible_limit[0]
+              ." ".format_size($negligible_limit, 'return_unit'))
+          ? ' color: grey;'
+          : ' color: unset;';
 
       $align = in_array($col, $keypos_right_align, true)
-        ? 'text-align: right; white-space: nowrap;'
-        : (in_array($col, $keypos_center_align, true)
-          ? 'text-align: center;'
-          : null);
+          ? 'text-align: right; white-space: nowrap;'
+          : (in_array($col, $keypos_center_align, true)
+            ? 'text-align: center;'
+            : null);
 
       $table_user_data .= "<td style='$align$color_text'>$selected_data</td>";
     }
@@ -1113,6 +1140,9 @@ function build_table_group_data() {
 *
 */
 function build_table_groupfolder_data() {
+
+  require 'config.php';
+
   // Define HTML table and set header cell content
   $align_right = 'style="text-align: right;"';
   $align_center = 'style="text-align: center;"';
@@ -1137,23 +1167,35 @@ function build_table_groupfolder_data() {
     $manager = build_csv_line($groupfolder['manage'], false, ', ', 'id', 'type');
 
     $acl = $groupfolder['acl']
-      ? '<span style="color: green">&#10004;</span>'
-      : null;
+        ? "<span style='color: green'>&#10004;</span>"
+        : null;
 
     $percent_used = $groupfolder['quota'] == -3
-      ? 'N/A'
-      : round($groupfolder['size'] / $groupfolder['quota'] * 100, 1);
+        ? "N/A"
+        : round($groupfolder['size'] / $groupfolder['quota'] * 100);
 
-    $color_text = $percent_used === "N/A"
-      ? "style='color: grey;'"
-      : "";
+    if($percent_used < $negligible_limit_percent)
+      $percent_used = "< ".$negligible_limit_percent." %";
+    else
+      $percent_used .= " %";
 
-    $table_groupfolder_data .= "<tr><td>".utf8_decode($groupfolder['id'])."</td>
+    $color_text_perc = ($percent_used === "N/A"
+        || $percent_used === "< ".$negligible_limit_percent." %")
+        ? "style='color: grey;'"
+        : "";
+
+    $color_text_size =
+        $groupfolder['size'] < format_size($negligible_limit,'return_raw')
+        ? "style='color: grey;'"
+        : "";
+
+    $table_groupfolder_data .= "<tr><td>{$groupfolder['id']}</td>
       <td>{$groupfolder['mount_point']}</td>
       <td>$groups</td>
-      <td class='align_r'>".format_size($groupfolder['size'])."</td>
-      <td class='align_r'$color_text>$percent_used</td>
-      <td class='align_r'>".format_size($groupfolder['quota'])."</td>
+      <td class='align_r'$color_text_size>".format_size($groupfolder['size'])."
+      </td>
+      <td class='align_r'$color_text_perc>$percent_used</td>
+      <td class='align_r'>".format_size($groupfolder['quota'],'no_filter')."</td>
       <td class='align_c'>$acl</td>
       <td>$manager</td></tr>";
   }
@@ -1277,7 +1319,7 @@ function build_csv_user_data($data, $delimiter = ',') {
   *
   * @param  $array      Return an array or CSV
   *         OPTIONAL    DEFAULT = 'null'
-  * @param  $format     Whether to return utf8 formatted data ('utf8') or not
+  * @param  $format     Whether to return csv formatted data ('csv') or not
   *         OPTIONAL    DEFAULT = 'null'
   *
   * @return $group_data Array or CSV formatted string containing the group associated user data
@@ -1406,24 +1448,39 @@ function build_csv_line($array = null, $return_key = false, $delimiter = ',',
   * slightly adapted
   *
   */
-function format_size($size) {
+function format_size($value, $option = null) {
 
-  // Return '-' if value is not a number
-  if($size === null)
-    return "-";
-
-  // "ignore" sizes < 100KiB (equals 102.4 KB), return 0.0 MiB
-  if($size < 102400)
-    return "0.0 MiB";
-
-  // Return infinite sign, if value is -3 (Nextclouds API response for infinite quota)
-  if($size == -3)
-    return "∞ GB";
+  require 'config.php';
 
   $s = array("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB");
-  $e = floor(log($size, 1024));
 
-  return number_format(round($size/pow(1024, $e), 1),1).' '.$s[$e];
+  if($option === 'return_unit')
+    return $s[$value[1]];
+
+  if($option === 'return_raw')
+    return $value[0] * pow(1024, $value[1]);
+
+  if($option !== 'no_filter')
+    // "ignore"/filter sizes < 10 MiB (equals 10240 KB), return '< 10 MiB'
+    if($value < $negligible_limit[0]*pow(1024, $negligible_limit[1])
+        && $value !== null)
+      return "< ".$negligible_limit[0]." ".$s[$negligible_limit[1]];
+
+  // Return '-' if value is not a number
+  if($value === null)
+    return "-";
+
+  // Return '0.0 MiB' to avoid 'division by zero' error
+  if($value === 0)
+    return '0.0 MiB';
+
+  // Return infinite sign, if value is -3 (Nextclouds API response for infinite quota)
+  if($value == -3)
+    return "∞ GB";
+
+  $e = floor(log($value, 1024));
+
+  return number_format(round($value/pow(1024, $e), 1),1).' '.$s[$e];
 }
 
 /**

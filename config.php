@@ -62,6 +62,27 @@ $filter_tolerance = 0.3;
 $filter_quota = 20;
 
 /**
+  * Define threshold under which the size is displayed as '< value' because it is negligible
+  *
+  * Set SI unit as second array value y [x,y]
+  * KiB = 1, MiB = 2, GiB = 3, ...
+  *
+  * DEFAULT [10,1] (10 MiB)
+  *
+  */
+
+$negligible_limit = [10,1];
+
+/**
+  * Define threshold under which the usage (%) is displayed as '< value %' because it is negligible
+  *
+  * DEFAULT 3 (3 %)
+  *
+  */
+
+$negligible_limit_percent = 3;
+
+/**
   * Alter UI design
   *
   * Use html color codes or

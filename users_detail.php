@@ -45,7 +45,7 @@
 
     // Create and populate CSV file with selected user data and set filename variable
     $filename = build_csv_file(select_data_all_users(
-        $_SESSION['data_choices'], $userlist, 'utf8'), $_POST['csv_headers']);
+        $_SESSION['data_choices'], $userlist, 'csv'), $_POST['csv_headers']);
 
     download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
     exit();

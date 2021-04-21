@@ -23,7 +23,7 @@
       : 'no_headers';
 
     // Create and populate CSV file with selected group data and set filename variable
-    $file = build_csv_file(build_group_data('array', 'utf8', ','), $headers);
+    $file = build_csv_file(build_group_data('array', 'csv', ','), $headers);
 
     // Start download using supplied or generated filename
     download_file($file, $mime_type, $filename_download, TEMP_FOLDER);
