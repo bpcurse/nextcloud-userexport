@@ -1023,7 +1023,7 @@ function build_table_user_data($user_data) {
     for($col = 0; $col < sizeof($user_data[$row]); $col++) {
       $selected_data = $user_data[$row][$col];
 
-      if($col == $keypos_percentage_used)
+      if($col === $keypos_percentage_used)
         if($selected_data < 1)
           $selected_data = "< 1 %";
         else
