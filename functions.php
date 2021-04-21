@@ -72,6 +72,21 @@ function set_data_options() {
   */
 function check_https($input_url) {
 
+  require 'config.php';
+
+  // Prepare error message, depending on https_strict config option
+  $error_msg = "<font color='red' face='Helvetica'>
+      <hr>
+        <b>".L10N_HTTP_IS_BLOCKED."</b>
+        <br>".L10N_HTTPS_RECOMMENDATION."
+      <hr><font color='black'>";
+
+  if (!$https_strict)
+    $error_msg .= "<br>".L10N_HTTPS_OVERRIDE_HINT."
+        <br>".L10N_EG."!http://cloud.example.com</font>";
+  else
+    $error_msg .= "<br>".L10N_HTTPS_STRICT_MODE."</font>";
+
   // Save the first five chars of the URL to a new variable '$trim_url'
   $trimmed_url = substr($input_url,0,5);
 
@@ -85,17 +100,17 @@ function check_https($input_url) {
     // Check if plain HTTP is used without override command and exit if not
     case 'http:':
       header('Content-Type: text/html; charset=utf-8');
-      exit('<font color="red" face="Helvetica"><hr>
-          <b>' . L10N_HTTP_IS_BLOCKED . '</b>
-          <br>' . L10N_HTTPS_RECOMMENDATION . '
-        <font color="black"><hr>
-          <br>' . L10N_HTTPS_OVERRIDE_HINT . '
-          <br>' . L10N_EG . '!http://cloud.example.com
-        </font>');
+      exit($error_msg);
       break;
 
     // Remove '!' if HTTPS check override is selected by use of '!http'
     case '!http':
+
+      if($https_strict) {
+        header('Content-Type: text/html; charset=utf-8');
+        exit($error_msg);
+      }
+
       $output_url = ltrim($input_url,'!');
       break;
 

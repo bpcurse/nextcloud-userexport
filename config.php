@@ -17,7 +17,10 @@
   */
 
 // Security token that must be provided to access the login page (either as GET parameter or manually)
-// $access_token = 'somelongrandomstring';
+// $access_token = 'some_long_random_string';
+
+// Disallow insecure http:// connections even if !http:// override option has been specified. DEFAULT 'false'
+$https_strict = false;
 
 // Allowed frame ancestors e.g. your cloud URL incl. https:// (if you want to open the script from external sites app)
 // Multiple URLs can be set by separating them with a space

@@ -88,3 +88,4 @@
   define('L10N_FETCH_GROUPFOLDERS','Gruppenordner holen');
   define('L10N_FETCH_USERDATA','Benutzerdaten holen');
   define('L10N_ACCESS_TOKEN','Zugangstoken');
+  define('L10N_HTTPS_STRICT_MODE','Die HTTPS_STRICT Option wurde ausgewählt, unverschlüsseltes http:// kann auch mit !http:// nicht erzwungen werden.<br>Diese Einstellung kann in der config.php Datei geändert werden.');

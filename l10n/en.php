@@ -89,3 +89,4 @@
   define('L10N_FETCH_GROUPFOLDERS','Fetch groupfolders');
   define('L10N_FETCH_USERDATA','Fetch userdata');
   define('L10N_ACCESS_TOKEN','Access token');
+  define('L10N_HTTPS_STRICT_MODE','HTTPS STRICT MODE option is active, plain http:// cannot be used.<br>This can be configured in config.php.');
