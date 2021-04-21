@@ -30,10 +30,29 @@ define('TEMP_FOLDER', 'export_temp');
   * Available languages can be found in the l10n directory
   * e.g. 'en.php'
   *
-  * DEFAULT 'en';
+  * DEFAULT 'en'
   *
   */
-// $language = 'en';
+$language = 'en';
+
+/**
+  * Define +/- tolerance for disk space "almost equal to" filters in a
+  * decimal number representing percent (e.g. 0.15 for 15 %)
+  *
+  * DEFAULT 30 % ('0.3')
+  *
+  */
+
+$filter_tolerance = 0.3;
+
+/**
+  * Define default quota in GiB for quota filters
+  *
+  * DEFAULT 20 GB ('20')
+  *
+  */
+
+$filter_quota = 20;
 
 /**
   * Alter UI design

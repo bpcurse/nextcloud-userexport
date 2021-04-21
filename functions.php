@@ -29,7 +29,8 @@ function set_curl_options($ch, $target, $id = null) {
 
   curl_setopt($ch, CURLOPT_URL, $_SESSION['target_url'] . $path . $id);
   curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+  curl_setopt($ch, CURLOPT_TCP_FASTOPEN, true);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
   curl_setopt($ch, CURLOPT_USERPWD, $_SESSION['user_name'] . ':'
     . $_SESSION['user_pass']);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -219,6 +220,10 @@ function check_curl_response($ch, $data) {
   *
   */
 function fetch_userlist() {
+
+  // Log start timestamp
+  $timestamp_start = microtime(true);
+
   // Initialize cURL handle to fetch user ID list and set options
   $ch = curl_init();
   set_curl_options($ch, 'users');
@@ -238,7 +243,12 @@ function fetch_userlist() {
     // Set the session variable 'authenticated' to true to access other pages
     $_SESSION['authenticated'] = true;
   }
+
   $_SESSION['userlist'] = $users;
+
+  // Calculate time for function execution and save as $_SESSION variable
+  $_SESSION['time_fetch_userlist'] = round(microtime(true) - $timestamp_start,1);
+
 }
 
 /**
@@ -248,6 +258,10 @@ function fetch_userlist() {
   *
   */
 function fetch_grouplist() {
+
+  // Log start timestamp
+  $timestamp_start = microtime(true);
+
   // Initialize cURL handle to fetch user id list and set options
   $ch = curl_init();
   set_curl_options($ch, 'groups');
@@ -265,6 +279,10 @@ function fetch_grouplist() {
   $groups = $groups_raw['ocs']['data']['groups'] ?? null;
 
   $_SESSION['grouplist'] = $groups;
+
+  // Calculate time for function execution and save as $_SESSION variable
+  $_SESSION['time_fetch_grouplist'] = round(microtime(true) - $timestamp_start,1);
+
 }
 
 /**
@@ -274,6 +292,10 @@ function fetch_grouplist() {
   *
   */
 function fetch_raw_user_data() {
+
+  // Log start timestamp
+  $timestamp_start = microtime(true);
+
   // Initialize cURL multi handle for parallel requests
   $mh = curl_multi_init();
 
@@ -312,11 +334,16 @@ function fetch_raw_user_data() {
   // Drop cURL multi handle
   curl_multi_close($mh);
 
+  // Calculate time for function execution and save as $_SESSION variable
+  $_SESSION['time_fetch_userdata'] = round(microtime(true) - $timestamp_start,1);
+
   // Calculate total script runtime
-  $timestamp_script_end = microtime(true);
   $_SESSION['time_total'] = number_format(round(
-                $timestamp_script_end - TIMESTAMP_SCRIPT_START, 1),1);
+                microtime(true) - $_SESSION['timestamp_script_start'], 1),1);
+
+  // Save timestamp when data transfer was finished to $_SESSION variable
   $_SESSION['timestamp_data'] = date(DATE_ATOM);
+
   return $raw_user_data;
 }
 
@@ -325,6 +352,10 @@ function fetch_raw_user_data() {
   *
   */
 function fetch_raw_groupfolders_data() {
+
+  // Log start timestamp
+  $timestamp_start = microtime(true);
+
   // Initialize cURL handle to fetch user id list and set options
   $ch = curl_init();
   set_curl_options($ch, 'groupfolders');
@@ -337,6 +368,10 @@ function fetch_raw_groupfolders_data() {
 
   // Drop cURL handle
   curl_close($ch);
+
+  // Calculate time for function execution and save as $_SESSION variable
+  $_SESSION['time_fetch_groupfolders'] = round(microtime(true) - $timestamp_start,1);
+
 }
 
 /**
@@ -479,12 +514,15 @@ function select_data_single_user(
 /**
 * TODO
 */
-function select_data_all_users_filter($filter_by, $condition1, $condition2 = null) {
+function select_data_all_users_filter($filter_by, $conditions,
+    $filter_option = null) {
 
   foreach($_SESSION['userlist'] as $key => $user_id) {
 
-    if($filter_by == 'quota' || $filter_by == 'used' || $filter_by == 'free')
+    if($filter_by == 'quota' || $filter_by == 'used' || $filter_by == 'free') {
       $item_data = $_SESSION['raw_user_data'][$key]['ocs']['data']['quota'][$filter_by];
+      $limit_to_check = $conditions * 1073741824; // Gibibytes not Gigabytes (1024³)
+    }
     else
       $item_data = $_SESSION['raw_user_data'][$key]['ocs']['data'][$filter_by];
 
@@ -493,31 +531,43 @@ function select_data_all_users_filter($filter_by, $condition1, $condition2 = nul
       case 'quota':
       case 'used':
       case 'free':
-        if($item_data > $condition1 * 1000000000)
-          $selected_user_ids[] = $user_id;
+        require 'config.php';
+        switch ($filter_option) {
+          case 'gt':
+            //exit("$item_data $filter_by $limit_to_check $filter_option");
+            if($item_data > $limit_to_check)
+              $selected_user_ids[] = $user_id;
+            break;
+          case 'lt':
+            if($item_data < $limit_to_check)
+              $selected_user_ids[] = $user_id;
+            break;
+          case 'asymp':
+            if($item_data > $limit_to_check * (1 - $filter_tolerance)
+                && $item_data < $limit_to_check * (1 + $filter_tolerance))
+              $selected_user_ids[] = $user_id;
+            break;
+          case 'equals':
+            if($item_data == $limit_to_check)
+              $selected_user_ids[] = $user_id;
+            break;
+        }
         break;
 
       case 'lastLogin':
         $lastLogin = substr($item_data, 0, 10);
 
-        if(!$condition1)
-          $condition1 = "1970-01-01";
-
-        if(!$condition2)
-          $condition2 = date('Y-m-d');
-
-        if($lastLogin >= strtotime($condition1) && $lastLogin <= strtotime($condition2.' +1 day'))
+        if($lastLogin >= strtotime($conditions[0])
+            && $lastLogin <= strtotime($conditions[1].' +1 day'))
           $selected_user_ids[] = $user_id;
         break;
 
       case 'groups':
       case 'subadmin':
-        if(in_array($condition1, $item_data))
+        if(in_array($conditions, $item_data))
           $selected_user_ids[] = $user_id;
+        break;
 
-      default:
-        if($item_data == $condition1)
-          $selected_user_ids[] = $user_id;
     }
   }
 
@@ -531,17 +581,19 @@ function filter_users() {
 
   if($_SESSION['filters_set']) {
 
+    $filter_conditions_ll = [$_SESSION['filter_ll_since'], $_SESSION['filter_ll_before']];
+
     $uids_g = in_array('filter_group_choice', $_SESSION['filters_set'])
       ? select_data_all_users_filter('groups', $_SESSION['filter_group'])
       : $_SESSION['userlist'];
 
     $uids_l = in_array('filter_lastLogin_choice', $_SESSION['filters_set'])
-      ? select_data_all_users_filter('lastLogin', $_SESSION['filter_ll_since'],
-          $_SESSION['filter_ll_before'])
+      ? select_data_all_users_filter('lastLogin', $filter_conditions_ll)
       : $_SESSION['userlist'];
 
     $uids_q = in_array('filter_quota_choice', $_SESSION['filters_set'])
-      ? select_data_all_users_filter('used', $_SESSION['filter_quota'])
+      ? select_data_all_users_filter($_SESSION['type_quota'],
+          $_SESSION['filter_quota'], $_SESSION['compare_quota'])
       : $_SESSION['userlist'];
 
     $user_ids = array_intersect($_SESSION['userlist'], $uids_g, $uids_l, $uids_q);
@@ -577,30 +629,39 @@ function select_group_members($group, $format = null) {
 }
 
 /**
-  * Calculate how much disk space is assigned, used and available (user and groupfolder quota)
+  * Calculate how much disk space is assigned, used and available in total
+  * (user and groupfolder quota)
   *
   */
 function calculate_quota() {
+
   $_SESSION['quota_total_assigned'] = 0;
   $_SESSION['quota_total_free'] = 0;
   $_SESSION['quota_total_used'] = 0;
 
+  // Loop through raw user data and add quota item values to $_SESSION variables
   foreach($_SESSION['raw_user_data'] as $user_data) {
+
     $_SESSION['quota_total_used'] += $user_data['ocs']['data']['quota']['used'];
     $_SESSION['quota_total_free'] +=
-      $user_data['ocs']['data']['quota']['free'];
+        $user_data['ocs']['data']['quota']['free'];
 
     $quota_assigned = $user_data['ocs']['data']['quota']['quota'];
+
     $_SESSION['quota_total_assigned'] += $quota_assigned > 0
-      ? $quota_assigned
-      : 0;
+        ? $quota_assigned
+        : 0;
+
     $_SESSION['quota_total_assigned_infin'] = ($quota_assigned == -3);
+
   }
+
   if($_SESSION['groupfolders_active'])
     foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
       $_SESSION['quota_groupfolders_used'] += $groupfolder['size'];
       $_SESSION['quota_groupfolders_assigned'] += $groupfolder['quota'];
     }
+
 }
 
 /**
@@ -628,59 +689,109 @@ function print_status_success() {
   * Status printed on each page, showing the active server and user/group count
   *
   */
-function print_status_overview($scope = 'quick') {
+function print_status_overview($scope = "quick") {
+
   $infinite = $_SESSION['quota_total_assigned_infin']
-    ? ' (+ &infin;)'
-    : '';
-  if($scope == 'quick') {
-    echo '<hr>
-    <a class="no_show_link" href="'.$_SESSION['target_url']
-    .'" target="_blank">'.removehttpx($_SESSION['target_url']).'</a>
-    <hr>';
+    ? " (+ &infin;)"
+    : "";
+
+  if($scope == "quick") {
+    echo "<hr>
+      <a class='no_show_link' href='{$_SESSION['target_url']}' target='_blank'>"
+      .removehttpx($_SESSION['target_url'])."</a>
+    <hr>";
 
   } else {
+
     fetch_server_capabilities();
+
     $_SESSION['server_version_string'] =
       $_SESSION['raw_server_capabilities']['ocs']['data']['version']['string'];
-    echo '<hr>
-      <a class="no_show_link" href="'.$_SESSION['target_url']
-      .'" target="_blank">'.removehttpx($_SESSION['target_url']).'</a>
-      <br><br>'.L10N_NEXTCLOUD.' '.$_SESSION['server_version_string']
-      .'<hr>
-    <table class="status">
-      <tr><td>'.L10N_USERS.'</td><td style="text-align: right;">'
-        .$_SESSION['user_count'].'</td></tr>
-      <tr><td>'.L10N_GROUPS.'</td><td>'
-        .$_SESSION['group_count'].'</td></tr>';
+
+    echo "<hr>
+      <a class='no_show_link' href='{$_SESSION['target_url']}' target='_blank'>"
+      .removehttpx($_SESSION['target_url'])."</a>
+       (".L10N_NEXTCLOUD." v{$_SESSION['server_version_string']})
+    <hr>
+    <table class='status'>
+      <tr>
+        <td colspan=2 style='min-width: 15em;'><b>Overall count</b></td>
+      </tr>
+      <tr>
+        <td>".L10N_USERS."</td>
+        <td class='align_r'>{$_SESSION['user_count']}</td>
+      </tr>
+      <tr>
+        <td>".L10N_GROUPS."</td>
+        <td>{$_SESSION['group_count']}</td>
+      </tr>";
+
     if($_SESSION['groupfolders_active'])
-      echo '<tr><td>'.L10N_GROUPFOLDERS.'</td><td>'
-        .$_SESSION['groupfolders_count'].'</td></tr>';
-    echo '
+      echo "<tr>
+        <td>".L10N_GROUPFOLDERS."</td>
+        <td>{$_SESSION['groupfolders_count']}</td>
+      </tr>";
+
+    echo "
     </table>
     <hr>
-    <table class="status">
+    <table class='status'>
       <tr>
-        <td colspan=2><b>'.L10N_USERS.'</b>
-        </td></tr>
-        <tr><td>'.L10N_QUOTA_USED.'</td><td>'
-          .format_size($_SESSION['quota_total_used']).'
-        </td></tr>
-        <tr><td>'.L10N_QUOTA.'</td><td>'
-          .format_size($_SESSION['quota_total_assigned'])
-          .'</td><td>'.$infinite.'
-        </td></tr>
-        <tr><td>'.L10N_QUOTA_FREE.'</td><td>'
-          .format_size($_SESSION['quota_total_free']).
-        '</td></tr>';
+        <td colspan=2 style='min-width: 15em;'><b>".L10N_USERS."</b></td>
+      </tr>
+      <tr>
+        <td>".L10N_QUOTA_USED."</td>
+        <td>".format_size($_SESSION['quota_total_used'])."</td>
+      </tr>
+      <tr>
+        <td>".L10N_QUOTA."</td>
+        <td>".format_size($_SESSION['quota_total_assigned'])."</td>
+        <td>$infinite</td>
+      </tr>
+      <tr>
+        <td>".L10N_QUOTA_FREE."</td>
+        <td>".format_size($_SESSION['quota_total_free'])."</td>
+      </tr>";
+
       if($_SESSION['groupfolders_active'])
-        echo '<tr style="height: 10px"><td></td></tr>
-          <tr><td colspan=2><b>'.L10N_GROUPFOLDERS.'</b></td></tr>
-        <tr><td>'.L10N_QUOTA_USED.'</td><td>'
-          .format_size($_SESSION['quota_groupfolders_used']).'</td></tr>
-        <tr><td>'.L10N_QUOTA.'</td><td>'
-          .format_size($_SESSION['quota_groupfolders_assigned']).'</td></tr>';
-      echo '</table><hr>'
-        .L10N_DATA_RETRIEVED.' '.$_SESSION['timestamp_data'];
+        echo "<tr style='height: 10px'>
+            <td></td>
+          </tr>
+          <tr>
+            <td colspan=2 style='min-width: 15em;'><b>".L10N_GROUPFOLDERS."</b></td>
+          </tr>
+          <tr>
+            <td>".L10N_QUOTA_USED."</td>
+            <td>".format_size($_SESSION['quota_groupfolders_used'])."</td>
+          </tr>
+          <tr>
+            <td>".L10N_QUOTA."</td>
+            <td>".format_size($_SESSION['quota_groupfolders_assigned'])."</td>
+          </tr>
+        </table>";
+
+    echo "<hr><table class='status'>
+          <tr>
+            <td colspan=2 style='min-width: 15em;'><b>Execution times</b></td>
+          </tr>
+          <tr>
+            <td>Fetch userlist</td>
+            <td>{$_SESSION['time_fetch_userlist']} s</td>
+          </tr>
+          <tr>
+            <td>Fetch grouplist</td>
+            <td>{$_SESSION['time_fetch_grouplist']} s</td>
+          </tr>
+          <tr>
+            <td>Fetch groupfolders</td>
+            <td>{$_SESSION['time_fetch_groupfolders']} s</td>
+          </tr>
+          <tr>
+            <td>Fetch userdata</td>
+            <td>{$_SESSION['time_fetch_userdata']} s</td>
+          </tr>
+          </table><hr>"
+          .L10N_DATA_RETRIEVED." {$_SESSION['timestamp_data']}";
   }
 }
 
@@ -798,27 +909,77 @@ function build_table_user_data($user_data) {
   $data_choices = $_SESSION['data_choices'];
 
   if($_SESSION['filters_set']) {
-    echo "<br><span style='color: red;'>Display filtered by ";
+    echo "Displaying ".count($user_data)." users filtered by
+          <table id='info_filters'>";
+
+    $quota = $_SESSION['filter_quota'];
 
     foreach($_SESSION['filters_set'] as $filter)
       switch($filter) {
         case 'filter_group_choice':
-          echo "group {$_SESSION['filter_group']}";
-          $preceding = true;
+
+          echo "<tr>
+                  <td class='pad_b'>&bull; ".L10N_GROUP.":</td>
+                  <td class='pad_b pad_l red'>{$_SESSION['filter_group']}</td>
+                </tr>";
           break;
+
         case 'filter_lastLogin_choice':
-          if($preceding)
-            echo " <b>and</b> ";
-          echo "last login between {$_SESSION['filter_ll_since']} and {$_SESSION['filter_ll_before']} (incl. last day)";
-          $preceding = true;
+
+          if($_SESSION['filter_ll_since'] == '1970-01-01') {
+            $since = '';
+            $delimiter = '<= ';
+          }
+          else {
+            $since = $_SESSION['filter_ll_since'];
+            $delimiter = ' <--> ';
+          }
+
+          $before = $_SESSION['filter_ll_before'] != date('Y-m-d')
+              ? $_SESSION['filter_ll_before']
+              : L10N_TODAY;
+
+          echo "<tr>
+                  <td class='pad_b'>&bull; ".L10N_LAST_LOGIN.":</td>
+                  <td class='pad_b pad_l red'>$since$delimiter$before</td>
+                </tr>";
           break;
+
         case 'filter_quota_choice':
-          if($preceding)
-            echo " <b>and</b> ";
-          echo "quota usage over {$_SESSION['filter_quota']} GB";
+
+          switch($_SESSION['compare_quota']) {
+
+            case 'gt':
+              $compare = '&gt;';
+              break;
+            case 'lt':
+              $compare = '&lt;';
+              break;
+            case 'asymp':
+              require 'config.php';
+              $compare = 'approximately';
+              $quota_limits = "(".$quota * (1 - $filter_tolerance)." - "
+                  .$quota * (1 + $filter_tolerance)." GiB)";
+              break;
+            case 'equals':
+              $compare = '&equals;';
+              break;
+
+          }
+
+          $type_quota = $_SESSION['type_quota'] != 'quota'
+              ? $_SESSION['type_quota']
+              : 'assigned';
+
+          echo "<tr>
+                  <td class='pad_b'>&bull; ".ucfirst($type_quota)." ".L10N_QUOTA.":</td>
+                  <td class='pad_b pad_l red'>
+                    $compare $quota GiB $quota_limits
+                  </td>
+                </tr>";
           break;
       }
-    echo "<br><br></span>";
+    echo "</table><hr>";
   }
 
   // Define HTML table and set header cell content
@@ -1283,5 +1444,51 @@ function session_secure_start() {
   session_set_cookie_params(
       '3600', '/', $_SERVER['SERVER_NAME'], isset($_SERVER["HTTPS"]), true);
   session_start();
+
+}
+
+function logout() {
+
+  unset($_SESSION['data_choices']);
+  unset($_SESSION['userlist']);
+  unset($_SESSION['grouplist']);
+  unset($_SESSION['raw_user_data']);
+  unset($_SESSION['raw_groupfolders_data']);
+  unset($_SESSION['user_name']);
+  unset($_SESSION['user_pass']);
+  unset($_SESSION['target_url']);
+  unset($_SESSION['quota_total_assigned']);
+  unset($_SESSION['quota_total_free']);
+  unset($_SESSION['quota_total_used']);
+  unset($_SESSION['quota_groupfolders_used']);
+  unset($_SESSION['quota_groupfolders_assigned']);
+
+  session_destroy();
+  session_write_close();
+  setcookie(session_name(),'',0,'/');
+
+  header('Location: index.php');
+
+}
+
+function check_and_set_filter($filter) {
+
+  if(!$_SESSION['filters_set'])
+    return;
+
+  switch($filter) {
+    case 'group':
+      $chosen_filter = 'filter_group_choice';
+      break;
+    case 'lastLogin':
+      $chosen_filter = 'filter_lastLogin_choice';
+      break;
+    case 'quota':
+      $chosen_filter = 'filter_quota_choice';
+      break;
+  }
+
+  if(in_array($chosen_filter, $_SESSION['filters_set']))
+    echo "checked";
 
 }

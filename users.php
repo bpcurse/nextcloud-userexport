@@ -2,7 +2,7 @@
 
   $active_page = 'users';
   require_once 'functions.php';
-  include_once 'config.php';
+  require_once 'config.php';
 
   session_secure_start();
 
@@ -74,24 +74,43 @@
                 .L10N_TOGGLE_ALL. "
             </td></tr>
           </table><br><br>
-          <u>".L10N_LIMIT_TO."</u><br><br>
+          <u>".L10N_FILTER_BY."</u><br><br>
           <table>
-          <tr><td style='padding-bottom: 0.3em;'><input type='checkbox' name='filter_group_choice' value='set_filter'>
+          <tr><td style='padding-bottom: 0.3em;'>
+                <input type='checkbox' name='filter_group_choice' value='set_filter'";
+                check_and_set_filter('group');
+          echo ">
                 <label for='filter_group_choice'>".L10N_GROUP."</label>
                 <select name='filter_group'>
                   <option value='' selected>-- ".L10N_SELECT_GROUP." --</option>";
                   foreach($_SESSION['grouplist'] as $item)
                     echo "<option value='$item'>$item</option>";
-    echo "</select></td></tr>
-          <tr><td><input type='checkbox' name='filter_lastLogin_choice' value='set_filter'>
+          echo "</select></td></tr>
+          <tr><td><input type='checkbox' name='filter_lastLogin_choice' value='set_filter'";
+                check_and_set_filter('lastLogin');
+            echo ">
                 <label for='filter_lastLogin_choice'>".L10N_LAST_LOGIN_BETWEEN." </label>
                 <input type=date name='filter_ll_since'>
                 ".L10N_AND."
                 <input type=date name='filter_ll_before' value='".date('Y-m-d')."'></td>
           </tr>
-          <tr><td><input type='checkbox' name='filter_quota_choice' value='set_filter'>
-                <label for='filter_quota_choice'>".L10N_QUOTA_USAGE_OVER." </label>
-                <input style='width: 6em;' type=number min=0.5 step=0.5 name='filter_quota' value=25> GB
+          <tr><td><input type='checkbox' name='filter_quota_choice' value='set_filter'";
+                check_and_set_filter('quota');
+            echo ">
+                <label for='filter_quota_choice'>".L10N_DISK_SPACE_QUOTA." </label>
+                <select name='type_quota'>
+                  <option value='used'>used</option>
+                  <option value='quota'>assigned</option>
+                  <option value='free'>free</option>
+                </select>
+                <select name='compare_quota'>
+                  <option value='gt'>&gt;</option>
+                  <option value='lt'>&lt;</option>
+                  <option value='asymp'>&asymp;</option>
+                  <option value='equals'>&equals;</option>
+                </select>
+                <input style='width: 6em;' type='number' min=0.5 step=0.5
+                    name='filter_quota' value=$filter_quota> GB
           </tr>
           </table>";
 

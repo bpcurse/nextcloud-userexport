@@ -153,6 +153,23 @@ table {
   background-color: #f2f2f2;
 }
 
+#info_filters {
+  margin-left: 1em;
+  margin-top: 1em;
+}
+
+.pad_b {
+  padding-bottom: 0.5em;
+}
+
+.pad_l {
+  padding-left: 0.7em;
+}
+
+.red {
+  color: red;
+}
+
 .status th, .status td {
   padding: 4px 4px 0px;
 }

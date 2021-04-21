@@ -8,7 +8,7 @@
   define('L10N_USERNAME', 'Username');
   define('L10N_PASSWORD', 'Password');
   define('L10N_CONNECT_AND_FETCH', 'Connect and fetch data from server');
-  define('L10N_WAIT', 'This may take a while...');
+  define('L10N_WAIT', 'Fetching data - Please wait...');
   define('L10N_CONNECTION_NEEDED', 'Please <a href="index.php">connect</a> to a Nextcloud server first!');
   define('L10N_SELECT_USER_DATA', 'Include the following columns:');
   define('L10N_TABLE', 'Table');
@@ -70,12 +70,15 @@
   define('L10N_SEND_AS','Send as:');
   define('L10N_SEND_TO','Send to:');
   define('L10N_ALL_USERS','All users');
-  define('L10N_LIMIT_TO','Limit to:');
+  define('L10N_FILTER_BY','Filter by:');
   define('L10N_SELECT_GROUP','select group');
   define('L10N_LAST_LOGIN_BETWEEN','Last login between');
   define('L10N_AND','and');
-  define('L10N_QUOTA_USAGE_OVER','Quota usage over');
+  define('L10N_DISK_SPACE_QUOTA','Disk space quota');
   define('L10N_YES','Yes');
   define('L10N_NO','No');
   define('L10N_COLUMN_HEADERS','Column headers');
   define('L10N_CREATE_LIST','Create list');
+  define('L10N_FROM','from');
+  define('L10N_UNTIL','until');
+  define('L10N_TODAY','today');
