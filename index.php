@@ -28,14 +28,6 @@
   // Include language file
   require_once 'l10n/'.$_SESSION['language'].'.php';
 
-  // Check if URL has been submitted (GET parameter 'url'), sanitize and set as variable
-  $target_url = $_GET['url']
-    ?? filter_input(INPUT_GET, 'url', FILTER_SANITIZE_URL);
-  // Set $username variable from GET parameter 'user'
-  $user_name = $_GET['user'];
-  // Set $password variable from GET parameter 'user'
-  $user_pass = $_GET['pass'];
-
   /**
     * Check if data choices have been submitted (GET parameter 'select'),
     * if yes set $_SESSION variable to GET values, else set defaults
@@ -117,14 +109,18 @@
       }
 
       function setFocus() {
+        var targetUrl = "<?php if($target_url){echo true;} ?>";
+        var userName = "<?php if($user_name){echo true;} ?>";
+        var userPass = "<?php if($user_pass){echo true;} ?>";
+
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('pass')) {
+        if (urlParams.get('pass') || userPass) {
           document.getElementById('button-connect').focus();
         }
-        else if (urlParams.get('user')) {
+        else if (urlParams.get('user') || userName) {
           document.getElementById('user_pass').focus();
         }
-        else if (urlParams.get('url')) {
+        else if (urlParams.get('url') || targetUrl) {
           document.getElementById('user_name').focus();
         }
         else {
