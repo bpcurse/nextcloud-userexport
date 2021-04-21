@@ -88,3 +88,4 @@
   define('L10N_FETCH_GROUPLIST','Fetch grouplist');
   define('L10N_FETCH_GROUPFOLDERS','Fetch groupfolders');
   define('L10N_FETCH_USERDATA','Fetch userdata');
+  define('L10N_ACCESS_TOKEN','Access token');

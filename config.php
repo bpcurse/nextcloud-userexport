@@ -15,6 +15,10 @@
 /**
   * Security settings
   */
+
+// Security token that must be provided to access the login page (either as GET parameter or manually)
+// $access_token = 'somelongrandomstring';
+
 // Allowed frame ancestors e.g. your cloud URL incl. https:// (if you want to open the script from external sites app)
 // Multiple URLs can be set by separating them with a space
 // $frame_ancestors = 'https://cloud.example.com';

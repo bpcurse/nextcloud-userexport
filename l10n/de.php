@@ -65,7 +65,7 @@
   define('L10N_LOGOUT', 'Abmelden');
   define('L10N_NEXTCLOUD', 'Nextcloud');
   define('L10N_VERSION', 'Version');
-  define('L10N_DATA_RETRIEVED', 'Daten abgerufen'); // Effective / as of {time/date}
+  define('L10N_DATA_RETRIEVED', 'Daten abgerufen');
   define('L10N_SEND_AS','Senden als:');
   define('L10N_SEND_TO','Senden an:');
   define('L10N_ALL_USERS','Alle Benutzer');
@@ -87,3 +87,4 @@
   define('L10N_FETCH_GROUPLIST','Gruppenliste holen');
   define('L10N_FETCH_GROUPFOLDERS','Gruppenordner holen');
   define('L10N_FETCH_USERDATA','Benutzerdaten holen');
+  define('L10N_ACCESS_TOKEN','Zugangstoken');
