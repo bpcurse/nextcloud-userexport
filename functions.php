@@ -534,7 +534,6 @@ function select_data_all_users_filter($filter_by, $conditions,
         require 'config.php';
         switch ($filter_option) {
           case 'gt':
-            //exit("$item_data $filter_by $limit_to_check $filter_option");
             if($item_data > $limit_to_check)
               $selected_user_ids[] = $user_id;
             break;
@@ -772,22 +771,22 @@ function print_status_overview($scope = "quick") {
 
     echo "<hr><table class='status'>
           <tr>
-            <td colspan=2 style='min-width: 15em;'><b>Execution times</b></td>
+            <td colspan=2 style='min-width: 15em;'><b>".L10N_EXECUTION_TIMES."</b></td>
           </tr>
           <tr>
-            <td>Fetch userlist</td>
+            <td>".L10N_FETCH_USERLIST."</td>
             <td>{$_SESSION['time_fetch_userlist']} s</td>
           </tr>
           <tr>
-            <td>Fetch grouplist</td>
+            <td>".L10N_FETCH_GROUPLIST."</td>
             <td>{$_SESSION['time_fetch_grouplist']} s</td>
           </tr>
           <tr>
-            <td>Fetch groupfolders</td>
+            <td>".L10N_FETCH_GROUPFOLDERS."</td>
             <td>{$_SESSION['time_fetch_groupfolders']} s</td>
           </tr>
           <tr>
-            <td>Fetch userdata</td>
+            <td>".L10N_FETCH_USERDATA."</td>
             <td>{$_SESSION['time_fetch_userdata']} s</td>
           </tr>
           </table><hr>"
@@ -909,8 +908,8 @@ function build_table_user_data($user_data) {
   $data_choices = $_SESSION['data_choices'];
 
   if($_SESSION['filters_set']) {
-    echo "Displaying ".count($user_data)." users filtered by
-          <table id='info_filters'>";
+    echo count($user_data)." ".L10N_USERS." ".L10N_FILTERED_BY.
+          "<table id='info_filters'>";
 
     $quota = $_SESSION['filter_quota'];
 

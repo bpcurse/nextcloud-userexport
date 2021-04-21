@@ -70,6 +70,7 @@
   define('L10N_SEND_TO','Senden an:');
   define('L10N_ALL_USERS','Alle Benutzer');
   define('L10N_FILTER_BY','Filtern nach:');
+  define('L10N_FILTERED_BY','gefiltert nach');
   define('L10N_SELECT_GROUP','Gruppe auswählen');
   define('L10N_LAST_LOGIN_BETWEEN','Letzte Anmeldung zwischen');
   define('L10N_AND','und');
@@ -81,3 +82,8 @@
   define('L10N_FROM','von');
   define('L10N_UNTIL','bis');
   define('L10N_TODAY','heute');
+  define('L10N_EXECUTION_TIMES','Ausführungszeiten');
+  define('L10N_FETCH_USERLIST','Benutzerliste holen');
+  define('L10N_FETCH_GROUPLIST','Gruppenliste holen');
+  define('L10N_FETCH_GROUPFOLDERS','Gruppenordner holen');
+  define('L10N_FETCH_USERDATA','Benutzerdaten holen');

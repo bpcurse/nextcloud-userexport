@@ -71,6 +71,7 @@
   define('L10N_SEND_TO','Send to:');
   define('L10N_ALL_USERS','All users');
   define('L10N_FILTER_BY','Filter by:');
+  define('L10N_FILTERED_BY','filtered by');
   define('L10N_SELECT_GROUP','select group');
   define('L10N_LAST_LOGIN_BETWEEN','Last login between');
   define('L10N_AND','and');
@@ -82,3 +83,8 @@
   define('L10N_FROM','from');
   define('L10N_UNTIL','until');
   define('L10N_TODAY','today');
+  define('L10N_EXECUTION_TIMES','Execution times');
+  define('L10N_FETCH_USERLIST','Fetch userlist');
+  define('L10N_FETCH_GROUPLIST','Fetch grouplist');
+  define('L10N_FETCH_GROUPFOLDERS','Fetch groupfolders');
+  define('L10N_FETCH_USERDATA','Fetch userdata');
