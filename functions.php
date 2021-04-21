@@ -493,15 +493,17 @@ function select_data_single_user(
         // Convert arrays 'subadmin' and 'groups' to comma separated values and wrap them in parentheses if not null
         case 'subadmin':
         case 'groups':
-          $selected_data[] = empty($item_data) ? '-'
-            : ($format != 'utf8'
-              ? build_csv_line($item_data, false, $csv_delimiter)
-              : build_csv_line($item_data));
+          $selected_data[] = empty($item_data)
+              ? '-'
+              : ($format != 'utf8'
+                  ? build_csv_line($item_data, false, $csv_delimiter)
+                  : build_csv_line($item_data));
           break;
         case 'locale':
           // If user has not set a locale use '-'
           $selected_data[] = $item_data == '' ? '-' : $item_data;
           break;
+
         // If none of the above apply
         default:
           $selected_data[] = $item_data;
@@ -1007,7 +1009,9 @@ function build_table_user_data($user_data) {
   $keypos_right_align[] = array_search('quota', $data_choices);
   $keypos_right_align[] = array_search('used', $data_choices);
   $keypos_right_align[] = array_search('free', $data_choices);
-  $keypos_right_align[] = array_search('percentage_used', $data_choices);
+  $keypos_right_align[] = $keypos_percentage_used =
+      array_search('percentage_used', $data_choices);
+
 
   // Search for and return position of 'enabled' and 'lastLogin' in $data_choices
   $keypos_center_align[] = array_search('enabled', $data_choices);
@@ -1019,7 +1023,13 @@ function build_table_user_data($user_data) {
     for($col = 0; $col < sizeof($user_data[$row]); $col++) {
       $selected_data = $user_data[$row][$col];
 
-      $color_text = $selected_data === 'N/A'
+      if($col == $keypos_percentage_used)
+        if($selected_data < 1)
+          $selected_data = "< 1 %";
+        else
+          $selected_data .= " %";
+
+      $color_text = ($selected_data === 'N/A' || $selected_data === '< 1 %')
         ? ' color: grey;'
         : ' color: unset;';
 
@@ -1382,14 +1392,20 @@ function build_csv_line($array = null, $return_key = false, $delimiter = ',',
   *
   */
 function format_size($size) {
-  if($size === 0)
-    return "0 MB";
-  if($size === null)
-    return '-';
-  if($size == -3)
-    return '∞ GB';
 
-  $s = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
+  // Return '-' if value is not a number
+  if($size === null)
+    return "-";
+
+  // "ignore" sizes < 100KiB (equals 102.4 KB), return 0.0 MiB
+  if($size < 102400)
+    return "0.0 MiB";
+
+  // Return infinite sign, if value is -3 (Nextclouds API response for infinite quota)
+  if($size == -3)
+    return "∞ GB";
+
+  $s = array("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB");
   $e = floor(log($size, 1024));
 
   return number_format(round($size/pow(1024, $e), 1),1).' '.$s[$e];
