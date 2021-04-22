@@ -1060,13 +1060,19 @@ function build_table_user_data($user_data) {
     for($col = 0; $col < sizeof($user_data[$row]); $col++) {
       $selected_data = $user_data[$row][$col];
 
-      if($col === $keypos_percentage_used)
+      $graphic_perc = null;
+      if($col === $keypos_percentage_used) {
+        if(is_numeric($selected_data)) {
+          $graphic_perc = "<div style='width: ".$selected_data."%;' class='bg'></div>";
+          $pos_rel = " class='pos_rel'";
+        }
         if($selected_data === "N/A")
           $selected_data = "N/A";
         else if($selected_data < $negligible_limit_percent)
           $selected_data = "< ".$negligible_limit_percent." %";
         else
           $selected_data .= " %";
+      }
 
       $color_text = ($selected_data === "N/A"
           || $selected_data === "< ".$negligible_limit_percent." %"
@@ -1081,7 +1087,8 @@ function build_table_user_data($user_data) {
             ? 'text-align: center;'
             : null);
 
-      $table_user_data .= "<td style='$align$color_text'>$selected_data</td>";
+      $table_user_data .= "<td style='$align$color_text'$pos_rel>
+          $graphic_perc$selected_data</td>";
     }
     $table_user_data .= '</tr>';
   }
@@ -1170,23 +1177,25 @@ function build_table_groupfolder_data() {
         ? "<span style='color: green'>&#10004;</span>"
         : null;
 
-    $percent_used = $groupfolder['quota'] == -3
+    $perc_used = $groupfolder['quota'] == -3
         ? "N/A"
         : round($groupfolder['size'] / $groupfolder['quota'] * 100);
 
-    if($percent_used < $negligible_limit_percent)
-      $percent_used = "< ".$negligible_limit_percent." %";
-    else
-      $percent_used .= " %";
+    $perc_style = round($groupfolder['size'] / $groupfolder['quota'] * 100);
 
-    $color_text_perc = ($percent_used === "N/A"
-        || $percent_used === "< ".$negligible_limit_percent." %")
-        ? "style='color: grey;'"
+    if($perc_used < $negligible_limit_percent)
+      $perc_used = "< ".$negligible_limit_percent." %";
+    else
+      $perc_used .= " %";
+
+    $color_text_perc = ($perc_used === "N/A"
+        || $perc_used === "< ".$negligible_limit_percent." %")
+        ? " style='color: grey;'"
         : "";
 
     $color_text_size =
         $groupfolder['size'] < format_size($negligible_limit,'return_raw')
-        ? "style='color: grey;'"
+        ? " style='color: grey;'"
         : "";
 
     $table_groupfolder_data .= "<tr><td>{$groupfolder['id']}</td>
@@ -1194,7 +1203,9 @@ function build_table_groupfolder_data() {
       <td>$groups</td>
       <td class='align_r'$color_text_size>".format_size($groupfolder['size'])."
       </td>
-      <td class='align_r'$color_text_perc>$percent_used</td>
+      <td class='align_r pos_rel'$color_text_perc>
+        <div style='width: ".$perc_style."%;' class='bg'></div>$perc_used
+      </td>
       <td class='align_r'>".format_size($groupfolder['quota'],'no_filter')."</td>
       <td class='align_c'>$acl</td>
       <td>$manager</td></tr>";

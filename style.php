@@ -151,6 +151,8 @@ table {
 
 .list tr:nth-child(even) {
   background-color: #f2f2f2;
+  position: relative;
+  z-index: -2;
 }
 
 #info_filters {
@@ -176,4 +178,20 @@ table {
 
 .status td:nth-child(2) {
   text-align: right;
+}
+
+.bg {
+  position: absolute;
+  height: 1.2em;
+  margin: auto;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: darkgreen;
+  opacity: 0.7;
+  z-index: -1;
+}
+
+.pos_rel {
+  position: relative;
 }
