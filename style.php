@@ -188,7 +188,7 @@ table {
   top: 0;
   bottom: 0;
   background: darkgreen;
-  opacity: 0.7;
+  opacity: 0.65;
   z-index: -1;
 }
 

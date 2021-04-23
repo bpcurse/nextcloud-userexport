@@ -67,20 +67,20 @@ $filter_quota = 20;
   * Set SI unit as second array value y [x,y]
   * KiB = 1, MiB = 2, GiB = 3, ...
   *
-  * DEFAULT [10,1] (10 MiB)
+  * DEFAULT [10,2] (10 MiB)
   *
   */
 
-$negligible_limit = [10,1];
+$negligible_limit = [10,2];
 
 /**
   * Define threshold under which the usage (%) is displayed as '< value %' because it is negligible
   *
-  * DEFAULT 3 (3 %)
+  * DEFAULT 0 (0 %)
   *
   */
 
-$negligible_limit_percent = 3;
+$negligible_limit_percent = 0;
 
 /**
   * Alter UI design

@@ -75,7 +75,7 @@
   define('L10N_SELECT_GROUP','select group');
   define('L10N_LAST_LOGIN_BETWEEN','Last login between');
   define('L10N_AND','and');
-  define('L10N_DISK_SPACE_QUOTA','Disk space quota');
+  define('L10N_DISK_SPACE','Disk space');
   define('L10N_YES','Yes');
   define('L10N_NO','No');
   define('L10N_COLUMN_HEADERS','Column headers');
@@ -90,3 +90,6 @@
   define('L10N_FETCH_USERDATA','Fetch userdata');
   define('L10N_ACCESS_TOKEN','Access token');
   define('L10N_HTTPS_STRICT_MODE','HTTPS STRICT MODE option is active, plain http:// cannot be used.<br>This can be configured in config.php.');
+  define('L10N_USED','used');
+  define('L10N_ASSIGNED','assigned');
+  define('L10N_FREE','free');

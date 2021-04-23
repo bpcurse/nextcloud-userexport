@@ -74,7 +74,7 @@
   define('L10N_SELECT_GROUP','Gruppe auswählen');
   define('L10N_LAST_LOGIN_BETWEEN','Letzte Anmeldung zwischen');
   define('L10N_AND','und');
-  define('L10N_DISK_SPACE_QUOTA','Speicherplatz-Quota');
+  define('L10N_DISK_SPACE','Speicherplatz');
   define('L10N_YES','Ja');
   define('L10N_NO','Nein');
   define('L10N_COLUMN_HEADERS','Spaltenüberschriften');
@@ -89,3 +89,6 @@
   define('L10N_FETCH_USERDATA','Benutzerdaten holen');
   define('L10N_ACCESS_TOKEN','Zugangstoken');
   define('L10N_HTTPS_STRICT_MODE','Die HTTPS_STRICT Option wurde ausgewählt, unverschlüsseltes http:// kann auch mit !http:// nicht erzwungen werden.<br>Diese Einstellung kann in der config.php Datei geändert werden.');
+  define('L10N_USED','genutzt');
+  define('L10N_ASSIGNED','zugeordnet');
+  define('L10N_FREE','frei');

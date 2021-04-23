@@ -1004,12 +1004,21 @@ function build_table_user_data($user_data) {
 
           }
 
-          $type_quota = $_SESSION['type_quota'] != 'quota'
-              ? $_SESSION['type_quota']
-              : 'assigned';
+          switch($_SESSION['type_quota']) {
+            case 'used':
+              $type_quota = L10N_USED;
+              break;
+            case 'quota':
+              $type_quota = L10N_ASSIGNED;
+              break;
+            case 'free':
+              $type_quota = L10N_FREE;
+              break;
+          }
+
 
           echo "<tr>
-                  <td class='pad_b'>&bull; ".ucfirst($type_quota)." ".L10N_QUOTA.":</td>
+                  <td class='pad_b'>&bull; ".L10N_DISK_SPACE." $type_quota:</td>
                   <td class='pad_b pad_l red'>
                     $compare $quota GiB $quota_limits
                   </td>
@@ -1252,14 +1261,14 @@ function filter_email() {
   * @return $mailto_list  Exported emails as mailto: string for mass mailing
   *
   */
-function build_mailto_list($message_mode = 'bcc', $user_ids = null) {
+function build_mailto_list($message_mode = 'bcc', $userlist = null) {
 
   $user_data = $_SESSION['raw_user_data'];
 
   // Initiate construction of mailto string, setting 'to:', 'cc:' or 'bcc:'
   $mailto_list = "mailto:?$message_mode=";
 
-  if(!$user_ids) {
+  if(!$userlist) {
 
     // Iterate through user data and add email addresses
     foreach($user_data as $key => $item) {
@@ -1275,7 +1284,7 @@ function build_mailto_list($message_mode = 'bcc', $user_ids = null) {
   }
   else {
     foreach($user_data as $key => $item) {
-      if(in_array($item['ocs']['data']['id'], $user_ids)) {
+      if(in_array($item['ocs']['data']['id'], $userlist)) {
         $user_email = $item['ocs']['data']['email'];
         if ($user_email == 'N/A')
           continue;
@@ -1587,6 +1596,6 @@ function check_and_set_filter($filter) {
   }
 
   if(in_array($chosen_filter, $_SESSION['filters_set']))
-    echo "checked";
+    echo " checked";
 
 }
