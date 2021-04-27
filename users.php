@@ -95,9 +95,21 @@
               <input type='checkbox' name='filter_lastLogin_choice' value='set_filter'"
                   .check_and_set_filter('lastLogin').">
               <label for='filter_lastLogin_choice'>".L10N_LAST_LOGIN_BETWEEN." </label>
-              <input type=date name='filter_ll_since'>
+              <input type=date name='filter_ll_since'";
+
+                if($_SESSION['filter_ll_since'])
+                  echo " value='{$_SESSION['filter_ll_since']}'";
+
+          echo ">
               ".L10N_AND."
-              <input type=date name='filter_ll_before' value='".date('Y-m-d')."'>
+              <input type=date name='filter_ll_before' value='";
+
+                if($_SESSION['filter_ll_before'])
+                  echo $_SESSION['filter_ll_before'];
+                else
+                  echo date('Y-m-d');
+
+          echo "'>
             </td>
           </tr>
           <tr>
