@@ -47,24 +47,24 @@
 
       foreach($_SESSION['data_options'] as $option => $title) {
         $checked = in_array($option, $_SESSION['data_choices'])
-          ? "checked='checked'"
-          : null;
+          ? " checked"
+          : "";
         switch ($option) {
           case 'email':
           case 'enabled':
           case 'percentage_used':
           case 'subadmin':
           case 'locale':
-            echo "<td><input type='checkbox' class='checkbox' name='$option' value='true' $checked>$title</td></tr>";
+            echo "<td><input type='checkbox' class='checkbox' name='$option' value='true'$checked>$title</td></tr>";
             break;
           case 'lastLogin':
           case 'quota':
           case 'free':
           case 'language':
-            echo "<tr><td><input type='checkbox' class='checkbox' name='$option' value='true' $checked>$title</td>";
+            echo "<tr><td><input type='checkbox' class='checkbox' name='$option' value='true'$checked>$title</td>";
             break;
           default:
-            echo "<td><input type='checkbox' class='checkbox' name='$option' value='true' $checked>$title</td>";
+            echo "<td><input type='checkbox' class='checkbox' name='$option' value='true'$checked>$title</td>";
         }
       }
 

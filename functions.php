@@ -1573,6 +1573,6 @@ function check_and_set_filter($filter) {
   }
 
   if(in_array($chosen_filter, $_SESSION['filters_set']))
-    echo " checked";
+    return " checked";
 
 }

@@ -90,7 +90,7 @@
               <td><u>".L10N_FILTER_BY."<u></td>
               <td style='padding: 0.3em;'>
                 <input type='checkbox' name='filter_lastLogin_choice' value='set_filter'"
-                    .check_and_set_filter('quota').">
+                    .check_and_set_filter('lastLogin').">
                   <label for='filter_lastLogin_choice'>".L10N_LAST_LOGIN_BETWEEN." </label>
                 <input type=date name='filter_ll_since'>
                   ".L10N_AND."
