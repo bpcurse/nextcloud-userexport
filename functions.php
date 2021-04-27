@@ -950,9 +950,9 @@ function delete_temp_folder() {
   *
   */
 function build_table_user_data($user_data) {
-  $data_choices = $_SESSION['data_choices'];
 
   require 'config.php';
+  $data_choices = $_SESSION['data_choices'];
 
   if($_SESSION['filters_set']) {
     echo count($user_data)." ".L10N_USERS." ".L10N_FILTERED_BY.

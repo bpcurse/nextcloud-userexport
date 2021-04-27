@@ -37,6 +37,20 @@ $https_strict = false;
 $language = 'en';
 
 /**
+  * Set default columns to show/export
+  *
+  * Available columns are:
+  * id, displayname, email, lastLogin, backend, enabled, quota, used,
+  * percentage_used, free, groups, subadmin, language and locale
+  *
+  * DEFAULT ['id', 'displayname', 'email', 'lastLogin']
+  *
+  * Has to be set as an array ['choice1', 'choice2', 'choice3', ...]
+  *
+  */
+$data_choices = ['id', 'displayname', 'email', 'lastLogin'];
+
+/**
   * Define +/- tolerance for disk space "almost equal to" filters in a
   * decimal number representing percent (e.g. 0.15 for 15 %)
   *

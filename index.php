@@ -48,7 +48,7 @@
     */
   $_SESSION['data_choices'] = isset($_GET["select"])
     ? explode(",", $_GET["select"])
-    : ['id', 'displayname', 'email', 'lastLogin'];
+    : $data_choices;
   // Check if export type has been set (GET parameter 'type'), else default to 'table'
   $_SESSION['export_type'] = $_GET['type'] ?? 'table';
   // Check if message mode has been set (GET parameter 'msg_mode'), else default to 'bcc'
