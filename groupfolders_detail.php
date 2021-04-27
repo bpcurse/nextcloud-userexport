@@ -25,7 +25,7 @@
     // Create and populate CSV file with groupfolder data and set filename variable
     $filename = build_csv_file(build_groupfolder_data('array'),$headers);
 
-    download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
+    download_file($filename, $mime_type, $filename_download, $_SESSION['temp_folder']);
     exit();
   }
 

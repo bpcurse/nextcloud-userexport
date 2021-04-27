@@ -845,28 +845,28 @@ function print_status_overview($scope = "quick") {
   */
 function build_csv_file($list, $headers = 'default') {
 
-  if(!TEMP_FOLDER)
-    define(TEMP_FOLDER, "export_temp");
+  if(!$_SESSION['temp_folder'])
+    $_SESSION['temp_folder'] = 'export_temp-'.bin2hex(random_bytes(16));
 
-  // Delete contents of temporary folder, if file was not deleted after last run
-  delete_folder_content(TEMP_FOLDER);
+  // Delete temporary folder and contents
+  delete_temp_folder();
 
   // Create headers from session variable 'data_choices' if not supplied
   if($headers == 'default')
     $headers = build_csv_line();
 
   // Set random filename
-  $csv_filename = random_str(32).'.csv';
+  $csv_filename = bin2hex(random_bytes(8)).'.csv';
 
   // Check if temporary folder already exists, else make directory
-  if(!file_exists(TEMP_FOLDER))
-    mkdir(TEMP_FOLDER, 0755, true);
+  if(!file_exists($_SESSION['temp_folder']))
+    mkdir($_SESSION['temp_folder'], 0755, true);
 
   // Create/open file with write access and return file handle
-  $csv_file = fopen(TEMP_FOLDER.'/'.$csv_filename, "w");
+  $csv_file = fopen($_SESSION['temp_folder'].'/'.$csv_filename, "w");
 
   // Set file permissions (rw-r-----)
-  chmod(TEMP_FOLDER.'/'.$csv_filename, 0640);
+  chmod($_SESSION['temp_folder'].'/'.$csv_filename, 0640);
 
   // Write selected headers as first line to file
   if($headers != 'no_headers')
@@ -897,7 +897,8 @@ function build_csv_file($list, $headers = 'default') {
   *
   */
 function download_file($filename, $mime_type = 'text/csv',
-  $filename_download = 'download', $folder = '.') {
+    $filename_download = 'download', $folder = '.') {
+
   // make sure file is deleted even if user cancels download
   ignore_user_abort(true);
 
@@ -906,8 +907,13 @@ function download_file($filename, $mime_type = 'text/csv',
   header("Content-disposition: attachment; filename=\"".$filename_download."\"");
 
   readfile($folder.'/'.$filename);
+
   // delete file
   unlink($folder.'/'.$filename);
+
+  // delete folder
+  if($folder != "." && $folder != "..")
+    rmdir($folder);
 }
 
 /**
@@ -918,16 +924,19 @@ function download_file($filename, $mime_type = 'text/csv',
   * @param $folder  Foldername to delete content in
   *
   */
-function delete_folder_content($folder) {
-  if($folder == null || $folder == ".")
-    return;
+function delete_temp_folder() {
 
   // Get filelist from target folder
-  $files = glob($folder.'/*');
-  // Iterate through filelist and delete all except hidden files (e.g. .htaccess)
+  $files = glob('export_temp-*/*');
+
+  // Iterate through filelist and delete all (except hidden files e.g. .htaccess)
   foreach($files as $file)
     if(is_file($file))
       unlink($file);
+
+  // Delete folder(s)
+  foreach(glob('export_temp-*') as $temp_dir)
+    rmdir($temp_dir);
 }
 
 /**
@@ -1501,38 +1510,6 @@ function format_size($value, $option = null) {
   $e = floor(log($value, 1024));
 
   return number_format(round($value/pow(1024, $e), 1),1).' '.$s[$e];
-}
-
-/**
-  * Source of the following function 'random_str':
-  * https://stackoverflow.com/questions/4356289/php-random-string-generator/31107425#31107425
-  *
-  * Generate a random string, using a cryptographically secure
-  * pseudorandom number generator (random_int)
-  *
-  * This function uses type hints now (PHP 7+ only), but it was originally
-  * written for PHP 5 as well.
-  *
-  * For PHP 7, random_int is a PHP core function
-  * For PHP 5.x, depends on https://github.com/paragonie/random_compat
-  *
-  * @param int $length      How many characters do we want?
-  * @param string $keyspace A string of all possible characters
-  *                         to select from
-  * @return string
-  *
-  */
-function random_str(
-  int $length = 64,
-  string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  ): string {
-    if ($length < 1)
-      throw new \RangeException("Length must be a positive integer");
-    $pieces = [];
-    $max = mb_strlen($keyspace, '8bit') - 1;
-    for ($i = 0; $i < $length; ++$i)
-      $pieces []= $keyspace[random_int(0, $max)];
-    return implode('', $pieces);
 }
 
 function set_security_headers() {

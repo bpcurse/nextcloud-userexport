@@ -4,7 +4,7 @@
   $active_page = "index";
 
   require_once 'functions.php';
-  include_once 'config.php';
+  include 'config.php';
 
   session_secure_start();
 
@@ -19,13 +19,28 @@
     ?? $target_url;
   $user_name = $_GET['user'] ?? $user_name;
   $user_pass = $_GET['pass'] ?? $user_pass;
-  $_SESSION['access_token_provided'] = $_GET['access_token'] ?? null;
 
   // Set UI language to config value or to english (en), if it is not configured
   $_SESSION['language'] = $language ?? 'en';
 
   // Include language file
   require_once 'l10n/'.$_SESSION['language'].'.php';
+
+  // Check access_token if set and supplied
+  if($access_token) {
+
+    if(!$_SESSION['access_token_provided'])
+      $_SESSION['access_token_provided'] = $_GET['access_token'];
+
+    if($_SESSION['access_token_provided'] !== $access_token) {
+      sleep(1); // Primitive pseudo brute-force protection
+      unset($_SESSION['access_token_provided']);
+      exit('ERROR: Authentication failed, wrong access token supplied.
+          <br><br>Token needs to be supplied through GET parameter e.g. https://export.cloud.example.com?access_token=tokengoeshere and is set in config.php
+          <br>(This has nothing to do with your Nextcloud user credentials)');
+    }
+
+  }
 
   /**
     * Check if data choices have been submitted (GET parameter 'select'),
@@ -43,21 +58,6 @@
   set_data_options();
 
   if($_SERVER['REQUEST_METHOD'] == 'POST') {
-
-    // Check access_token if set and supplied
-    if($access_token) {
-
-      if (!$_SESSION['access_token_provided'])
-        $_SESSION['access_token_provided'] = $_POST['access_token'];
-
-      if($_SESSION['access_token_provided'] !== $access_token) {
-        sleep(1); // Primitive pseudo brute-force protection
-        exit('ERROR: Authentication failed, wrong access token supplied.
-            <br><br>This has nothing to do with your Nextcloud user credentials.');
-      }
-
-    }
-
 
     // Transfer $_POST values to $_SESSION variables for further use
     $_SESSION['user_name'] = $_POST['user_name'];

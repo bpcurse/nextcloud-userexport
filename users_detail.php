@@ -47,7 +47,7 @@
     $filename = build_csv_file(select_data_all_users(
         $_SESSION['data_choices'], $userlist, 'csv'), $_POST['csv_headers']);
 
-    download_file($filename, $mime_type, $filename_download, TEMP_FOLDER);
+    download_file($filename, $mime_type, $filename_download, $_SESSION['temp_folder']);
     exit();
   }
 
