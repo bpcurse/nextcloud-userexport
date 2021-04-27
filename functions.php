@@ -671,6 +671,7 @@ function select_group_members($group, $format = null) {
   */
 function calculate_quota() {
 
+  // Reset values
   $_SESSION['quota_total_assigned'] = 0;
   $_SESSION['quota_total_free'] = 0;
   $_SESSION['quota_total_used'] = 0;
@@ -693,6 +694,11 @@ function calculate_quota() {
   }
 
   if($_SESSION['groupfolders_active'])
+
+    // Reset values
+    $_SESSION['quota_groupfolders_used'] = 0;
+    $_SESSION['quota_groupfolders_assigned'] = 0;
+
     foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
       $_SESSION['quota_groupfolders_used'] += $groupfolder['size'];
       $_SESSION['quota_groupfolders_assigned'] += $groupfolder['quota'];
