@@ -81,10 +81,13 @@
                 <input type='checkbox' name='filter_group_choice' value='set_filter'"
                     .check_and_set_filter('group').">
                 <label for='filter_group_choice'>".L10N_GROUP."</label>
-                <select name='filter_group'>
-                  <option value='' selected>-- ".L10N_SELECT_GROUP." --</option>";
-                  foreach($_SESSION['grouplist'] as $item)
-                    echo "<option value='$item'>$item</option>";
+                <select name='filter_group'>";
+                  foreach($_SESSION['grouplist'] as $item) {
+                    $selected = $item == $_SESSION['filter_group']
+                        ? ' selected'
+                        : '';
+                    echo "<option value='$item'$selected>$item</option>";
+                  }
           echo "</select>
             </td>
           </tr><tr>
