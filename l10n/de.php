@@ -65,15 +65,16 @@
   define('L10N_LOGOUT', 'Abmelden');
   define('L10N_NEXTCLOUD', 'Nextcloud');
   define('L10N_VERSION', 'Version');
-  define('L10N_DATA_RETRIEVED', 'Daten abgerufen'); // Effective / as of {time/date}
+  define('L10N_DATA_RETRIEVED', 'Daten abgerufen');
   define('L10N_SEND_AS','Senden als:');
   define('L10N_SEND_TO','Senden an:');
   define('L10N_ALL_USERS','Alle Benutzer');
   define('L10N_FILTER_BY','Filtern nach:');
+  define('L10N_FILTERED_BY','gefiltert nach');
   define('L10N_SELECT_GROUP','Gruppe auswählen');
   define('L10N_LAST_LOGIN_BETWEEN','Letzte Anmeldung zwischen');
   define('L10N_AND','und');
-  define('L10N_DISK_SPACE_QUOTA','Speicherplatz-Quota');
+  define('L10N_DISK_SPACE','Speicherplatz');
   define('L10N_YES','Ja');
   define('L10N_NO','Nein');
   define('L10N_COLUMN_HEADERS','Spaltenüberschriften');
@@ -81,3 +82,13 @@
   define('L10N_FROM','von');
   define('L10N_UNTIL','bis');
   define('L10N_TODAY','heute');
+  define('L10N_EXECUTION_TIMES','Ausführungszeiten');
+  define('L10N_FETCH_USERLIST','Benutzerliste holen');
+  define('L10N_FETCH_GROUPLIST','Gruppenliste holen');
+  define('L10N_FETCH_GROUPFOLDERS','Gruppenordner holen');
+  define('L10N_FETCH_USERDATA','Benutzerdaten holen');
+  define('L10N_ACCESS_TOKEN','Zugangstoken');
+  define('L10N_HTTPS_STRICT_MODE','Die HTTPS_STRICT Option wurde ausgewählt, unverschlüsseltes http:// kann auch mit !http:// nicht erzwungen werden.<br>Diese Einstellung kann in der config.php Datei geändert werden.');
+  define('L10N_USED','genutzt');
+  define('L10N_ASSIGNED','zugeordnet');
+  define('L10N_FREE','frei');

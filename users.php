@@ -76,32 +76,36 @@
           </table><br><br>
           <u>".L10N_FILTER_BY."</u><br><br>
           <table>
-          <tr><td style='padding-bottom: 0.3em;'>
-                <input type='checkbox' name='filter_group_choice' value='set_filter'";
-                check_and_set_filter('group');
-          echo ">
+          <tr>
+            <td style='padding-bottom: 0.3em;'>
+                <input type='checkbox' name='filter_group_choice' value='set_filter'"
+                    .check_and_set_filter('group').">
                 <label for='filter_group_choice'>".L10N_GROUP."</label>
                 <select name='filter_group'>
                   <option value='' selected>-- ".L10N_SELECT_GROUP." --</option>";
                   foreach($_SESSION['grouplist'] as $item)
                     echo "<option value='$item'>$item</option>";
-          echo "</select></td></tr>
-          <tr><td><input type='checkbox' name='filter_lastLogin_choice' value='set_filter'";
-                check_and_set_filter('lastLogin');
-            echo ">
-                <label for='filter_lastLogin_choice'>".L10N_LAST_LOGIN_BETWEEN." </label>
-                <input type=date name='filter_ll_since'>
-                ".L10N_AND."
-                <input type=date name='filter_ll_before' value='".date('Y-m-d')."'></td>
+          echo "</select>
+            </td>
+          </tr><tr>
+            <td>
+              <input type='checkbox' name='filter_lastLogin_choice' value='set_filter'"
+                  .check_and_set_filter('lastLogin').">
+              <label for='filter_lastLogin_choice'>".L10N_LAST_LOGIN_BETWEEN." </label>
+              <input type=date name='filter_ll_since'>
+              ".L10N_AND."
+              <input type=date name='filter_ll_before' value='".date('Y-m-d')."'>
+            </td>
           </tr>
-          <tr><td><input type='checkbox' name='filter_quota_choice' value='set_filter'";
-                check_and_set_filter('quota');
-            echo ">
-                <label for='filter_quota_choice'>".L10N_DISK_SPACE_QUOTA." </label>
+          <tr>
+            <td>
+              <input type='checkbox' name='filter_quota_choice' value='set_filter'"
+                  .check_and_set_filter('quota').">
+                <label for='filter_quota_choice'>".L10N_DISK_SPACE." </label>
                 <select name='type_quota'>
-                  <option value='used'>used</option>
-                  <option value='quota'>assigned</option>
-                  <option value='free'>free</option>
+                  <option value='used'>".L10N_USED."</option>
+                  <option value='quota'>".L10N_ASSIGNED."</option>
+                  <option value='free'>".L10N_FREE."</option>
                 </select>
                 <select name='compare_quota'>
                   <option value='gt'>&gt;</option>
@@ -111,6 +115,7 @@
                 </select>
                 <input style='width: 6em;' type='number' min=0.5 step=0.5
                     name='filter_quota' value=$filter_quota> GB
+            </td>
           </tr>
           </table>";
 
