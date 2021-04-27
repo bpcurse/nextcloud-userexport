@@ -1563,11 +1563,14 @@ function logout() {
 
 function check_and_set_filter($filter) {
 
-  if(!$_SESSION['filters_set'])
-    return;
+  include 'config.php';
 
   switch($filter) {
     case 'group':
+      if($filter_group && !$_SESSION['group_filter_checked_by_config']) {
+        $_SESSION['group_filter_checked_by_config'] = true;
+        return " checked";
+      }
       $chosen_filter = 'filter_group_choice';
       break;
     case 'lastLogin':
@@ -1577,6 +1580,9 @@ function check_and_set_filter($filter) {
       $chosen_filter = 'filter_quota_choice';
       break;
   }
+
+  if(!$_SESSION['filters_set'])
+    return;
 
   if(in_array($chosen_filter, $_SESSION['filters_set']))
     return " checked";

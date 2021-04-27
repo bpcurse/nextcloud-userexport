@@ -16,14 +16,20 @@
   * Security settings
   */
 
-// Security token that must be provided to access the login page (either as GET parameter or manually)
+/**
+* Security token that must be provided to access the login page (either as GET parameter or manually)
+*/
 // $access_token = 'some_long_random_string';
 
-// Disallow insecure http:// connections even if !http:// override option has been specified. DEFAULT 'false'
+/**
+* Disallow insecure http:// connections even if !http:// override option has been specified. DEFAULT 'false'
+*/
 $https_strict = false;
 
-// Allowed frame ancestors e.g. your cloud URL incl. https:// (if you want to open the script from external sites app)
-// Multiple URLs can be set by separating them with a space
+/**
+* Allowed frame ancestors e.g. your cloud URL incl. https:// (if you want to open the script from external sites app)
+* Multiple URLs can be set by separating them with a space
+*/
 // $frame_ancestors = 'https://cloud.example.com';
 
 /**
@@ -49,6 +55,16 @@ $language = 'en';
   *
   */
 $data_choices = ['id', 'displayname', 'email', 'lastLogin'];
+
+/**
+  * Set default group to preselect
+  *
+  * DEFAULT unset
+  *
+  * filter_group has to be an exact match with an existing groupname
+  *
+  */
+// $filter_group = 'groupname';
 
 /**
   * Define +/- tolerance for disk space "almost equal to" filters in a
