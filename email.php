@@ -81,10 +81,13 @@
                 <input type='radio' name='filter_group_choice' value='set_filter'"
                     .check_and_set_filter('group').">
                   <label for='filter_group_choice'>".L10N_GROUP."</label>
-                <select name='filter_group'>
-                  <option value='' selected>-- ".L10N_SELECT_GROUP." --</option>";
-                  foreach($_SESSION['grouplist'] as $item)
-                    echo "<option value='$item'>$item</option>";
+                <select name='filter_group'>";
+                  foreach($_SESSION['grouplist'] as $item) {
+                    $selected = $item == $_SESSION['filter_group']
+                        ? ' selected'
+                        : '';
+                    echo "<option value='$item'$selected>$item</option>";
+                  }
           echo "</select></td></tr>
             <tr>
               <td><u>".L10N_FILTER_BY."<u></td>
@@ -92,9 +95,20 @@
                 <input type='checkbox' name='filter_lastLogin_choice' value='set_filter'"
                     .check_and_set_filter('lastLogin').">
                   <label for='filter_lastLogin_choice'>".L10N_LAST_LOGIN_BETWEEN." </label>
-                <input type=date name='filter_ll_since'>
-                  ".L10N_AND."
-                <input type=date name='filter_ll_before' value='".date('Y-m-d')."'>
+                <input type=date name='filter_ll_since'";
+
+                  if($_SESSION['filter_ll_since'])
+                    echo " value='{$_SESSION['filter_ll_since']}'";
+
+          echo ">".L10N_AND."
+                <input type=date name='filter_ll_before' value='";
+
+                  if($_SESSION['filter_ll_before'])
+                    echo $_SESSION['filter_ll_before'];
+                  else
+                    echo date('Y-m-d');
+
+          echo "'>
               </td>
             </tr>
             <tr>

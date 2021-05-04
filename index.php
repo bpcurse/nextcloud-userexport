@@ -26,7 +26,9 @@
   // Include language file
   require_once 'l10n/'.$_SESSION['language'].'.php';
 
-  // Check access_token if set and supplied
+  /**
+  * Check access_token if set and supplied
+  */
   if($access_token) {
 
     if(!$_SESSION['access_token_provided'])
@@ -48,11 +50,13 @@
     */
   $_SESSION['data_choices'] = isset($_GET["select"])
     ? explode(",", $_GET["select"])
-    : ['id', 'displayname', 'email', 'lastLogin'];
+    : $data_choices;
   // Check if export type has been set (GET parameter 'type'), else default to 'table'
   $_SESSION['export_type'] = $_GET['type'] ?? 'table';
   // Check if message mode has been set (GET parameter 'msg_mode'), else default to 'bcc'
   $_SESSION['message_mode'] = $_GET['msg_mode'] ?? 'bcc';
+  // Check if group has been selected for filtering
+  $_SESSION['filter_group'] = $_GET['filter_group'] ?? $filter_group;
 
   // Populate session array 'data_options' with all data options that can be selected
   set_data_options();

@@ -671,6 +671,7 @@ function select_group_members($group, $format = null) {
   */
 function calculate_quota() {
 
+  // Reset values
   $_SESSION['quota_total_assigned'] = 0;
   $_SESSION['quota_total_free'] = 0;
   $_SESSION['quota_total_used'] = 0;
@@ -693,6 +694,11 @@ function calculate_quota() {
   }
 
   if($_SESSION['groupfolders_active'])
+
+    // Reset values
+    $_SESSION['quota_groupfolders_used'] = 0;
+    $_SESSION['quota_groupfolders_assigned'] = 0;
+
     foreach($_SESSION['raw_groupfolders_data']['ocs']['data'] as $groupfolder) {
       $_SESSION['quota_groupfolders_used'] += $groupfolder['size'];
       $_SESSION['quota_groupfolders_assigned'] += $groupfolder['quota'];
@@ -950,9 +956,9 @@ function delete_temp_folder() {
   *
   */
 function build_table_user_data($user_data) {
-  $data_choices = $_SESSION['data_choices'];
 
   require 'config.php';
+  $data_choices = $_SESSION['data_choices'];
 
   if($_SESSION['filters_set']) {
     echo count($user_data)." ".L10N_USERS." ".L10N_FILTERED_BY.
@@ -1203,7 +1209,7 @@ function build_table_groupfolder_data() {
 
     if($perc_used < $negligible_limit_percent)
       $perc_used = "< ".$negligible_limit_percent." %";
-    else
+    elseif ($perc_used !== "N/A")
       $perc_used .= " %";
 
     $color_text_perc = ($perc_used === "N/A"
@@ -1557,11 +1563,14 @@ function logout() {
 
 function check_and_set_filter($filter) {
 
-  if(!$_SESSION['filters_set'])
-    return;
+  include 'config.php';
 
   switch($filter) {
     case 'group':
+      if($filter_group && !$_SESSION['group_filter_checked_by_config']) {
+        $_SESSION['group_filter_checked_by_config'] = true;
+        return " checked";
+      }
       $chosen_filter = 'filter_group_choice';
       break;
     case 'lastLogin':
@@ -1571,6 +1580,9 @@ function check_and_set_filter($filter) {
       $chosen_filter = 'filter_quota_choice';
       break;
   }
+
+  if(!$_SESSION['filters_set'])
+    return;
 
   if(in_array($chosen_filter, $_SESSION['filters_set']))
     return " checked";
