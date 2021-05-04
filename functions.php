@@ -1209,7 +1209,7 @@ function build_table_groupfolder_data() {
 
     if($perc_used < $negligible_limit_percent)
       $perc_used = "< ".$negligible_limit_percent." %";
-    else
+    elseif ($perc_used !== "N/A")
       $perc_used .= " %";
 
     $color_text_perc = ($perc_used === "N/A"
