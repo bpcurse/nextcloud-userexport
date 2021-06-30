@@ -675,21 +675,28 @@ function calculate_quota() {
   $_SESSION['quota_total_assigned'] = 0;
   $_SESSION['quota_total_free'] = 0;
   $_SESSION['quota_total_used'] = 0;
+  $_SESSION['quota_total_assigned_infin'] = false;
 
   // Loop through raw user data and add quota item values to $_SESSION variables
   foreach($_SESSION['raw_user_data'] as $user_data) {
 
     $_SESSION['quota_total_used'] += $user_data['ocs']['data']['quota']['used'];
-    $_SESSION['quota_total_free'] +=
-        $user_data['ocs']['data']['quota']['free'];
 
     $quota_assigned = $user_data['ocs']['data']['quota']['quota'];
 
+    // Add single user value "quota" to sum if not set to unlimited
     $_SESSION['quota_total_assigned'] += $quota_assigned > 0
         ? $quota_assigned
         : 0;
 
-    $_SESSION['quota_total_assigned_infin'] = ($quota_assigned == -3);
+    // Add single user value "quota free" to sum if quota is not set to unlimited
+    $_SESSION['quota_total_free'] += $quota_assigned > 0
+        ? $user_data['ocs']['data']['quota']['free']
+        : 0;
+
+    // Set $_SESSION variable to true if unlimited quota is detected
+    if($quota_assigned == -3)
+      $_SESSION['quota_total_assigned_infin'] = true;
 
   }
 
@@ -738,6 +745,7 @@ function print_status_overview($scope = "quick") {
     : "";
 
   if($scope == "quick") {
+
     echo "<hr>
       <a class='no_show_link' href='{$_SESSION['target_url']}' target='_blank'>"
       .removehttpx($_SESSION['target_url'])."</a>
@@ -757,7 +765,8 @@ function print_status_overview($scope = "quick") {
     <hr>
     <table class='status'>
       <tr>
-        <td colspan=2 style='min-width: 15em;'><b>Overall count</b></td>
+        <td colspan='2' style='min-width: 15em;'><b>".L10N_OVERALL_FIGURES."</b>
+        </td>
       </tr>
       <tr>
         <td>".L10N_USERS."</td>
@@ -775,23 +784,23 @@ function print_status_overview($scope = "quick") {
       </tr>";
 
     echo "
-    </table>
-    <hr>
-    <table class='status'>
       <tr>
-        <td colspan=2 style='min-width: 15em;'><b>".L10N_USERS."</b></td>
+        <td colspan='2'><hr></td>
       </tr>
       <tr>
-        <td>".L10N_QUOTA_USED."</td>
+        <td colspan=2 style='min-width: 15em;'><b>".L10N_ALL_USERS."</b></td>
+      </tr>
+      <tr>
+        <td>".L10N_TOTAL_QUOTA_USED."</td>
         <td>".format_size($_SESSION['quota_total_used'])."</td>
       </tr>
       <tr>
-        <td>".L10N_QUOTA."</td>
+        <td>".L10N_TOTAL_QUOTA_ASSIGNED."</td>
         <td>".format_size($_SESSION['quota_total_assigned'])."</td>
         <td>$infinite</td>
       </tr>
       <tr>
-        <td>".L10N_QUOTA_FREE."</td>
+        <td>".L10N_TOTAL_QUOTA_FREE."</td>
         <td>".format_size($_SESSION['quota_total_free'])."</td>
       </tr>";
 
@@ -803,16 +812,17 @@ function print_status_overview($scope = "quick") {
             <td colspan=2 style='min-width: 15em;'><b>".L10N_GROUPFOLDERS."</b></td>
           </tr>
           <tr>
-            <td>".L10N_QUOTA_USED."</td>
+            <td>".L10N_TOTAL_QUOTA_USED."</td>
             <td>".format_size($_SESSION['quota_groupfolders_used'])."</td>
           </tr>
           <tr>
-            <td>".L10N_QUOTA."</td>
+            <td>".L10N_TOTAL_QUOTA_ASSIGNED."</td>
             <td>".format_size($_SESSION['quota_groupfolders_assigned'])."</td>
-          </tr>
-        </table>";
+          </tr>";
 
-    echo "<hr><table class='status'>
+    echo "<tr>
+            <td colspan='2'><hr></td>
+          </tr>
           <tr>
             <td colspan=2 style='min-width: 15em;'><b>".L10N_EXECUTION_TIMES."</b></td>
           </tr>
@@ -832,8 +842,15 @@ function print_status_overview($scope = "quick") {
             <td>".L10N_FETCH_USERDATA."</td>
             <td>{$_SESSION['time_fetch_userdata']} s</td>
           </tr>
-          </table><hr>"
-          .L10N_DATA_RETRIEVED." {$_SESSION['timestamp_data']}";
+          <tr>
+            <td colspan='2'><hr></td>
+          </tr>
+          <tr>
+            <td colspan='3' style='font-size: smaller;'>"
+              .L10N_DATA_RETRIEVED." {$_SESSION['timestamp_data']}
+            </td>
+          </tr>
+          </table>";
   }
 }
 

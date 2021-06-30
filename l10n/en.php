@@ -43,6 +43,9 @@
   define('L10N_QUOTA', 'Quota');
   define('L10N_QUOTA_USED', 'Quota used');
   define('L10N_QUOTA_FREE', 'Quota free');
+  define('L10N_TOTAL_QUOTA_ASSIGNED', 'Total disk space quota assigned');
+  define('L10N_TOTAL_QUOTA_USED', 'Total disk space used');
+  define('L10N_TOTAL_QUOTA_FREE', 'Total disk space quota free');
   define('L10N_SUBADMIN', 'Subadmin');
   define('L10N_LANGUAGE', 'Language');
   define('L10N_LOCALE', 'Locale');
@@ -93,3 +96,4 @@
   define('L10N_USED','used');
   define('L10N_ASSIGNED','assigned');
   define('L10N_FREE','free');
+  define('L10N_OVERALL_FIGURES','Overall figures');

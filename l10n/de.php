@@ -42,6 +42,9 @@
   define('L10N_QUOTA', 'Kontingent');
   define('L10N_QUOTA_USED', 'Genutzt');
   define('L10N_QUOTA_FREE', 'Verfügbar');
+  define('L10N_TOTAL_QUOTA_ASSIGNED', 'Gesamtes Speicherkontingent');
+  define('L10N_TOTAL_QUOTA_USED', 'Gesamter genutzter Speicher');
+  define('L10N_TOTAL_QUOTA_FREE', 'Gesamtes verfügbares Speicherkontingent');
   define('L10N_SUBADMIN', 'Subadmin');
   define('L10N_LANGUAGE', 'Sprache');
   define('L10N_LOCALE', 'Gebietsschema');
@@ -92,3 +95,4 @@
   define('L10N_USED','genutzt');
   define('L10N_ASSIGNED','zugeordnet');
   define('L10N_FREE','frei');
+  define('L10N_OVERALL_FIGURES','Allgemeine Zahlen');
