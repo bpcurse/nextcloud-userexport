@@ -264,6 +264,10 @@ function fetch_userlist() {
   // Calculate time for function execution and save as $_SESSION variable
   $_SESSION['time_fetch_userlist'] = round(microtime(true) - $timestamp_start,1);
 
+  // DEBUG
+  $_SESSION['debug_log'] = date(DATE_ATOM)." Number of users according to userID list initially received from server: ".count($users).PHP_EOL
+                          .date(DATE_ATOM)." Time needed to fetch the userlist: ".$_SESSION['time_fetch_userlist']." s".PHP_EOL;
+
 }
 
 /**
@@ -308,46 +312,107 @@ function fetch_grouplist() {
   */
 function fetch_raw_user_data() {
 
+  include 'config.php';
+
   // Log start timestamp
   $timestamp_start = microtime(true);
 
-  // Initialize cURL multi handle for parallel requests
-  $mh = curl_multi_init();
+  if($user_chunk_size !== false && count($_SESSION['userlist']) > $user_chunk_size) {
 
-  // Iterate through userlist
-  foreach($_SESSION['userlist'] as $key => $user_id) {
-    // Initialize cURL handle
-    $curl_requests[$key] = curl_init();
-    // Set cURL options for this handle
-    set_curl_options($curl_requests[$key], 'users', $user_id);
-    // Add created handle to multi handle list
-    curl_multi_add_handle($mh, $curl_requests[$key]);
+    $userlist = array_chunk($_SESSION['userlist'], $user_chunk_size);
+    $chunks = count($userlist);
+
+  } else {
+
+    $chunks = 1;
+
   }
 
-  /**
+  // DEBUG
+  $user_chunk_size_log = $user_chunk_size === false ? "not set" : $user_chunk_size;
+  $_SESSION['debug_log'] .= date(DATE_ATOM)
+                          ." Config option 'user_chunk_size' value: $user_chunk_size_log"
+                          .PHP_EOL.PHP_EOL;
+
+  for($chunk = 0; $chunk < $chunks; $chunk++) {
+
+    $userlist_chunk = $chunks === 1 ? $_SESSION['userlist'] : $userlist[$chunk];
+
+    // DEBUG
+    $_SESSION['debug_log'] .= date(DATE_ATOM)." Now processing chunk #$chunk ...".PHP_EOL.PHP_EOL;
+    $i = 0;
+
+    // Initialize cURL multi handle for parallel requests
+    $mh = curl_multi_init();
+
+    // Clear array variable
+    unset($curl_requests);
+
+    // Iterate through userlist
+    foreach($userlist_chunk as $key => $user_id) {
+
+      // DEBUG
+      $_SESSION['debug_log'] .= date(DATE_ATOM)." [$key] Adding user ID to worklist: $user_id".PHP_EOL;
+
+      // Initialize cURL handle
+      $curl_requests[$key] = curl_init();
+      // Set cURL options for this handle
+      set_curl_options($curl_requests[$key], 'users', $user_id);
+      // Add created handle to multi handle list
+      curl_multi_add_handle($mh, $curl_requests[$key]);
+
+      // DEBUG
+      $i++;
+
+    }
+
+    // DEBUG
+    $_SESSION['debug_log'] .= PHP_EOL.date(DATE_ATOM)." Added $i users to worklist".PHP_EOL.PHP_EOL;
+
+    /**
     * Fetch user data via cURL using parallel connections (curl_multi_*)
     */
-  do {
-    $status = curl_multi_exec($mh, $active);
-    if ($active) {
-      curl_multi_select($mh);
-    }
-  } while ($active && $status == CURLM_OK);
+    do {
+      $status = curl_multi_exec($mh, $active);
+      if ($active) {
+        curl_multi_select($mh);
+      }
+    } while ($active && $status == CURLM_OK);
 
-  /**
+    // DEBUG
+    if($status != CURLM_OK)
+      $_SESSION['debug_log'] .= date(DATE_ATOM)." ! CURL ERROR: ".curl_multi_strerror($status).PHP_EOL;
+
+    /**
     * Save content to $selected_user_data
     */
-  //Iterate through $curl_requests (the cURL handle list)
-  foreach ($curl_requests as $key => $request) {
-    // Get content of one user data request, store in $single_user_data
-    $raw_user_data[] =
-      json_decode(curl_multi_getcontent($curl_requests[$key]),true);
 
-    // Remove processed cURL handle
-    curl_multi_remove_handle($mh, $curl_requests[$key]);
+    // DEBUG
+    $i=0;
+
+    //Iterate through $curl_requests (the cURL handle list)
+    foreach ($curl_requests as $key => $request) {
+
+      // DEBUG
+      $_SESSION['debug_log'] .= date(DATE_ATOM)." [$key] Fetching individual user data...".PHP_EOL;
+
+      // Get content of one user data request, store in $single_user_data
+      $raw_user_data[] =
+        json_decode(curl_multi_getcontent($curl_requests[$key]),true);
+
+      // Remove processed cURL handle
+      curl_multi_remove_handle($mh, $curl_requests[$key]);
+
+      $i++;
+
+    }
+
+    // DEBUG
+    $_SESSION['debug_log'] .= PHP_EOL.date(DATE_ATOM)." Performed $i user data queries".PHP_EOL.PHP_EOL;
+
+    // Drop cURL multi handle
+    curl_multi_close($mh);
   }
-  // Drop cURL multi handle
-  curl_multi_close($mh);
 
   // Calculate time for function execution and save as $_SESSION variable
   $_SESSION['time_fetch_userdata'] = round(microtime(true) - $timestamp_start,1);
@@ -358,6 +423,22 @@ function fetch_raw_user_data() {
 
   // Save timestamp when data transfer was finished to $_SESSION variable
   $_SESSION['timestamp_data'] = date(DATE_ATOM);
+
+  // DEBUG
+  $_SESSION['debug_log'] .= date(DATE_ATOM)." Raw user datasets (count): ".count($raw_user_data).PHP_EOL.PHP_EOL;
+  $_SESSION['debug_log'] .= date(DATE_ATOM)." Data was transfered in $chunks chunk(s)".PHP_EOL.PHP_EOL;
+  $_SESSION['debug_log'] .= date(DATE_ATOM)." Net time spent transferring user details: {$_SESSION['time_fetch_userdata']} s".PHP_EOL;
+  $_SESSION['debug_log'] .= date(DATE_ATOM)." Total time: {$_SESSION['time_total']} s".PHP_EOL;
+
+  // Delete old log file if found
+  if(file_exists("debug.log"))
+    unlink("debug.log");
+
+  if($debug_log === true) {
+    $debug_log_file = fopen("debug.log", "w");
+    fwrite($debug_log_file, $_SESSION['debug_log']);
+    fclose($debug_log_file);
+  }
 
   return $raw_user_data;
 }
@@ -613,6 +694,10 @@ function select_data_all_users_filter($filter_by, $conditions,
   return $selected_user_ids;
   }
 
+/**
+* No description yet TODO
+*
+*/
 function filter_users() {
 
   if($_SESSION['filters_set']) {
@@ -1239,6 +1324,10 @@ function build_table_groupfolder_data() {
   return $table_groupfolder_data_headers . $table_groupfolder_data;
 }
 
+/**
+* No description yet TODO
+*
+*/
 function filter_email() {
 
   $uids_g = $_POST['recipients'] == 'group'
@@ -1518,6 +1607,10 @@ function format_size($value, $option = null) {
   return number_format(round($value/pow(1024, $e), 1),1).' '.$s[$e];
 }
 
+/**
+* No description yet TODO
+*
+*/
 function set_security_headers() {
 
   include 'config.php';
@@ -1529,6 +1622,10 @@ function set_security_headers() {
 
 }
 
+/**
+* No description yet TODO
+*
+*/
 function session_secure_start() {
 
   session_set_cookie_params(
@@ -1537,6 +1634,10 @@ function session_secure_start() {
 
 }
 
+/**
+* No description yet TODO
+*
+*/
 function logout() {
 
   unset($_SESSION['data_choices']);
@@ -1561,6 +1662,10 @@ function logout() {
 
 }
 
+/**
+* No description yet TODO
+*
+*/
 function check_and_set_filter($filter) {
 
   include 'config.php';
