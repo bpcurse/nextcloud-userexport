@@ -37,7 +37,7 @@
 
   <li style="float:right;"><a style="font-size: 13px;"
     href="https://github.com/bpcurse/nextcloud-userexport">
-    Nextcloud Userexport v1.2.1</a>
+    Nextcloud Userexport v1.3.0</a>
   </li>
   </ul>
 </div>
