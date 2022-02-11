@@ -265,6 +265,7 @@ function fetch_userlist() {
   $_SESSION['time_fetch_userlist'] = round(microtime(true) - $timestamp_start,1);
 
   // DEBUG
+  unset($_SESSION['debug_errors']);
   $_SESSION['debug_log'] = date(DATE_ATOM)." Number of users according to userID list initially received from server: ".count($users).PHP_EOL
                           .date(DATE_ATOM)." Time needed to fetch the userlist: ".$_SESSION['time_fetch_userlist']." s".PHP_EOL;
 
@@ -321,6 +322,8 @@ function fetch_raw_user_data() {
 
     $userlist = array_chunk($_SESSION['userlist'], $user_chunk_size);
     $chunks = count($userlist);
+    // DEBUG
+    $_SESSION['debug_log'] .= date(DATE_ATOM)." User data will be transferred in $chunks chunks";
 
   } else {
 
@@ -331,7 +334,7 @@ function fetch_raw_user_data() {
   // DEBUG
   $user_chunk_size_log = $user_chunk_size === false ? "not set" : $user_chunk_size;
   $_SESSION['debug_log'] .= date(DATE_ATOM)
-                          ." Config option 'user_chunk_size' value: $user_chunk_size_log"
+                          ." Config option 'user_chunk_size' - value is: $user_chunk_size_log"
                           .PHP_EOL.PHP_EOL;
 
   for($chunk = 0; $chunk < $chunks; $chunk++) {
@@ -380,8 +383,12 @@ function fetch_raw_user_data() {
     } while ($active && $status == CURLM_OK);
 
     // DEBUG
-    if($status != CURLM_OK)
-      $_SESSION['debug_log'] .= date(DATE_ATOM)." ! CURL ERROR: ".curl_multi_strerror($status).PHP_EOL;
+    if($status != CURLM_OK) {
+
+      $_SESSION['debug_log'] .= date(DATE_ATOM)." !ERROR cURL: ".curl_multi_strerror($status).PHP_EOL;
+      $_SESSION['debug_errors'] = true;
+
+    }
 
     /**
     * Save content to $selected_user_data
@@ -399,6 +406,16 @@ function fetch_raw_user_data() {
       // Get content of one user data request, store in $single_user_data
       $raw_user_data[] =
         json_decode(curl_multi_getcontent($curl_requests[$key]),true);
+
+      // DEBUG
+      $user_id_received = end($raw_user_data)['ocs']['data']['id'];
+      if(!$user_id_received) {
+
+        $_SESSION['debug_log'] .= date(DATE_ATOM)." [$key] !ERROR: Received empty user id".PHP_EOL;
+        $_SESSION['debug_errors'] = true;
+
+      } else
+        $_SESSION['debug_log'] .= date(DATE_ATOM)." [$key] Received data for user ".$user_id_received.PHP_EOL;
 
       // Remove processed cURL handle
       curl_multi_remove_handle($mh, $curl_requests[$key]);
@@ -431,13 +448,24 @@ function fetch_raw_user_data() {
   $_SESSION['debug_log'] .= date(DATE_ATOM)." Total time: {$_SESSION['time_total']} s".PHP_EOL;
 
   // Delete old log file if found
-  if(file_exists("debug.log"))
+  if(file_exists("debug.log")) {
+
     unlink("debug.log");
+    // DEBUG
+    $_SESSION['debug_log'] .= PHP_EOL.date(DATE_ATOM)." Old log file deleted".PHP_EOL;
+
+  }
+
+  // DEBUG
+  if($_SESSION['debug_errors'])
+    $_SESSION['debug_log'] .= PHP_EOL.date(DATE_ATOM)." AT LEAST ONE ERROR HAS BEEN REPORTED, PLEASE CHECK ABOVE LOG ENTRIES PREPENDED WITH '!ERROR'";
 
   if($debug_log === true) {
+
     $debug_log_file = fopen("debug.log", "w");
     fwrite($debug_log_file, $_SESSION['debug_log']);
     fclose($debug_log_file);
+
   }
 
   return $raw_user_data;
