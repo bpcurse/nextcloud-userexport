@@ -239,9 +239,17 @@ function fetch_userlist() {
   // Log start timestamp
   $timestamp_start = microtime(true);
 
+  // DEBUG
+  $_SESSION['debug_log'] = date(DATE_ATOM)." Started logging...".PHP_EOL.PHP_EOL;
+  unset($_SESSION['debug_errors']);
+
   // Initialize cURL handle to fetch user ID list and set options
   $ch = curl_init();
   set_curl_options($ch, 'users');
+
+  // DEBUG
+  $_SESSION['debug_log'] .= date(DATE_ATOM)." Server: ".$_SESSION['target_url'].PHP_EOL
+                          .date(DATE_ATOM)." Fetching userlist...".PHP_EOL;
 
   // Fetch raw userlist and store user_ids in $users
   $users_raw = json_decode(curl_exec($ch), true);
@@ -254,6 +262,9 @@ function fetch_userlist() {
 
   // Check if the userlist has been received and save user IDs to $users
   if (isset($users_raw['ocs']['data']['users'])) {
+    // DEBUG
+    $_SESSION['debug_log'] .= date(DATE_ATOM)." Userlist received".PHP_EOL.PHP_EOL;
+
     $users = $users_raw['ocs']['data']['users'];
     // Set the session variable 'authenticated' to true to access other pages
     $_SESSION['authenticated'] = true;
@@ -265,8 +276,7 @@ function fetch_userlist() {
   $_SESSION['time_fetch_userlist'] = round(microtime(true) - $timestamp_start,1);
 
   // DEBUG
-  unset($_SESSION['debug_errors']);
-  $_SESSION['debug_log'] = date(DATE_ATOM)." Number of users according to userID list initially received from server: ".count($users).PHP_EOL
+  $_SESSION['debug_log'] .= date(DATE_ATOM)." Number of users according to userID list initially received from server: ".count($users).PHP_EOL
                           .date(DATE_ATOM)." Time needed to fetch the userlist: ".$_SESSION['time_fetch_userlist']." s".PHP_EOL;
 
 }
@@ -318,12 +328,16 @@ function fetch_raw_user_data() {
   // Log start timestamp
   $timestamp_start = microtime(true);
 
+  // DEBUG
+  $user_chunk_size_log = $user_chunk_size === false ? "not set" : $user_chunk_size;
+  $_SESSION['debug_log'] .= date(DATE_ATOM)." Config option 'user_chunk_size': $user_chunk_size_log".PHP_EOL;
+
   if($user_chunk_size !== false && count($_SESSION['userlist']) > $user_chunk_size) {
 
     $userlist = array_chunk($_SESSION['userlist'], $user_chunk_size);
     $chunks = count($userlist);
     // DEBUG
-    $_SESSION['debug_log'] .= date(DATE_ATOM)." User data will be transferred in $chunks chunks";
+    $_SESSION['debug_log'] .= date(DATE_ATOM)." User data will be transferred in $chunks chunks".PHP_EOL;
 
   } else {
 
@@ -331,18 +345,12 @@ function fetch_raw_user_data() {
 
   }
 
-  // DEBUG
-  $user_chunk_size_log = $user_chunk_size === false ? "not set" : $user_chunk_size;
-  $_SESSION['debug_log'] .= date(DATE_ATOM)
-                          ." Config option 'user_chunk_size' - value is: $user_chunk_size_log"
-                          .PHP_EOL.PHP_EOL;
-
   for($chunk = 0; $chunk < $chunks; $chunk++) {
 
     $userlist_chunk = $chunks === 1 ? $_SESSION['userlist'] : $userlist[$chunk];
 
     // DEBUG
-    $_SESSION['debug_log'] .= date(DATE_ATOM)." Now processing chunk #$chunk ...".PHP_EOL.PHP_EOL;
+    $_SESSION['debug_log'] .= PHP_EOL.date(DATE_ATOM)." Now processing chunk #$chunk ...".PHP_EOL.PHP_EOL;
     $i = 0;
 
     // Initialize cURL multi handle for parallel requests
@@ -425,7 +433,7 @@ function fetch_raw_user_data() {
     }
 
     // DEBUG
-    $_SESSION['debug_log'] .= PHP_EOL.date(DATE_ATOM)." Performed $i user data queries".PHP_EOL.PHP_EOL;
+    $_SESSION['debug_log'] .= PHP_EOL.date(DATE_ATOM)." Performed $i user data queries".PHP_EOL;
 
     // Drop cURL multi handle
     curl_multi_close($mh);
@@ -442,7 +450,7 @@ function fetch_raw_user_data() {
   $_SESSION['timestamp_data'] = date(DATE_ATOM);
 
   // DEBUG
-  $_SESSION['debug_log'] .= date(DATE_ATOM)." Raw user datasets (count): ".count($raw_user_data).PHP_EOL.PHP_EOL;
+  $_SESSION['debug_log'] .= PHP_EOL.date(DATE_ATOM)." Raw user datasets (count): ".count($raw_user_data).PHP_EOL.PHP_EOL;
   $_SESSION['debug_log'] .= date(DATE_ATOM)." Data was transfered in $chunks chunk(s)".PHP_EOL.PHP_EOL;
   $_SESSION['debug_log'] .= date(DATE_ATOM)." Net time spent transferring user details: {$_SESSION['time_fetch_userdata']} s".PHP_EOL;
   $_SESSION['debug_log'] .= date(DATE_ATOM)." Total time: {$_SESSION['time_total']} s".PHP_EOL;
