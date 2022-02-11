@@ -800,6 +800,9 @@ function calculate_quota() {
   *
   */
 function print_status_success() {
+
+  include "config.php";
+
   // Output status message after receiving user and group data
   echo '
     <hr>'.L10N_CONNECTED_TO_SERVER.removehttpx($_SESSION['target_url'])
@@ -810,6 +813,10 @@ function print_status_success() {
     .'<br>Timestamp: '.$_SESSION['timestamp_data'].
     '<hr><span style="color: darkgreen;">'
     .L10N_ACCESS_TO_ALL_MENU_OPTIONS.'</span>';
+
+  if($debug_log === true)
+    echo '<br><br><span style="color: red;"><b>'.L10N_DEBUG_MODE_ACTIVE.'</b> '.L10N_LOG_FILE_SAVED.'</span>';
+
 }
 
 /**

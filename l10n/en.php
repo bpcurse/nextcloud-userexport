@@ -93,3 +93,5 @@
   define('L10N_USED','used');
   define('L10N_ASSIGNED','assigned');
   define('L10N_FREE','free');
+  define('L10N_DEBUG_MODE_ACTIVE','Debug mode active!');
+  define('L10N_LOG_FILE_SAVED','A log file has been saved.');

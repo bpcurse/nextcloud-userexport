@@ -232,9 +232,11 @@ $user_chunk_size = false;
 * Debug logging
 *
 * This will create and save a debug file containing detailed information about each step on every run
-* WARNING The debug log file contains sensitive data (user data)
 *
-* OPTIONS true, display_only, false
+* WARNING The debug log file contains user data. Make sure it cannot be accessed directly.
+* The script should delete this file on consecutive runs, although it is recommended to delete it manually ASAP.
+*
+* OPTIONS true, false
 *
 * DEFAULT false
 */
